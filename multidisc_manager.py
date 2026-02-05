@@ -19,9 +19,7 @@ class MultiDiscManagerGUI:
         # Variables
         self.folder_path = tk.StringVar()
         self.operation_mode = tk.StringVar(value="m3u")
-        self.include_cue = tk.BooleanVar(value=True)
-        self.include_chd = tk.BooleanVar(value=True)
-        self.include_bin = tk.BooleanVar(value=False)
+        self.m3u_file_type = tk.StringVar(value="cue")  # Radio button for M3U file type
         
         # CHD conversion options
         self.delete_after_conversion = tk.BooleanVar(value=False)
@@ -127,28 +125,36 @@ class MultiDiscManagerGUI:
         # M3U options
         self.m3u_options = tk.Frame(self.options_frame)
         
-        tk.Label(self.m3u_options, text="File types to include in M3U:", font=("Arial", 9)).pack(anchor="w", pady=5)
+        tk.Label(self.m3u_options, text="Create M3U playlists for:", font=("Arial", 9, "bold")).pack(anchor="w", pady=5)
         
-        tk.Checkbutton(
+        tk.Radiobutton(
             self.m3u_options,
-            text="CUE files (.cue)",
-            variable=self.include_cue,
+            text="CUE files (.cue + .bin)",
+            variable=self.m3u_file_type,
+            value="cue",
             font=("Arial", 9)
-        ).pack(anchor="w", padx=20)
+        ).pack(anchor="w", padx=20, pady=2)
         
-        tk.Checkbutton(
+        tk.Radiobutton(
             self.m3u_options,
             text="CHD files (.chd)",
-            variable=self.include_chd,
+            variable=self.m3u_file_type,
+            value="chd",
             font=("Arial", 9)
-        ).pack(anchor="w", padx=20)
+        ).pack(anchor="w", padx=20, pady=2)
         
-        tk.Checkbutton(
-            self.m3u_options,
-            text="BIN files (.bin)",
-            variable=self.include_bin,
-            font=("Arial", 9)
-        ).pack(anchor="w", padx=20)
+        info_frame = tk.Frame(self.m3u_options, bg="#e3f2fd", relief="ridge", borderwidth=1)
+        info_frame.pack(fill="x", pady=10)
+        
+        tk.Label(
+            info_frame,
+            text="ℹ️ Note: All disc files must be in the same folder and use\n"
+                 "    the same format (all CUE or all CHD, not mixed)",
+            font=("Arial", 8),
+            bg="#e3f2fd",
+            fg="#1976d2",
+            justify="left"
+        ).pack(padx=10, pady=8, anchor="w")
         
         # CHD options
         self.chd_options = tk.Frame(self.options_frame)
@@ -243,7 +249,7 @@ What it does:
 • Keeps your game library organized
 
 Best for:
-• PS1 games like Final Fantasy VII, VIII, IX
+• PS1 multi-disc games
 • PS2 multi-disc games
 • Dreamcast multi-disc games
 • Sega Saturn multi-disc games
@@ -332,10 +338,7 @@ Example:
         
         mode = self.operation_mode.get()
         
-        if mode == "m3u":
-            if not self.include_cue.get() and not self.include_chd.get() and not self.include_bin.get():
-                messagebox.showwarning("No File Types", "Please select at least one file type!")
-                return
+        # No validation needed for M3U mode anymore (radio buttons ensure one is selected)
         
         # Clear log
         self.log_text.delete(1.0, tk.END)
@@ -499,35 +502,38 @@ Example:
     def find_multidisc_games(self, folder):
         """Scan folder for multi-disc games and group them."""
         games = {}
-        extensions = []
         
-        if self.include_cue.get():
-            extensions.append("*.cue")
-        if self.include_chd.get():
-            extensions.append("*.chd")
-        if self.include_bin.get():
-            extensions.append("*.bin")
+        # Get selected file type
+        file_type = self.m3u_file_type.get()
+        extension = "*.cue" if file_type == "cue" else "*.chd"
         
-        self.log(f"Scanning for file types: {', '.join(extensions)}")
+        self.log(f"Scanning for {extension} files only")
         self.log("-" * 60)
         
-        for ext_pattern in extensions:
-            files = list(Path(folder).glob(ext_pattern))
-            self.log(f"Found {len(files)} {ext_pattern} file(s)")
+        files = list(Path(folder).glob(extension))
+        self.log(f"Found {len(files)} {extension} file(s)")
+        
+        for file in files:
+            filename = file.name
+            game_name, disc_num = self.extract_game_info(filename)
             
-            for file in files:
-                filename = file.name
-                game_name, disc_num = self.extract_game_info(filename)
-                
-                if game_name and disc_num:
-                    if game_name not in games:
-                        games[game_name] = []
-                    games[game_name].append((disc_num, filename))
+            if game_name and disc_num:
+                if game_name not in games:
+                    games[game_name] = []
+                games[game_name].append((disc_num, filename))
         
         self.log("-" * 60 + "\n")
         
-        # Filter only games with multiple discs
-        multidisc_games = {name: files for name, files in games.items() if len(files) > 1}
+        # Filter only games with multiple discs and verify all discs use same format
+        multidisc_games = {}
+        for name, files in games.items():
+            if len(files) > 1:
+                # Check if all files have the same extension
+                extensions = set(os.path.splitext(f[1])[1].lower() for f in files)
+                if len(extensions) == 1:
+                    multidisc_games[name] = files
+                else:
+                    self.log(f"⚠️  Skipping '{name}' - mixed formats detected (discs use different file types)")
         
         # Sort disc files by disc number
         for game_name in multidisc_games:
