@@ -25,7 +25,94 @@ class MultiDiscManagerGUI:
         self.delete_after_conversion = tk.BooleanVar(value=False)
         
         self.create_widgets()
-        self.update_options_visibility()
+    
+    def update_status(self, message, progress=None, total=None):
+        """Update the status label and progress bar"""
+        self.status_label.config(text=message)
+        
+        if progress is not None and total is not None and total > 0:
+            percentage = int((progress / total) * 100)
+            self.progress['value'] = percentage
+            self.progress_text.config(text=f"{percentage}% ({progress}/{total})")
+        
+        self.root.update_idletasks()
+    
+    def show_processing_ui(self):
+        """Show status and progress during processing"""
+        self.status_frame.pack(pady=10, padx=20, fill="x")
+        self.progress_frame.pack(pady=5)
+        self.progress['value'] = 0
+        self.progress_text.config(text="0%")
+    
+    def hide_processing_ui(self):
+        """Hide status and progress"""
+        self.status_frame.pack_forget()
+        self.progress_frame.pack_forget()
+    
+    def show_finished_state(self, success=True):
+        """Show completion state"""
+        if success:
+            self.status_label.config(
+                text="✅ All operations completed successfully!",
+                bg="#c8e6c9",
+                fg="#1b5e20"
+            )
+            self.process_btn.config(
+                text="✅ Finished - Process More?",
+                bg="#4CAF50",
+                state="normal"
+            )
+        else:
+            self.status_label.config(
+                text="⚠️ Completed with errors - check log",
+                bg="#ffccbc",
+                fg="#bf360c"
+            )
+            self.process_btn.config(
+                text="⚠️ Finished - Try Again?",
+                bg="#FF5722",
+                state="normal"
+            )
+        
+        # Keep status visible but hide progress
+        self.progress_frame.pack_forget()
+    
+    def reset_ui_state(self):
+        """Reset UI to initial state"""
+        self.status_label.config(
+            text="Ready to process",
+            bg="#e8f5e9",
+            fg="#2e7d32"
+        )
+        self.hide_processing_ui()
+        mode = self.operation_mode.get()
+        if mode == "chd":
+            self.process_btn.config(text="▶ Convert to CHD", bg="#2196F3")
+        elif mode == "m3u":
+            self.process_btn.config(text="▶ Create M3U Files", bg="#2196F3")
+        else:
+            self.process_btn.config(text="▶ Convert & Create M3U", bg="#2196F3")
+    
+    def update_options_visibility(self):
+        """Show/hide options based on selected mode"""
+        self.m3u_options.pack_forget()
+        self.chd_options.pack_forget()
+        self.both_options.pack_forget()
+        
+        # Reset UI when changing modes
+        self.reset_ui_state()
+        
+        mode = self.operation_mode.get()
+        
+        if mode == "chd":
+            self.chd_options.pack(fill="x")
+            self.process_btn.config(text="▶ Convert to CHD")
+        elif mode == "m3u":
+            self.m3u_options.pack(fill="x")
+            self.process_btn.config(text="▶ Create M3U Files")
+        else:  # both
+            self.both_options.pack(fill="x")
+            self.process_btn.config(text="▶ Convert & Create M3U")
         
     def create_widgets(self):
         # Title
@@ -233,12 +320,34 @@ class MultiDiscManagerGUI:
         )
         self.process_btn.pack(pady=15)
         
-        # Progress bar (hidden by default)
-        self.progress = ttk.Progressbar(
-            self.root,
-            mode='indeterminate',
-            length=300
+        # Status frame (shows current operation)
+        self.status_frame = tk.Frame(self.root, bg="#e8f5e9", relief="ridge", borderwidth=2)
+        
+        self.status_label = tk.Label(
+            self.status_frame,
+            text="Ready to process",
+            font=("Arial", 11, "bold"),
+            bg="#e8f5e9",
+            fg="#2e7d32"
         )
+        self.status_label.pack(pady=10, padx=20)
+        
+        # Progress bar with percentage
+        self.progress_frame = tk.Frame(self.root)
+        
+        self.progress = ttk.Progressbar(
+            self.progress_frame,
+            mode='determinate',
+            length=400
+        )
+        self.progress.pack(side="left", padx=(0, 10))
+        
+        self.progress_text = tk.Label(
+            self.progress_frame,
+            text="0%",
+            font=("Arial", 9)
+        )
+        self.progress_text.pack(side="left")
         
         # Status/Log area
         log_label = tk.Label(self.root, text="Status Log:", font=("Arial", 10, "bold"))
@@ -263,7 +372,75 @@ class MultiDiscManagerGUI:
         )
         footer_label.pack(pady=5)
         
-    def update_options_visibility(self):
+        # Initialize UI state
+        self.update_options_visibility()
+        
+    def update_status(self, message, progress=None, total=None):
+        """Update the status label and progress bar"""
+        self.status_label.config(text=message)
+        
+        if progress is not None and total is not None and total > 0:
+            percentage = int((progress / total) * 100)
+            self.progress['value'] = percentage
+            self.progress_text.config(text=f"{percentage}% ({progress}/{total})")
+        
+        self.root.update_idletasks()
+    
+    def show_processing_ui(self):
+        """Show status and progress during processing"""
+        self.status_frame.pack(pady=10, padx=20, fill="x")
+        self.progress_frame.pack(pady=5)
+        self.progress['value'] = 0
+        self.progress_text.config(text="0%")
+    
+    def hide_processing_ui(self):
+        """Hide status and progress"""
+        self.status_frame.pack_forget()
+        self.progress_frame.pack_forget()
+    
+    def show_finished_state(self, success=True):
+        """Show completion state"""
+        if success:
+            self.status_label.config(
+                text="✅ All operations completed successfully!",
+                bg="#c8e6c9",
+                fg="#1b5e20"
+            )
+            self.process_btn.config(
+                text="✅ Finished - Process More?",
+                bg="#4CAF50",
+                state="normal"
+            )
+        else:
+            self.status_label.config(
+                text="⚠️ Completed with errors - check log",
+                bg="#ffccbc",
+                fg="#bf360c"
+            )
+            self.process_btn.config(
+                text="⚠️ Finished - Try Again?",
+                bg="#FF5722",
+                state="normal"
+            )
+        
+        # Keep status visible but hide progress
+        self.progress_frame.pack_forget()
+    
+    def reset_ui_state(self):
+        """Reset UI to initial state"""
+        self.status_label.config(
+            text="Ready to process",
+            bg="#e8f5e9",
+            fg="#2e7d32"
+        )
+        self.hide_processing_ui()
+        mode = self.operation_mode.get()
+        if mode == "chd":
+            self.process_btn.config(text="▶ Convert to CHD", bg="#2196F3")
+        elif mode == "m3u":
+            self.process_btn.config(text="▶ Create M3U Files", bg="#2196F3")
+        else:
+            self.process_btn.config(text="▶ Convert & Create M3U", bg="#2196F3")
         """Show/hide options based on selected mode"""
         self.m3u_options.pack_forget()
         self.chd_options.pack_forget()
@@ -383,15 +560,15 @@ Example:
         
         mode = self.operation_mode.get()
         
-        # No validation needed for M3U mode anymore (radio buttons ensure one is selected)
-        
         # Clear log
         self.log_text.delete(1.0, tk.END)
         
+        # Show processing UI
+        self.show_processing_ui()
+        self.update_status("Initializing...", 0, 100)
+        
         # Disable button during processing
         self.process_btn.config(state="disabled", text="Processing...")
-        self.progress.pack(pady=5)
-        self.progress.start()
         
         # Run in separate thread
         if mode == "m3u":
@@ -410,24 +587,62 @@ Example:
             self.log("=" * 70)
             self.log(f"Target folder: {folder}\n")
             
+            self.update_status("Checking for chdman...", 5, 100)
+            
             # Check for chdman
             chdman_path = self.find_chdman()
             if not chdman_path:
                 self.log("❌ ERROR: chdman not found!")
-                self.log("\nchdman is required for CHD conversion.")
-                self.log("The tool will be bundled in future releases.")
-                self.log("\nFor now, please install MAME (includes chdman):")
-                self.log("  Windows: https://www.mamedev.org/release.html")
-                self.log("  Linux: sudo apt install mame-tools")
-                messagebox.showerror(
-                    "chdman Not Found",
-                    "chdman is required for CHD conversion.\n\n"
-                    "Please install MAME or mame-tools package.\n"
-                    "See the log for installation instructions."
-                )
+                
+                # On Linux, offer to install automatically
+                if platform.system() == 'Linux':
+                    self.log("\nOffering automatic installation...")
+                    if self.prompt_install_chdman():
+                        self.log("\n⏳ Installation in progress.")
+                        self.log("Please complete installation in the terminal, then try again.")
+                    else:
+                        self.log("\n❌ Installation cancelled.")
+                else:
+                    self.log("\nchdman is required for CHD conversion.")
+                    self.log("It should be in the tools/ folder.")
+                    messagebox.showerror(
+                        "chdman Not Found",
+                        "chdman is required for CHD conversion.\n\n"
+                        "It should be bundled in the tools/ folder."
+                    )
+                
+                self.show_finished_state(success=False)
                 return
             
+            # Test if chdman actually works (check for dependency issues)
+            try:
+                test_result = subprocess.run(
+                    [chdman_path, '--help'],
+                    capture_output=True,
+                    text=True,
+                    timeout=5
+                )
+                
+                # If it fails with library error on Linux, offer to install
+                if test_result.returncode != 0 and platform.system() == 'Linux':
+                    if 'error while loading shared libraries' in test_result.stderr:
+                        self.log("❌ ERROR: chdman has missing dependencies!")
+                        self.log(f"Error: {test_result.stderr[:150]}")
+                        
+                        if self.prompt_install_chdman():
+                            self.log("\n⏳ Installation in progress.")
+                            self.log("Please complete installation in the terminal, then try again.")
+                        else:
+                            self.log("\n❌ Installation cancelled.")
+                        
+                        self.show_finished_state(success=False)
+                        return
+            except Exception as e:
+                self.log(f"⚠️ Warning: Could not test chdman: {e}")
+            
             self.log(f"✓ Found chdman: {chdman_path}\n")
+            
+            self.update_status("Scanning for disc images...", 10, 100)
             
             # Find all convertible files
             source_files = []
@@ -441,21 +656,32 @@ Example:
                 self.log("\n❌ No convertible files found.")
                 self.log("Supported formats: CUE, GDI, CDI, ISO")
                 messagebox.showinfo("No Files", "No convertible disc images found.")
+                self.show_finished_state(success=False)
                 return
             
-            self.log(f"\nTotal files to convert: {len(source_files)}\n")
+            total_files = len(source_files)
+            self.log(f"\nTotal files to convert: {total_files}\n")
             
             converted = 0
             failed = 0
+            skipped = 0
             
-            for source_file in source_files:
+            for index, source_file in enumerate(source_files, 1):
                 source_path = str(source_file)
                 source_ext = source_file.suffix.lower()
                 chd_path = str(source_file.with_suffix('.chd'))
                 
+                # Update status
+                self.update_status(
+                    f"Converting: {source_file.name}",
+                    index,
+                    total_files
+                )
+                
                 # Skip if CHD already exists
                 if os.path.exists(chd_path):
                     self.log(f"⏭️  Skipping {source_file.name} (CHD already exists)")
+                    skipped += 1
                     continue
                 
                 self.log(f"🔄 Converting: {source_file.name}")
@@ -506,23 +732,25 @@ Example:
             self.log("=" * 70)
             self.log("✅ CONVERSION COMPLETE!")
             self.log(f"  • Successfully converted: {converted}")
+            self.log(f"  • Skipped (already exist): {skipped}")
             self.log(f"  • Failed: {failed}")
             self.log("=" * 70)
             
+            success = failed == 0
+            self.show_finished_state(success=success)
+            
             messagebox.showinfo(
                 "Conversion Complete",
-                f"CHD conversion finished!\n\nConverted: {converted}\nFailed: {failed}"
+                f"CHD conversion finished!\n\nConverted: {converted}\nSkipped: {skipped}\nFailed: {failed}"
             )
         
         except Exception as e:
             self.log(f"\n❌ ERROR: {str(e)}")
             messagebox.showerror("Error", f"An error occurred:\n{str(e)}")
+            self.show_finished_state(success=False)
         
         finally:
-            self.progress.stop()
-            self.progress.pack_forget()
-            self.process_btn.config(state="normal")
-            self.update_options_visibility()
+            pass
     
     def find_chdman(self):
         """Try to find chdman executable"""
@@ -539,6 +767,91 @@ Example:
             return chdman_path
         
         return None
+    
+    def get_install_command(self):
+        """Get the correct package manager command for this Linux distro"""
+        if platform.system() != 'Linux':
+            return None
+        
+        try:
+            with open('/etc/os-release', 'r') as f:
+                os_info = f.read().lower()
+            
+            if 'ubuntu' in os_info or 'debian' in os_info or 'mint' in os_info:
+                return "sudo apt install mame-tools"
+            elif 'fedora' in os_info or 'rhel' in os_info or 'centos' in os_info:
+                return "sudo dnf install mame"
+            elif 'arch' in os_info or 'manjaro' in os_info:
+                return "sudo pacman -S mame-tools"
+            elif 'opensuse' in os_info:
+                return "sudo zypper install mame-tools"
+            else:
+                return "sudo apt install mame-tools"  # Default to apt
+        except:
+            return "sudo apt install mame-tools"
+    
+    def prompt_install_chdman(self):
+        """Prompt user to install chdman automatically"""
+        install_cmd = self.get_install_command()
+        
+        if not install_cmd:
+            return False
+        
+        response = messagebox.askyesno(
+            "First-Time Setup Required",
+            f"CHD conversion requires chdman.\n\n"
+            f"Would you like to install it now?\n"
+            f"(This will open a terminal and require your password)\n\n"
+            f"Command: {install_cmd}\n\n"
+            f"This is a one-time setup.",
+            icon='question'
+        )
+        
+        if response:
+            try:
+                # Try different terminal emulators (Linux has many)
+                terminals = [
+                    ['gnome-terminal', '--'],
+                    ['konsole', '-e'],
+                    ['xfce4-terminal', '-e'],
+                    ['xterm', '-e'],
+                ]
+                
+                install_script = f'{install_cmd}; echo "\n✅ Installation complete! Press Enter to close."; read'
+                
+                terminal_opened = False
+                for terminal in terminals:
+                    try:
+                        subprocess.Popen(terminal + ['bash', '-c', install_script])
+                        terminal_opened = True
+                        break
+                    except FileNotFoundError:
+                        continue
+                
+                if terminal_opened:
+                    messagebox.showinfo(
+                        "Installing...",
+                        "Please complete the installation in the terminal window.\n\n"
+                        "After installation, try CHD conversion again."
+                    )
+                    return True
+                else:
+                    messagebox.showwarning(
+                        "Manual Installation Required",
+                        f"Could not open terminal automatically.\n\n"
+                        f"Please run this command manually:\n{install_cmd}\n\n"
+                        f"Then try CHD conversion again."
+                    )
+                    return False
+            except Exception as e:
+                messagebox.showerror(
+                    "Installation Error",
+                    f"Could not start installation.\n\n"
+                    f"Please run manually:\n{install_cmd}"
+                )
+                return False
+        
+        return False
     
     def extract_game_info(self, filename):
         """Extract game name and disc number from filename."""
@@ -647,6 +960,8 @@ Example:
             self.log("=" * 70)
             self.log(f"Target folder: {folder}\n")
             
+            self.update_status("Scanning for multi-disc games...", 20, 100)
+            
             multidisc_games = self.find_multidisc_games(folder)
             
             if not multidisc_games:
@@ -656,13 +971,21 @@ Example:
                 self.log("  • Game Name (Disc 2).chd")
                 self.log("  • Game Name [Disc 1].bin")
                 messagebox.showinfo("No Games Found", "No multi-disc games were found.")
+                self.show_finished_state(success=False)
             else:
                 self.log(f"🎮 Found {len(multidisc_games)} multi-disc game(s)\n")
                 
+                total_games = len(multidisc_games)
                 created_count = 0
                 skipped_count = 0
                 
-                for game_name, disc_files in multidisc_games.items():
+                for index, (game_name, disc_files) in enumerate(multidisc_games.items(), 1):
+                    self.update_status(
+                        f"Creating M3U: {game_name}",
+                        index,
+                        total_games
+                    )
+                    
                     if self.create_m3u_file(game_name, disc_files, folder):
                         created_count += 1
                     else:
@@ -675,6 +998,8 @@ Example:
                 self.log(f"  • Already existed (skipped): {skipped_count}")
                 self.log("=" * 70)
                 
+                self.show_finished_state(success=True)
+                
                 messagebox.showinfo(
                     "Success!", 
                     f"M3U creation complete!\n\nCreated: {created_count}\nSkipped: {skipped_count}"
@@ -683,12 +1008,10 @@ Example:
         except Exception as e:
             self.log(f"\n❌ ERROR: {str(e)}")
             messagebox.showerror("Error", f"An error occurred:\n{str(e)}")
+            self.show_finished_state(success=False)
         
         finally:
-            self.progress.stop()
-            self.progress.pack_forget()
-            self.process_btn.config(state="normal")
-            self.update_options_visibility()
+            pass
     
     def convert_and_create_m3u(self, folder):
         """Convert to CHD then create M3U playlists"""
@@ -702,15 +1025,55 @@ Example:
             self.log("STEP 1: Converting disc images to CHD")
             self.log("-" * 70)
             
+            self.update_status("Step 1: Checking for chdman...", 5, 100)
+            
             # Check for chdman
             chdman_path = self.find_chdman()
             if not chdman_path:
                 self.log("❌ ERROR: chdman not found!")
-                self.log("\nCannot proceed without chdman.")
-                messagebox.showerror("chdman Not Found", "chdman is required. See log for details.")
+                
+                # On Linux, offer to install automatically
+                if platform.system() == 'Linux':
+                    self.log("\nOffering automatic installation...")
+                    if self.prompt_install_chdman():
+                        self.log("\n⏳ Installation in progress.")
+                        self.log("Please complete installation in the terminal, then try again.")
+                    else:
+                        self.log("\n❌ Installation cancelled.")
+                else:
+                    messagebox.showerror("chdman Not Found", "chdman is required. See log for details.")
+                
+                self.show_finished_state(success=False)
                 return
             
+            # Test if chdman actually works
+            try:
+                test_result = subprocess.run(
+                    [chdman_path, '--help'],
+                    capture_output=True,
+                    text=True,
+                    timeout=5
+                )
+                
+                if test_result.returncode != 0 and platform.system() == 'Linux':
+                    if 'error while loading shared libraries' in test_result.stderr:
+                        self.log("❌ ERROR: chdman has missing dependencies!")
+                        self.log(f"Error: {test_result.stderr[:150]}")
+                        
+                        if self.prompt_install_chdman():
+                            self.log("\n⏳ Installation in progress.")
+                            self.log("Please complete installation in the terminal, then try again.")
+                        else:
+                            self.log("\n❌ Installation cancelled.")
+                        
+                        self.show_finished_state(success=False)
+                        return
+            except Exception as e:
+                self.log(f"⚠️ Warning: Could not test chdman: {e}")
+            
             self.log(f"✓ Found chdman: {chdman_path}")
+            
+            self.update_status("Step 1: Scanning for disc images...", 10, 100)
             
             # Find all convertible files
             source_files = []
@@ -720,12 +1083,21 @@ Example:
                     source_files.extend(found)
             
             if source_files:
-                self.log(f"Found {len(source_files)} file(s) to convert\n")
+                total_files = len(source_files)
+                self.log(f"Found {total_files} file(s) to convert\n")
                 
                 converted = 0
-                for source_file in source_files:
+                for index, source_file in enumerate(source_files, 1):
                     source_path = str(source_file)
                     chd_path = str(source_file.with_suffix('.chd'))
+                    
+                    # Calculate progress (0-50% for CHD conversion)
+                    progress = 10 + int((index / total_files) * 40)
+                    self.update_status(
+                        f"Step 1: Converting {source_file.name}",
+                        progress,
+                        100
+                    )
                     
                     if os.path.exists(chd_path):
                         self.log(f"⏭️  {source_file.name} (CHD exists)")
@@ -769,13 +1141,24 @@ Example:
             self.log("STEP 2: Creating M3U playlists")
             self.log("-" * 70 + "\n")
             
+            self.update_status("Step 2: Scanning for multi-disc games...", 55, 100)
+            
             multidisc_games = self.find_multidisc_games(folder)
             
             if multidisc_games:
-                self.log(f"Found {len(multidisc_games)} multi-disc game(s)\n")
+                total_games = len(multidisc_games)
+                self.log(f"Found {total_games} multi-disc game(s)\n")
                 
                 created = 0
-                for game_name, disc_files in multidisc_games.items():
+                for index, (game_name, disc_files) in enumerate(multidisc_games.items(), 1):
+                    # Calculate progress (50-100% for M3U creation)
+                    progress = 55 + int((index / total_games) * 45)
+                    self.update_status(
+                        f"Step 2: Creating M3U for {game_name}",
+                        progress,
+                        100
+                    )
+                    
                     if self.create_m3u_file(game_name, disc_files, folder):
                         created += 1
                     self.log("")
@@ -788,17 +1171,17 @@ Example:
             self.log("✅ ALL OPERATIONS COMPLETE!")
             self.log("=" * 70)
             
+            self.show_finished_state(success=True)
+            
             messagebox.showinfo("Complete!", "CHD conversion and M3U creation finished!")
         
         except Exception as e:
             self.log(f"\n❌ ERROR: {str(e)}")
             messagebox.showerror("Error", f"An error occurred:\n{str(e)}")
+            self.show_finished_state(success=False)
         
         finally:
-            self.progress.stop()
-            self.progress.pack_forget()
-            self.process_btn.config(state="normal")
-            self.update_options_visibility()
+            pass
 
 
 if __name__ == "__main__":
