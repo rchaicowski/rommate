@@ -13,13 +13,26 @@ class MultiDiscManagerGUI:
     def __init__(self, root):
         self.root = root
         self.root.title("Multi-Disc Manager")
-        self.root.geometry("800x700")
+        self.root.geometry("850x850")  # Increased height
         self.root.resizable(True, True)
+        
+        # Dark mode colors
+        self.bg_dark = "#2b2b2b"
+        self.bg_frame = "#3c3c3c"
+        self.text_light = "#e0e0e0"
+        self.text_gray = "#9e9e9e"
+        self.accent_blue = "#42a5f5"
+        self.accent_green = "#66bb6a"
+        self.accent_red = "#ef5350"
+        self.accent_orange = "#ff9800"
+        
+        # Configure root background
+        self.root.configure(bg=self.bg_dark)
         
         # Variables
         self.folder_path = tk.StringVar()
         self.operation_mode = tk.StringVar(value="chd")
-        self.m3u_file_type = tk.StringVar(value="all")  # For M3U: all supported formats
+        self.m3u_file_type = tk.StringVar(value="all")
         
         # CHD conversion options
         self.delete_after_conversion = tk.BooleanVar(value=False)
@@ -54,23 +67,23 @@ class MultiDiscManagerGUI:
         if success:
             self.status_label.config(
                 text="✅ All operations completed successfully!",
-                bg="#c8e6c9",
-                fg="#1b5e20"
+                bg="#1b5e20",
+                fg="#a5d6a7"
             )
             self.process_btn.config(
                 text="✅ Finished - Process More?",
-                bg="#4CAF50",
+                bg=self.accent_green,
                 state="normal"
             )
         else:
             self.status_label.config(
                 text="⚠️ Completed with errors - check log",
-                bg="#ffccbc",
-                fg="#bf360c"
+                bg="#b71c1c",
+                fg="#ffcdd2"
             )
             self.process_btn.config(
                 text="⚠️ Finished - Try Again?",
-                bg="#FF5722",
+                bg=self.accent_red,
                 state="normal"
             )
         
@@ -81,17 +94,17 @@ class MultiDiscManagerGUI:
         """Reset UI to initial state"""
         self.status_label.config(
             text="Ready to process",
-            bg="#e8f5e9",
-            fg="#2e7d32"
+            bg="#1b5e20",
+            fg="#a5d6a7"
         )
         self.hide_processing_ui()
         mode = self.operation_mode.get()
         if mode == "chd":
-            self.process_btn.config(text="▶ Convert to CHD", bg="#2196F3")
+            self.process_btn.config(text="▶ Convert to CHD", bg=self.accent_blue)
         elif mode == "m3u":
-            self.process_btn.config(text="▶ Create M3U Files", bg="#2196F3")
+            self.process_btn.config(text="▶ Create M3U Files", bg=self.accent_blue)
         else:
-            self.process_btn.config(text="▶ Convert & Create M3U", bg="#2196F3")
+            self.process_btn.config(text="▶ Convert & Create M3U", bg=self.accent_blue)
     
     def update_options_visibility(self):
         """Show/hide options based on selected mode"""
@@ -115,262 +128,382 @@ class MultiDiscManagerGUI:
             self.process_btn.config(text="▶ Convert & Create M3U")
         
     def create_widgets(self):
+        # Add top padding
+        tk.Frame(self.root, height=10, bg=self.bg_dark).pack()
+        
         # Title
         title_label = tk.Label(
             self.root, 
             text="Multi-Disc Manager", 
-            font=("Arial", 18, "bold")
+            font=("Arial", 20, "bold"),
+            bg=self.bg_dark,
+            fg=self.text_light
         )
-        title_label.pack(pady=10)
+        title_label.pack(pady=15)
         
         # Description
         desc_label = tk.Label(
             self.root,
             text="Create M3U playlists and convert disc images to CHD format",
-            font=("Arial", 10)
+            font=("Arial", 10),
+            bg=self.bg_dark,
+            fg=self.text_gray
         )
-        desc_label.pack(pady=5)
+        desc_label.pack(pady=(0, 20))
         
         # Folder selection frame
-        folder_frame = tk.Frame(self.root)
-        folder_frame.pack(pady=15, padx=20, fill="x")
+        folder_frame = tk.Frame(self.root, bg=self.bg_dark)
+        folder_frame.pack(pady=10, padx=30, fill="x")
         
-        tk.Label(folder_frame, text="Game Folder:", font=("Arial", 10, "bold")).pack(side="left")
+        tk.Label(
+            folder_frame, 
+            text="Game Folder:", 
+            font=("Arial", 11, "bold"),
+            bg=self.bg_dark,
+            fg=self.text_light
+        ).pack(side="left", padx=(0, 15))
         
         folder_entry = tk.Entry(
             folder_frame, 
             textvariable=self.folder_path, 
             width=50,
-            font=("Arial", 10)
+            font=("Arial", 11),
+            bg=self.bg_frame,
+            fg=self.text_light,
+            insertbackground=self.text_light,
+            relief="solid",
+            bd=1,
+            highlightthickness=2,
+            highlightbackground=self.bg_dark,
+            highlightcolor=self.accent_blue
         )
-        folder_entry.pack(side="left", padx=10, fill="x", expand=True)
+        folder_entry.pack(side="left", padx=10, fill="x", expand=True, ipady=6)
         
         browse_btn = tk.Button(
             folder_frame, 
             text="Browse", 
             command=self.browse_folder,
-            font=("Arial", 10),
-            bg="#4CAF50",
+            font=("Arial", 10, "bold"),
+            bg=self.accent_green,
             fg="white",
             cursor="hand2",
-            padx=15
+            padx=20,
+            pady=8,
+            relief="flat",
+            activebackground="#4caf50",
+            activeforeground="white",
+            bd=0
         )
         browse_btn.pack(side="left")
         
         # Operation mode selection
-        mode_frame = tk.LabelFrame(
+        mode_frame = tk.Frame(
             self.root,
-            text="What do you want to do?",
-            font=("Arial", 11, "bold"),
-            padx=20,
-            pady=15
+            bg=self.bg_frame,
+            relief="groove",
+            bd=2
         )
-        mode_frame.pack(pady=10, padx=20, fill="x")
+        mode_frame.pack(pady=15, padx=30, fill="x")
+        
+        # Title inside the frame
+        tk.Label(
+            mode_frame,
+            text="What do you want to do?",
+            font=("Arial", 12, "bold"),
+            bg=self.bg_frame,
+            fg=self.text_light
+        ).pack(anchor="w", padx=25, pady=(15, 10))
         
         chd_radio = tk.Radiobutton(
             mode_frame,
             text="💾 Convert to CHD (compress disc images)",
             variable=self.operation_mode,
             value="chd",
-            font=("Arial", 10),
-            command=self.update_options_visibility
+            font=("Arial", 11),
+            command=self.update_options_visibility,
+            bg=self.bg_frame,
+            fg=self.text_light,
+            selectcolor=self.bg_dark,
+            activebackground=self.bg_frame,
+            activeforeground=self.text_light,
+            bd=0,
+            highlightthickness=0
         )
-        chd_radio.pack(anchor="w", pady=5)
+        chd_radio.pack(anchor="w", padx=25, pady=8)
         
         m3u_radio = tk.Radiobutton(
             mode_frame,
             text="📁 Create M3U Playlists (for multi-disc games)",
             variable=self.operation_mode,
             value="m3u",
-            font=("Arial", 10),
-            command=self.update_options_visibility
+            font=("Arial", 11),
+            command=self.update_options_visibility,
+            bg=self.bg_frame,
+            fg=self.text_light,
+            selectcolor=self.bg_dark,
+            activebackground=self.bg_frame,
+            activeforeground=self.text_light,
+            bd=0,
+            highlightthickness=0
         )
-        m3u_radio.pack(anchor="w", pady=5)
+        m3u_radio.pack(anchor="w", padx=25, pady=8)
         
         both_radio = tk.Radiobutton(
             mode_frame,
             text="🔄 Convert to CHD + Create M3U Playlists",
             variable=self.operation_mode,
             value="both",
-            font=("Arial", 10),
-            command=self.update_options_visibility
+            font=("Arial", 11),
+            command=self.update_options_visibility,
+            bg=self.bg_frame,
+            fg=self.text_light,
+            selectcolor=self.bg_dark,
+            activebackground=self.bg_frame,
+            activeforeground=self.text_light,
+            bd=0,
+            highlightthickness=0
         )
-        both_radio.pack(anchor="w", pady=5)
+        both_radio.pack(anchor="w", padx=25, pady=8)
+        
+        # Add separator
+        tk.Frame(mode_frame, height=1, bg=self.text_gray).pack(fill="x", padx=25, pady=15)
         
         # Info button
         info_btn = tk.Button(
             mode_frame,
-            text="ℹ️ Help - When to use each?",
+            text="ℹ️  Help - When to use each?",
             command=self.show_info,
-            font=("Arial", 9),
-            bg="#2196F3",
+            font=("Arial", 10),
+            bg=self.accent_blue,
             fg="white",
-            cursor="hand2"
+            cursor="hand2",
+            relief="flat",
+            activebackground="#1e88e5",
+            activeforeground="white",
+            padx=15,
+            pady=6,
+            bd=0
         )
-        info_btn.pack(anchor="w", pady=10)
+        info_btn.pack(anchor="w", padx=25, pady=(0, 15))
         
         # Options frame (changes based on mode)
-        self.options_frame = tk.LabelFrame(
+        self.options_frame = tk.Frame(
             self.root,
-            text="Options",
-            font=("Arial", 10, "bold"),
-            padx=20,
-            pady=10
+            bg=self.bg_frame,
+            relief="groove",
+            bd=2
         )
-        self.options_frame.pack(pady=10, padx=20, fill="x")
+        self.options_frame.pack(pady=15, padx=30, fill="x")
+        
+        # Title will be added by each option frame
+        self.options_title = tk.Label(
+            self.options_frame,
+            text="Options",
+            font=("Arial", 12, "bold"),
+            bg=self.bg_frame,
+            fg=self.text_light
+        )
+        self.options_title.pack(anchor="w", padx=25, pady=(15, 10))
         
         # M3U options
-        self.m3u_options = tk.Frame(self.options_frame)
-        
-        tk.Label(self.m3u_options, text="Create M3U playlists for:", font=("Arial", 9, "bold")).pack(anchor="w", pady=5)
+        self.m3u_options = tk.Frame(self.options_frame, bg=self.bg_frame)
         
         tk.Label(
             self.m3u_options,
             text="Scans for: CUE, GDI, CDI, ISO, CHD files",
-            font=("Arial", 9),
-            fg="gray"
-        ).pack(anchor="w", padx=20, pady=5)
+            font=("Arial", 10),
+            fg=self.text_gray,
+            bg=self.bg_frame
+        ).pack(anchor="w", padx=25, pady=(0, 10))
         
-        info_frame = tk.Frame(self.m3u_options, bg="#e3f2fd", relief="ridge", borderwidth=1)
-        info_frame.pack(fill="x", pady=10)
+        info_frame = tk.Frame(self.m3u_options, bg="#1a237e", relief="flat", borderwidth=1)
+        info_frame.pack(fill="x", padx=25, pady=(0, 15))
         
         tk.Label(
             info_frame,
             text="ℹ️ Note: All disc files must be in the same folder.\n"
                  "    Works with PSX, PS2, Dreamcast, Saturn, Sega CD, and more!",
-            font=("Arial", 8),
-            bg="#e3f2fd",
-            fg="#1976d2",
+            font=("Arial", 9),
+            bg="#1a237e",
+            fg="#90caf9",
             justify="left"
-        ).pack(padx=10, pady=8, anchor="w")
+        ).pack(padx=15, pady=12, anchor="w")
         
         # CHD options
-        self.chd_options = tk.Frame(self.options_frame)
+        self.chd_options = tk.Frame(self.options_frame, bg=self.bg_frame)
         
         tk.Label(
             self.chd_options, 
             text="Converts: CUE, GDI, CDI, ISO → CHD format",
-            font=("Arial", 9),
-            fg="gray"
-        ).pack(anchor="w", pady=5)
+            font=("Arial", 10),
+            fg=self.text_gray,
+            bg=self.bg_frame
+        ).pack(anchor="w", padx=25, pady=(0, 15))
         
         tk.Checkbutton(
             self.chd_options,
             text="⚠️ Delete original files after successful conversion",
             variable=self.delete_after_conversion,
-            font=("Arial", 9),
-            fg="red"
-        ).pack(anchor="w", pady=5)
+            font=("Arial", 10),
+            fg=self.accent_red,
+            bg=self.bg_frame,
+            selectcolor=self.bg_dark,
+            activebackground=self.bg_frame,
+            activeforeground=self.accent_red,
+            bd=0,
+            highlightthickness=0
+        ).pack(anchor="w", padx=25, pady=(0, 10))
         
         tk.Label(
             self.chd_options,
             text="(CHD files are compressed and save 40-60% space)",
-            font=("Arial", 8),
-            fg="gray"
-        ).pack(anchor="w")
+            font=("Arial", 9),
+            fg=self.text_gray,
+            bg=self.bg_frame
+        ).pack(anchor="w", padx=25, pady=(0, 15))
         
         # Both options
-        self.both_options = tk.Frame(self.options_frame)
+        self.both_options = tk.Frame(self.options_frame, bg=self.bg_frame)
         
         tk.Label(
             self.both_options,
             text="Step 1: Convert all disc images to CHD",
-            font=("Arial", 9, "bold")
-        ).pack(anchor="w", pady=2)
+            font=("Arial", 10, "bold"),
+            bg=self.bg_frame,
+            fg=self.text_light
+        ).pack(anchor="w", padx=25, pady=(0, 5))
         
         tk.Label(
             self.both_options,
             text="  Converts: CUE, GDI, CDI, ISO → CHD",
-            font=("Arial", 8),
-            fg="gray"
-        ).pack(anchor="w", padx=20)
+            font=("Arial", 9),
+            fg=self.text_gray,
+            bg=self.bg_frame
+        ).pack(anchor="w", padx=25)
         
         tk.Label(
             self.both_options,
             text="Step 2: Create M3U playlists for multi-disc games",
-            font=("Arial", 9, "bold")
-        ).pack(anchor="w", pady=(10,2))
+            font=("Arial", 10, "bold"),
+            bg=self.bg_frame,
+            fg=self.text_light
+        ).pack(anchor="w", padx=25, pady=(15, 5))
         
         tk.Label(
             self.both_options,
             text="  Groups CHD files into playlists",
-            font=("Arial", 8),
-            fg="gray"
-        ).pack(anchor="w", padx=20)
+            font=("Arial", 9),
+            fg=self.text_gray,
+            bg=self.bg_frame
+        ).pack(anchor="w", padx=25)
         
         tk.Checkbutton(
             self.both_options,
             text="⚠️ Delete original files after successful conversion",
             variable=self.delete_after_conversion,
-            font=("Arial", 9),
-            fg="red"
-        ).pack(anchor="w", pady=(10,5))
+            font=("Arial", 10),
+            fg=self.accent_red,
+            bg=self.bg_frame,
+            selectcolor=self.bg_dark,
+            activebackground=self.bg_frame,
+            activeforeground=self.accent_red,
+            bd=0,
+            highlightthickness=0
+        ).pack(anchor="w", padx=25, pady=(15, 15))
         
         # Process button
         self.process_btn = tk.Button(
             self.root,
             text="▶ Process Files",
             command=self.run_process,
-            font=("Arial", 12, "bold"),
-            bg="#2196F3",
+            font=("Arial", 13, "bold"),
+            bg=self.accent_blue,
             fg="white",
             cursor="hand2",
             height=2,
-            padx=30
+            padx=40,
+            relief="flat",
+            activebackground="#1e88e5",
+            activeforeground="white",
+            bd=0
         )
-        self.process_btn.pack(pady=15)
+        self.process_btn.pack(pady=20)
         
         # Status frame (shows current operation)
-        self.status_frame = tk.Frame(self.root, bg="#e8f5e9", relief="ridge", borderwidth=2)
+        self.status_frame = tk.Frame(self.root, bg="#1b5e20", relief="groove", borderwidth=2)
         
         self.status_label = tk.Label(
             self.status_frame,
             text="Ready to process",
-            font=("Arial", 11, "bold"),
-            bg="#e8f5e9",
-            fg="#2e7d32"
+            font=("Arial", 12, "bold"),
+            bg="#1b5e20",
+            fg="#a5d6a7"
         )
-        self.status_label.pack(pady=10, padx=20)
+        self.status_label.pack(pady=15, padx=25)
         
         # Progress bar with percentage
-        self.progress_frame = tk.Frame(self.root)
+        self.progress_frame = tk.Frame(self.root, bg=self.bg_dark)
         
         self.progress = ttk.Progressbar(
             self.progress_frame,
             mode='determinate',
-            length=400
+            length=450
         )
-        self.progress.pack(side="left", padx=(0, 10))
+        self.progress.pack(side="left", padx=(0, 15))
         
         self.progress_text = tk.Label(
             self.progress_frame,
             text="0%",
-            font=("Arial", 9)
+            font=("Arial", 10, "bold"),
+            bg=self.bg_dark,
+            fg=self.text_light
         )
         self.progress_text.pack(side="left")
         
         # Status/Log area
-        log_label = tk.Label(self.root, text="Status Log:", font=("Arial", 10, "bold"))
-        log_label.pack(anchor="w", padx=20)
+        log_frame = tk.Frame(self.root, bg=self.bg_dark)
+        log_frame.pack(pady=(15, 5), padx=30, fill="both", expand=True)
+        
+        log_label = tk.Label(
+            log_frame, 
+            text="Status Log:", 
+            font=("Arial", 11, "bold"),
+            bg=self.bg_dark,
+            fg=self.text_light
+        )
+        log_label.pack(anchor="w", pady=(0, 8))
+        
+        # Scrolled text with border frame for better visibility
+        log_border = tk.Frame(log_frame, bg=self.text_gray, relief="solid", bd=1)
+        log_border.pack(fill="both", expand=True)
         
         self.log_text = scrolledtext.ScrolledText(
-            self.root,
+            log_border,
             width=90,
-            height=15,
+            height=10,
             font=("Consolas", 9),
-            bg="#f5f5f5",
-            wrap=tk.WORD
+            bg="#1e1e1e",
+            fg="#d4d4d4",
+            wrap=tk.WORD,
+            insertbackground=self.text_light,
+            selectbackground=self.accent_blue,
+            selectforeground="white",
+            relief="flat",
+            bd=0,
+            padx=10,
+            pady=8
         )
-        self.log_text.pack(pady=5, padx=20, fill="both", expand=True)
+        self.log_text.pack(fill="both", expand=True, padx=1, pady=1)
         
         # Footer
         footer_label = tk.Label(
             self.root,
             text="Supports PS1, PS2, Dreamcast, Saturn, and other disc-based systems",
-            font=("Arial", 8),
-            fg="gray"
+            font=("Arial", 9),
+            fg=self.text_gray,
+            bg=self.bg_dark
         )
-        footer_label.pack(pady=5)
+        footer_label.pack(pady=(10, 15))
         
         # Initialize UI state
         self.update_options_visibility()
