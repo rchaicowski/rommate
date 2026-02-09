@@ -13,7 +13,7 @@ class MultiDiscManagerGUI:
     def __init__(self, root):
         self.root = root
         self.root.title("Multi-Disc Manager")
-        self.root.geometry("850x850")  # Increased height
+        self.root.geometry("850x850")
         self.root.resizable(True, True)
         
         # Dark mode colors
@@ -44,14 +44,23 @@ class MultiDiscManagerGUI:
         self.create_widgets()
     
     def load_sounds(self):
-        """Check if sound files exist"""
+        """Check if sound files exist and store their paths"""
         sounds_dir = os.path.join(os.path.dirname(__file__), 'sounds')
         self.success_sound_path = os.path.join(sounds_dir, 'success.wav')
         self.fail_sound_path = os.path.join(sounds_dir, 'fail.wav')
+        
+        # Check if sounds directory and files exist
+        self.sounds_available = (
+            os.path.exists(self.success_sound_path) and 
+            os.path.exists(self.fail_sound_path)
+        )
+        
+        if not self.sounds_available:
+            print(f"Warning: Sound files not found in {sounds_dir}")
     
     def play_sound(self, sound_type):
-        """Play a sound if enabled using OS commands"""
-        if not self.sounds_enabled.get():
+        """Play a sound if enabled and available"""
+        if not self.sounds_enabled.get() or not self.sounds_available:
             return
         
         sound_path = self.success_sound_path if sound_type == "success" else self.fail_sound_path
@@ -62,12 +71,24 @@ class MultiDiscManagerGUI:
         try:
             if platform.system() == 'Windows':
                 import winsound
-                winsound.PlaySound(sound_path, winsound.SND_FILENAME | winsound.SND_ASYNC)
-            else:
-                # Linux: Just fire and forget with &
-                os.system(f'aplay "{sound_path}" >/dev/null 2>&1 &')
+                # Play sound asynchronously without blocking
+                winsound.PlaySound(sound_path, winsound.SND_FILENAME | winsound.SND_ASYNC | winsound.SND_NODEFAULT)
+            elif platform.system() == 'Darwin':  # macOS
+                # Use afplay on macOS
+                subprocess.Popen(['afplay', sound_path], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            else:  # Linux
+                # Try multiple Linux audio players
+                for player in ['aplay', 'paplay', 'ffplay']:
+                    if shutil.which(player):
+                        if player == 'ffplay':
+                            subprocess.Popen([player, '-nodisp', '-autoexit', sound_path], 
+                                           stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+                        else:
+                            subprocess.Popen([player, sound_path], 
+                                           stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+                        break
         except Exception as e:
-            pass
+            print(f"Could not play sound: {e}")
     
     def update_status(self, message, progress=None, total=None):
         """Update the status label and progress bar"""
@@ -93,7 +114,10 @@ class MultiDiscManagerGUI:
         self.progress_frame.pack_forget()
     
     def show_finished_state(self, success=True):
-        """Show completion state"""
+        """Show completion state with sound"""
+        # Play sound first
+        self.play_sound("success" if success else "fail")
+        
         if success:
             self.status_label.config(
                 text="✅ All operations completed successfully!",
@@ -105,8 +129,6 @@ class MultiDiscManagerGUI:
                 bg=self.accent_green,
                 state="normal"
             )
-            # Play success sound - schedule in main thread
-            self.root.after(100, lambda: self.play_sound("success"))
         else:
             self.status_label.config(
                 text="⚠️ Completed with errors - check log",
@@ -118,8 +140,6 @@ class MultiDiscManagerGUI:
                 bg=self.accent_red,
                 state="normal"
             )
-            # Play fail sound - schedule in main thread
-            self.root.after(100, lambda: self.play_sound("fail"))
         
         # Keep status visible but hide progress
         self.progress_frame.pack_forget()
@@ -540,12 +560,12 @@ class MultiDiscManagerGUI:
         
         sound_check = tk.Checkbutton(
             footer_frame,
-            text="🔔 Enable sounds",
+            text="🔔 Enable sounds" + ("" if self.sounds_available else " (sounds not found)"),
             variable=self.sounds_enabled,
-            command=test_sound,  # Play sound when toggled
+            command=test_sound,
             font=("Arial", 9),
             bg=self.bg_dark,
-            fg=self.text_gray,
+            fg=self.text_gray if self.sounds_available else self.accent_red,
             selectcolor=self.bg_dark,
             activebackground=self.bg_dark,
             activeforeground=self.text_light,
@@ -565,89 +585,6 @@ class MultiDiscManagerGUI:
         
         # Initialize UI state
         self.update_options_visibility()
-        
-    def update_status(self, message, progress=None, total=None):
-        """Update the status label and progress bar"""
-        self.status_label.config(text=message)
-        
-        if progress is not None and total is not None and total > 0:
-            percentage = int((progress / total) * 100)
-            self.progress['value'] = percentage
-            self.progress_text.config(text=f"{percentage}% ({progress}/{total})")
-        
-        self.root.update_idletasks()
-    
-    def show_processing_ui(self):
-        """Show status and progress during processing"""
-        self.status_frame.pack(pady=10, padx=20, fill="x")
-        self.progress_frame.pack(pady=5)
-        self.progress['value'] = 0
-        self.progress_text.config(text="0%")
-    
-    def hide_processing_ui(self):
-        """Hide status and progress"""
-        self.status_frame.pack_forget()
-        self.progress_frame.pack_forget()
-    
-    def show_finished_state(self, success=True):
-        """Show completion state"""
-        if success:
-            self.status_label.config(
-                text="✅ All operations completed successfully!",
-                bg="#c8e6c9",
-                fg="#1b5e20"
-            )
-            self.process_btn.config(
-                text="✅ Finished - Process More?",
-                bg="#4CAF50",
-                state="normal"
-            )
-        else:
-            self.status_label.config(
-                text="⚠️ Completed with errors - check log",
-                bg="#ffccbc",
-                fg="#bf360c"
-            )
-            self.process_btn.config(
-                text="⚠️ Finished - Try Again?",
-                bg="#FF5722",
-                state="normal"
-            )
-        
-        # Keep status visible but hide progress
-        self.progress_frame.pack_forget()
-    
-    def reset_ui_state(self):
-        """Reset UI to initial state"""
-        self.status_label.config(
-            text="Ready to process",
-            bg="#e8f5e9",
-            fg="#2e7d32"
-        )
-        self.hide_processing_ui()
-        mode = self.operation_mode.get()
-        if mode == "chd":
-            self.process_btn.config(text="▶ Convert to CHD", bg="#2196F3")
-        elif mode == "m3u":
-            self.process_btn.config(text="▶ Create M3U Files", bg="#2196F3")
-        else:
-            self.process_btn.config(text="▶ Convert & Create M3U", bg="#2196F3")
-        """Show/hide options based on selected mode"""
-        self.m3u_options.pack_forget()
-        self.chd_options.pack_forget()
-        self.both_options.pack_forget()
-        
-        mode = self.operation_mode.get()
-        
-        if mode == "chd":
-            self.chd_options.pack(fill="x")
-            self.process_btn.config(text="▶ Convert to CHD")
-        elif mode == "m3u":
-            self.m3u_options.pack(fill="x")
-            self.process_btn.config(text="▶ Create M3U Files")
-        else:  # both
-            self.both_options.pack(fill="x")
-            self.process_btn.config(text="▶ Convert & Create M3U")
     
     def show_info(self):
         """Show information about when to use each option"""
@@ -701,6 +638,7 @@ Example:
         info_window = tk.Toplevel(self.root)
         info_window.title("Help - When to use each option")
         info_window.geometry("600x650")
+        info_window.configure(bg=self.bg_dark)
         
         text_widget = scrolledtext.ScrolledText(
             info_window,
@@ -709,7 +647,9 @@ Example:
             font=("Arial", 10),
             wrap=tk.WORD,
             padx=15,
-            pady=15
+            pady=15,
+            bg=self.bg_frame,
+            fg=self.text_light
         )
         text_widget.pack(fill="both", expand=True, padx=10, pady=10)
         text_widget.insert(1.0, info_text)
@@ -720,10 +660,11 @@ Example:
             text="Close",
             command=info_window.destroy,
             font=("Arial", 10),
-            bg="#4CAF50",
+            bg=self.accent_green,
             fg="white",
             cursor="hand2",
-            padx=20
+            padx=20,
+            relief="flat"
         )
         close_btn.pack(pady=10)
     
@@ -939,13 +880,10 @@ Example:
             self.log(f"\n❌ ERROR: {str(e)}")
             messagebox.showerror("Error", f"An error occurred:\n{str(e)}")
             self.show_finished_state(success=False)
-        
-        finally:
-            pass
     
     def find_chdman(self):
         """Try to find chdman executable"""
-        # Check if bundled with app (future)
+        # Check if bundled with app
         bundled_path = os.path.join(os.path.dirname(__file__), 'tools', 
                                     'chdman.exe' if platform.system() == 'Windows' else 'chdman')
         if os.path.exists(bundled_path):
@@ -1200,9 +1138,6 @@ Example:
             self.log(f"\n❌ ERROR: {str(e)}")
             messagebox.showerror("Error", f"An error occurred:\n{str(e)}")
             self.show_finished_state(success=False)
-        
-        finally:
-            pass
     
     def convert_and_create_m3u(self, folder):
         """Convert to CHD then create M3U playlists"""
@@ -1370,9 +1305,6 @@ Example:
             self.log(f"\n❌ ERROR: {str(e)}")
             messagebox.showerror("Error", f"An error occurred:\n{str(e)}")
             self.show_finished_state(success=False)
-        
-        finally:
-            pass
 
 
 if __name__ == "__main__":
