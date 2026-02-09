@@ -13,7 +13,7 @@ class MultiDiscManagerGUI:
     def __init__(self, root):
         self.root = root
         self.root.title("Multi-Disc Manager")
-        self.root.geometry("850x850")
+        self.root.geometry("850x870")
         self.root.resizable(True, True)
         
         # Dark mode colors
@@ -40,6 +40,12 @@ class MultiDiscManagerGUI:
         # Sound options
         self.sounds_enabled = tk.BooleanVar(value=True)
         self.load_sounds()
+        
+        # Processing state
+        self.is_processing = False
+        self.spinner_running = False
+        self.spinner_chars = ["⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"]
+        self.spinner_index = 0
         
         self.create_widgets()
     
@@ -90,84 +96,121 @@ class MultiDiscManagerGUI:
         except Exception as e:
             print(f"Could not play sound: {e}")
     
-    def update_status(self, message, progress=None, total=None):
-        """Update the status label and progress bar"""
-        self.status_label.config(text=message)
+    def start_spinner(self):
+        """Start the spinner animation"""
+        self.spinner_running = True
+        self.update_spinner()
+    
+    def stop_spinner(self):
+        """Stop the spinner animation"""
+        self.spinner_running = False
+    
+    def update_spinner(self):
+        """Update spinner animation"""
+        if self.spinner_running:
+            spinner = self.spinner_chars[self.spinner_index]
+            current_text = self.status_title.cget("text")
+            
+            # Remove old spinner if present
+            if any(char in current_text for char in self.spinner_chars):
+                current_text = current_text.split()[0] + " " + " ".join(current_text.split()[1:-1])
+            
+            # Add new spinner
+            self.status_title.config(text=f"{current_text} {spinner}")
+            
+            self.spinner_index = (self.spinner_index + 1) % len(self.spinner_chars)
+            self.root.after(100, self.update_spinner)  # Update every 100ms
+    
+    def show_main_panel(self):
+        """Show the main configuration panel"""
+        self.main_container.pack(fill="both", expand=True, padx=30, pady=20)
+        self.processing_panel.pack_forget()
+    
+    def show_processing_panel(self):
+        """Show the processing panel and hide main panel"""
+        self.main_container.pack_forget()
+        self.processing_panel.pack(fill="both", expand=True, padx=30, pady=20)
+        
+        # Reset processing panel
+        self.status_title.config(text="Starting", fg=self.text_light)
+        self.status_subtitle.config(text="Initializing")
+        self.file_counter_label.config(text="0 / 0 files")
+        self.current_file_label.config(text="")
+        
+        # Clear log
+        self.processing_log.config(state='normal')
+        self.processing_log.delete(1.0, tk.END)
+        self.processing_log.config(state='disabled')
+        
+        # Hide completion buttons
+        self.completion_frame.pack_forget()
+        
+        # Start spinner
+        self.start_spinner()
+    
+    def update_processing_status(self, title, subtitle, progress=None, total=None, current_file=""):
+        """Update the processing panel with current status"""
+        # Stop spinner temporarily to update text
+        was_spinning = self.spinner_running
+        if was_spinning:
+            self.stop_spinner()
+        
+        self.status_title.config(text=title)
+        self.status_subtitle.config(text=subtitle)
         
         if progress is not None and total is not None and total > 0:
-            percentage = int((progress / total) * 100)
-            self.progress['value'] = percentage
-            self.progress_text.config(text=f"{percentage}% ({progress}/{total})")
+            self.file_counter_label.config(text=f"{progress} / {total} files")
+        
+        if current_file:
+            self.current_file_label.config(text=f"📄 {current_file}")
+        
+        # Restart spinner if it was running
+        if was_spinning:
+            self.start_spinner()
         
         self.root.update_idletasks()
     
-    def show_processing_ui(self):
-        """Show status and progress during processing"""
-        self.status_frame.pack(pady=10, padx=20, fill="x")
-        self.progress_frame.pack(pady=5)
-        self.progress['value'] = 0
-        self.progress_text.config(text="0%")
+    def log_to_processing(self, message):
+        """Add a message to the processing log"""
+        self.processing_log.config(state='normal')
+        self.processing_log.insert(tk.END, message + "\n")
+        self.processing_log.see(tk.END)
+        self.processing_log.config(state='disabled')
+        self.root.update_idletasks()
     
-    def hide_processing_ui(self):
-        """Hide status and progress"""
-        self.status_frame.pack_forget()
-        self.progress_frame.pack_forget()
-    
-    def show_finished_state(self, success=True):
-        """Show completion state with sound"""
-        # Play sound first
+    def show_completion(self, success=True, converted=0, skipped=0, failed=0):
+        """Show completion state in processing panel"""
+        # Stop spinner
+        self.stop_spinner()
+        
+        # Play sound
         self.play_sound("success" if success else "fail")
         
         if success:
-            self.status_label.config(
-                text="✅ All operations completed successfully!",
-                bg="#1b5e20",
-                fg="#a5d6a7"
-            )
-            self.process_btn.config(
-                text="✅ Finished - Process More?",
-                bg=self.accent_green,
-                state="normal"
-            )
+            self.status_title.config(text="✅ Completed Successfully!", fg=self.accent_green)
+            self.status_subtitle.config(text="All operations finished")
+            self.processing_panel.config(bg="#1b5e20")
         else:
-            self.status_label.config(
-                text="⚠️ Completed with errors - check log",
-                bg="#b71c1c",
-                fg="#ffcdd2"
-            )
-            self.process_btn.config(
-                text="⚠️ Finished - Try Again?",
-                bg=self.accent_red,
-                state="normal"
-            )
+            self.status_title.config(text="⚠️ Completed with Errors", fg=self.accent_red)
+            self.status_subtitle.config(text="Some operations failed - check details below")
+            self.processing_panel.config(bg="#b71c1c")
         
-        # Keep status visible but hide progress
-        self.progress_frame.pack_forget()
+        # Show completion buttons
+        self.completion_frame.pack(pady=20)
+        
+        self.root.update_idletasks()
     
-    def reset_ui_state(self):
-        """Reset UI to initial state"""
-        self.status_label.config(
-            text="Ready to process",
-            bg="#1b5e20",
-            fg="#a5d6a7"
-        )
-        self.hide_processing_ui()
-        mode = self.operation_mode.get()
-        if mode == "chd":
-            self.process_btn.config(text="▶ Convert to CHD", bg=self.accent_blue)
-        elif mode == "m3u":
-            self.process_btn.config(text="▶ Create M3U Files", bg=self.accent_blue)
-        else:
-            self.process_btn.config(text="▶ Convert & Create M3U", bg=self.accent_blue)
+    def reset_and_return(self):
+        """Reset state and return to main panel"""
+        self.is_processing = False
+        self.processing_panel.config(bg=self.bg_frame)
+        self.show_main_panel()
     
     def update_options_visibility(self):
         """Show/hide options based on selected mode"""
         self.m3u_options.pack_forget()
         self.chd_options.pack_forget()
         self.both_options.pack_forget()
-        
-        # Reset UI when changing modes
-        self.reset_ui_state()
         
         mode = self.operation_mode.get()
         
@@ -182,32 +225,32 @@ class MultiDiscManagerGUI:
             self.process_btn.config(text="▶ Convert & Create M3U")
         
     def create_widgets(self):
-        # Add top padding
-        tk.Frame(self.root, height=10, bg=self.bg_dark).pack()
+        # Main container (for configuration)
+        self.main_container = tk.Frame(self.root, bg=self.bg_dark)
         
         # Title
         title_label = tk.Label(
-            self.root, 
+            self.main_container, 
             text="Multi-Disc Manager", 
-            font=("Arial", 20, "bold"),
+            font=("Arial", 24, "bold"),
             bg=self.bg_dark,
             fg=self.text_light
         )
-        title_label.pack(pady=15)
+        title_label.pack(pady=(10, 5))
         
         # Description
         desc_label = tk.Label(
-            self.root,
+            self.main_container,
             text="Create M3U playlists and convert disc images to CHD format",
-            font=("Arial", 10),
+            font=("Arial", 11),
             bg=self.bg_dark,
             fg=self.text_gray
         )
-        desc_label.pack(pady=(0, 20))
+        desc_label.pack(pady=(0, 30))
         
         # Folder selection frame
-        folder_frame = tk.Frame(self.root, bg=self.bg_dark)
-        folder_frame.pack(pady=10, padx=30, fill="x")
+        folder_frame = tk.Frame(self.main_container, bg=self.bg_dark)
+        folder_frame.pack(pady=10, fill="x")
         
         tk.Label(
             folder_frame, 
@@ -252,14 +295,13 @@ class MultiDiscManagerGUI:
         
         # Operation mode selection
         mode_frame = tk.Frame(
-            self.root,
+            self.main_container,
             bg=self.bg_frame,
             relief="groove",
             bd=2
         )
-        mode_frame.pack(pady=15, padx=30, fill="x")
+        mode_frame.pack(pady=20, fill="x")
         
-        # Title inside the frame
         tk.Label(
             mode_frame,
             text="What do you want to do?",
@@ -319,10 +361,8 @@ class MultiDiscManagerGUI:
         )
         both_radio.pack(anchor="w", padx=25, pady=8)
         
-        # Add separator
         tk.Frame(mode_frame, height=1, bg=self.text_gray).pack(fill="x", padx=25, pady=15)
         
-        # Info button
         info_btn = tk.Button(
             mode_frame,
             text="ℹ️  Help - When to use each?",
@@ -340,16 +380,15 @@ class MultiDiscManagerGUI:
         )
         info_btn.pack(anchor="w", padx=25, pady=(0, 15))
         
-        # Options frame (changes based on mode)
+        # Options frame
         self.options_frame = tk.Frame(
-            self.root,
+            self.main_container,
             bg=self.bg_frame,
             relief="groove",
             bd=2
         )
-        self.options_frame.pack(pady=15, padx=30, fill="x")
+        self.options_frame.pack(pady=20, fill="x")
         
-        # Title will be added by each option frame
         self.options_title = tk.Label(
             self.options_frame,
             text="Options",
@@ -376,7 +415,8 @@ class MultiDiscManagerGUI:
         tk.Label(
             info_frame,
             text="ℹ️ Note: All disc files must be in the same folder.\n"
-                 "    Works with PSX, PS2, Dreamcast, Saturn, Sega CD, and more!",
+                 "    Works with PSX, PS2, Dreamcast, Saturn, Sega CD, and more!\n"
+                 "    If both CUE and CHD files exist, you'll be asked which to use.",
             font=("Arial", 9),
             bg="#1a237e",
             fg="#90caf9",
@@ -467,94 +507,27 @@ class MultiDiscManagerGUI:
         
         # Process button
         self.process_btn = tk.Button(
-            self.root,
+            self.main_container,
             text="▶ Process Files",
             command=self.run_process,
-            font=("Arial", 13, "bold"),
+            font=("Arial", 14, "bold"),
             bg=self.accent_blue,
             fg="white",
             cursor="hand2",
             height=2,
-            padx=40,
+            padx=50,
             relief="flat",
             activebackground="#1e88e5",
             activeforeground="white",
             bd=0
         )
-        self.process_btn.pack(pady=20)
+        self.process_btn.pack(pady=30)
         
-        # Status frame (shows current operation)
-        self.status_frame = tk.Frame(self.root, bg="#1b5e20", relief="groove", borderwidth=2)
-        
-        self.status_label = tk.Label(
-            self.status_frame,
-            text="Ready to process",
-            font=("Arial", 12, "bold"),
-            bg="#1b5e20",
-            fg="#a5d6a7"
-        )
-        self.status_label.pack(pady=15, padx=25)
-        
-        # Progress bar with percentage
-        self.progress_frame = tk.Frame(self.root, bg=self.bg_dark)
-        
-        self.progress = ttk.Progressbar(
-            self.progress_frame,
-            mode='determinate',
-            length=450
-        )
-        self.progress.pack(side="left", padx=(0, 15))
-        
-        self.progress_text = tk.Label(
-            self.progress_frame,
-            text="0%",
-            font=("Arial", 10, "bold"),
-            bg=self.bg_dark,
-            fg=self.text_light
-        )
-        self.progress_text.pack(side="left")
-        
-        # Status/Log area
-        log_frame = tk.Frame(self.root, bg=self.bg_dark)
-        log_frame.pack(pady=(15, 5), padx=30, fill="both", expand=True)
-        
-        log_label = tk.Label(
-            log_frame, 
-            text="Status Log:", 
-            font=("Arial", 11, "bold"),
-            bg=self.bg_dark,
-            fg=self.text_light
-        )
-        log_label.pack(anchor="w", pady=(0, 8))
-        
-        # Scrolled text with border frame for better visibility
-        log_border = tk.Frame(log_frame, bg=self.text_gray, relief="solid", bd=1)
-        log_border.pack(fill="both", expand=True)
-        
-        self.log_text = scrolledtext.ScrolledText(
-            log_border,
-            width=90,
-            height=10,
-            font=("Consolas", 9),
-            bg="#1e1e1e",
-            fg="#d4d4d4",
-            wrap=tk.WORD,
-            insertbackground=self.text_light,
-            selectbackground=self.accent_blue,
-            selectforeground="white",
-            relief="flat",
-            bd=0,
-            padx=10,
-            pady=8
-        )
-        self.log_text.pack(fill="both", expand=True, padx=1, pady=1)
-        
-        # Footer with sound toggle
-        footer_frame = tk.Frame(self.root, bg=self.bg_dark)
-        footer_frame.pack(pady=(10, 15))
+        # Footer
+        footer_frame = tk.Frame(self.main_container, bg=self.bg_dark)
+        footer_frame.pack(pady=(0, 10))
         
         def test_sound():
-            """Test sound when checkbox is toggled"""
             if self.sounds_enabled.get():
                 self.play_sound("success")
         
@@ -583,8 +556,123 @@ class MultiDiscManagerGUI:
         )
         footer_label.pack(side="left")
         
-        # Initialize UI state
+        # ===== PROCESSING PANEL =====
+        self.processing_panel = tk.Frame(self.root, bg=self.bg_frame, relief="groove", bd=2)
+        
+        # Header with status
+        status_header = tk.Frame(self.processing_panel, bg=self.bg_frame)
+        status_header.pack(fill="x", pady=20, padx=30)
+        
+        self.status_title = tk.Label(
+            status_header,
+            text="Processing...",
+            font=("Arial", 20, "bold"),
+            bg=self.bg_frame,
+            fg=self.text_light
+        )
+        self.status_title.pack()
+        
+        self.status_subtitle = tk.Label(
+            status_header,
+            text="Starting operation",
+            font=("Arial", 12),
+            bg=self.bg_frame,
+            fg=self.text_gray
+        )
+        self.status_subtitle.pack(pady=(5, 0))
+        
+        # Current file being processed
+        self.current_file_label = tk.Label(
+            self.processing_panel,
+            text="",
+            font=("Consolas", 11),
+            bg=self.bg_frame,
+            fg=self.accent_blue,
+            wraplength=700
+        )
+        self.current_file_label.pack(pady=(10, 20))
+        
+        # File counter
+        self.file_counter_label = tk.Label(
+            self.processing_panel,
+            text="0 / 0 files",
+            font=("Arial", 13, "bold"),
+            bg=self.bg_frame,
+            fg=self.text_light
+        )
+        self.file_counter_label.pack(pady=(0, 20))
+        
+        # Separator
+        tk.Frame(self.processing_panel, height=2, bg=self.text_gray).pack(fill="x", padx=30, pady=10)
+        
+        # Details label
+        tk.Label(
+            self.processing_panel,
+            text="Details:",
+            font=("Arial", 11, "bold"),
+            bg=self.bg_frame,
+            fg=self.text_light
+        ).pack(anchor="w", padx=30, pady=(10, 5))
+        
+        # Processing log (smaller, for details)
+        log_border = tk.Frame(self.processing_panel, bg=self.text_gray, relief="solid", bd=1)
+        log_border.pack(fill="both", expand=True, padx=30, pady=(0, 20))
+        
+        self.processing_log = scrolledtext.ScrolledText(
+            log_border,
+            width=80,
+            height=12,
+            font=("Consolas", 9),
+            bg="#1e1e1e",
+            fg="#d4d4d4",
+            wrap=tk.WORD,
+            state='disabled',
+            relief="flat",
+            bd=0,
+            padx=10,
+            pady=8
+        )
+        self.processing_log.pack(fill="both", expand=True, padx=1, pady=1)
+        
+        # Completion buttons (hidden until done)
+        self.completion_frame = tk.Frame(self.processing_panel, bg=self.bg_frame)
+        
+        btn_frame = tk.Frame(self.completion_frame, bg=self.bg_frame)
+        btn_frame.pack()
+        
+        tk.Button(
+            btn_frame,
+            text="✓ Done - Return to Main",
+            command=self.reset_and_return,
+            font=("Arial", 12, "bold"),
+            bg=self.accent_green,
+            fg="white",
+            cursor="hand2",
+            padx=30,
+            pady=12,
+            relief="flat",
+            activebackground="#4caf50",
+            bd=0
+        ).pack(side="left", padx=10)
+        
+        tk.Button(
+            btn_frame,
+            text="🔄 Process Another Folder",
+            command=self.reset_and_return,
+            font=("Arial", 11),
+            bg=self.accent_blue,
+            fg="white",
+            cursor="hand2",
+            padx=20,
+            pady=12,
+            relief="flat",
+            activebackground="#1e88e5",
+            bd=0
+        ).pack(side="left", padx=10)
+        
+        # Initialize UI
         self.update_options_visibility()
+        self.show_main_panel()
     
     def show_info(self):
         """Show information about when to use each option"""
@@ -671,13 +759,17 @@ Example:
     def browse_folder(self):
         folder = filedialog.askdirectory(title="Select Game Folder")
         if folder:
+            # Strip any leading/trailing whitespace
+            folder = folder.strip()
+            
+            # Additional check: if folder doesn't exist, try with trailing space
+            # (Linux file dialog sometimes strips trailing spaces from folder names)
+            if not os.path.exists(folder):
+                folder_with_space = folder + " "
+                if os.path.exists(folder_with_space):
+                    folder = folder_with_space
+            
             self.folder_path.set(folder)
-            self.log(f"✓ Selected folder: {folder}\n")
-    
-    def log(self, message):
-        self.log_text.insert(tk.END, message + "\n")
-        self.log_text.see(tk.END)
-        self.root.update_idletasks()
     
     def run_process(self):
         folder = self.folder_path.get()
@@ -687,20 +779,14 @@ Example:
             return
         
         if not os.path.exists(folder):
-            messagebox.showerror("Error", "Selected folder does not exist!")
+            messagebox.showerror("Error", f"Selected folder does not exist!\n\nPath: {folder}")
             return
         
         mode = self.operation_mode.get()
+        self.is_processing = True
         
-        # Clear log
-        self.log_text.delete(1.0, tk.END)
-        
-        # Show processing UI
-        self.show_processing_ui()
-        self.update_status("Initializing...", 0, 100)
-        
-        # Disable button during processing
-        self.process_btn.config(state="disabled", text="Processing...")
+        # Switch to processing panel
+        self.show_processing_panel()
         
         # Run in separate thread
         if mode == "m3u":
@@ -714,39 +800,37 @@ Example:
     def convert_to_chd(self, folder):
         """Convert CUE/GDI/CDI/ISO files to CHD format"""
         try:
-            self.log("=" * 70)
-            self.log("CHD CONVERTER - STARTING")
-            self.log("=" * 70)
-            self.log(f"Target folder: {folder}\n")
-            
-            self.update_status("Checking for chdman...", 5, 100)
+            self.update_processing_status(
+                "CHD Conversion",
+                "Checking for chdman tool...",
+                0, 1
+            )
             
             # Check for chdman
             chdman_path = self.find_chdman()
             if not chdman_path:
-                self.log("❌ ERROR: chdman not found!")
+                self.log_to_processing("❌ ERROR: chdman not found!")
                 
                 # On Linux, offer to install automatically
                 if platform.system() == 'Linux':
-                    self.log("\nOffering automatic installation...")
                     if self.prompt_install_chdman():
-                        self.log("\n⏳ Installation in progress.")
-                        self.log("Please complete installation in the terminal, then try again.")
+                        self.log_to_processing("⏳ Installation in progress.")
+                        self.log_to_processing("Please complete installation in the terminal, then try again.")
                     else:
-                        self.log("\n❌ Installation cancelled.")
+                        self.log_to_processing("❌ Installation cancelled.")
                 else:
-                    self.log("\nchdman is required for CHD conversion.")
-                    self.log("It should be in the tools/ folder.")
+                    self.log_to_processing("chdman is required for CHD conversion.")
+                    self.log_to_processing("It should be in the tools/ folder.")
                     messagebox.showerror(
                         "chdman Not Found",
                         "chdman is required for CHD conversion.\n\n"
                         "It should be bundled in the tools/ folder."
                     )
                 
-                self.show_finished_state(success=False)
+                self.show_completion(success=False)
                 return
             
-            # Test if chdman actually works (check for dependency issues)
+            # Test if chdman actually works
             try:
                 test_result = subprocess.run(
                     [chdman_path, '--help'],
@@ -755,44 +839,44 @@ Example:
                     timeout=5
                 )
                 
-                # If it fails with library error on Linux, offer to install
                 if test_result.returncode != 0 and platform.system() == 'Linux':
                     if 'error while loading shared libraries' in test_result.stderr:
-                        self.log("❌ ERROR: chdman has missing dependencies!")
-                        self.log(f"Error: {test_result.stderr[:150]}")
+                        self.log_to_processing("❌ ERROR: chdman has missing dependencies!")
                         
                         if self.prompt_install_chdman():
-                            self.log("\n⏳ Installation in progress.")
-                            self.log("Please complete installation in the terminal, then try again.")
+                            self.log_to_processing("⏳ Installation in progress.")
                         else:
-                            self.log("\n❌ Installation cancelled.")
+                            self.log_to_processing("❌ Installation cancelled.")
                         
-                        self.show_finished_state(success=False)
+                        self.show_completion(success=False)
                         return
             except Exception as e:
-                self.log(f"⚠️ Warning: Could not test chdman: {e}")
+                self.log_to_processing(f"⚠️ Warning: Could not test chdman: {e}")
             
-            self.log(f"✓ Found chdman: {chdman_path}\n")
+            self.log_to_processing(f"✓ Found chdman: {chdman_path}")
             
-            self.update_status("Scanning for disc images...", 10, 100)
+            self.update_processing_status(
+                "CHD Conversion",
+                "Scanning for disc images..."
+            )
             
             # Find all convertible files
             source_files = []
             for pattern in ["*.cue", "*.gdi", "*.cdi", "*.iso"]:
                 found = list(Path(folder).glob(pattern))
                 if found:
-                    self.log(f"Found {len(found)} {pattern} file(s)")
+                    self.log_to_processing(f"Found {len(found)} {pattern} file(s)")
                     source_files.extend(found)
             
             if not source_files:
-                self.log("\n❌ No convertible files found.")
-                self.log("Supported formats: CUE, GDI, CDI, ISO")
+                self.log_to_processing("❌ No convertible files found.")
+                self.log_to_processing("Supported formats: CUE, GDI, CDI, ISO")
                 messagebox.showinfo("No Files", "No convertible disc images found.")
-                self.show_finished_state(success=False)
+                self.show_completion(success=False)
                 return
             
             total_files = len(source_files)
-            self.log(f"\nTotal files to convert: {total_files}\n")
+            self.log_to_processing(f"\nTotal files to convert: {total_files}\n")
             
             converted = 0
             failed = 0
@@ -804,92 +888,110 @@ Example:
                 chd_path = str(source_file.with_suffix('.chd'))
                 
                 # Update status
-                self.update_status(
-                    f"Converting: {source_file.name}",
+                self.update_processing_status(
+                    "Converting to CHD",
+                    f"Processing file {index} of {total_files}",
                     index,
-                    total_files
+                    total_files,
+                    source_file.name
                 )
                 
                 # Skip if CHD already exists
                 if os.path.exists(chd_path):
-                    self.log(f"⏭️  Skipping {source_file.name} (CHD already exists)")
+                    self.log_to_processing(f"⏭️  Skipped: {source_file.name} (CHD already exists)")
                     skipped += 1
                     continue
                 
-                self.log(f"🔄 Converting: {source_file.name}")
+                self.log_to_processing(f"🔄 Converting: {source_file.name}")
+                
+                # Add a processing indicator that updates
+                processing_msg = "   Processing"
+                self.log_to_processing(processing_msg)
+                
+                # Keep track of log position for updating
+                log_position = self.processing_log.index("end-2c linestart")
                 
                 try:
-                    # Different chdman commands for different formats
-                    if source_ext in ['.cue', '.gdi', '.cdi']:
-                        cmd = [chdman_path, 'createcd', '-i', source_path, '-o', chd_path]
-                    else:  # .iso
-                        cmd = [chdman_path, 'createcd', '-i', source_path, '-o', chd_path]
+                    import time
+                    cmd = [chdman_path, 'createcd', '-i', source_path, '-o', chd_path]
                     
-                    result = subprocess.run(
+                    # Start conversion process
+                    process = subprocess.Popen(
                         cmd,
-                        capture_output=True,
-                        text=True,
-                        timeout=300
+                        stdout=subprocess.PIPE,
+                        stderr=subprocess.PIPE,
+                        text=True
                     )
                     
-                    if result.returncode == 0:
-                        self.log(f"   ✓ Success: {os.path.basename(chd_path)}")
+                    # Animate dots while waiting
+                    dots = 0
+                    while process.poll() is None:
+                        dots = (dots + 1) % 4
+                        dot_str = "." * dots
+                        self.processing_log.config(state='normal')
+                        self.processing_log.delete(log_position, f"{log_position} lineend")
+                        self.processing_log.insert(log_position, f"   Processing{dot_str}")
+                        self.processing_log.config(state='disabled')
+                        self.root.update_idletasks()
+                        time.sleep(0.3)  # Just wait for animation, not the process!
+                    
+                    # Get final result
+                    stdout, stderr = process.communicate()
+                    
+                    # Remove processing line
+                    self.processing_log.config(state='normal')
+                    self.processing_log.delete(f"{log_position} linestart", f"{log_position} lineend+1c")
+                    self.processing_log.config(state='disabled')
+                    
+                    if process.returncode == 0:
+                        self.log_to_processing(f"   ✓ Success: {os.path.basename(chd_path)}")
                         converted += 1
                         
                         # Delete original files if option is enabled
                         if self.delete_after_conversion.get():
                             try:
                                 os.remove(source_path)
-                                # For CUE files, also remove associated BIN files
                                 if source_ext == '.cue':
                                     bin_file = source_path.rsplit('.', 1)[0] + '.bin'
                                     if os.path.exists(bin_file):
                                         os.remove(bin_file)
-                                self.log(f"   🗑️  Deleted original files")
+                                self.log_to_processing(f"   🗑️  Deleted original files")
                             except Exception as e:
-                                self.log(f"   ⚠️  Could not delete originals: {e}")
+                                self.log_to_processing(f"   ⚠️  Could not delete originals: {e}")
                     else:
-                        self.log(f"   ❌ Failed: {result.stderr[:150]}")
+                        self.log_to_processing(f"   ❌ Failed: {stderr[:100]}")
                         failed += 1
                 
-                except subprocess.TimeoutExpired:
-                    self.log(f"   ❌ Timeout - conversion took too long")
-                    failed += 1
                 except Exception as e:
-                    self.log(f"   ❌ Error: {str(e)}")
+                    # Remove processing line if error
+                    try:
+                        self.processing_log.config(state='normal')
+                        self.processing_log.delete(f"{log_position} linestart", f"{log_position} lineend+1c")
+                        self.processing_log.config(state='disabled')
+                    except:
+                        pass
+                    self.log_to_processing(f"   ❌ Error: {str(e)}")
                     failed += 1
-                
-                self.log("")
             
-            self.log("=" * 70)
-            self.log("✅ CONVERSION COMPLETE!")
-            self.log(f"  • Successfully converted: {converted}")
-            self.log(f"  • Skipped (already exist): {skipped}")
-            self.log(f"  • Failed: {failed}")
-            self.log("=" * 70)
+            self.log_to_processing("\n" + "=" * 60)
+            self.log_to_processing(f"✅ Converted: {converted} | ⏭️ Skipped: {skipped} | ❌ Failed: {failed}")
+            self.log_to_processing("=" * 60)
             
             success = failed == 0
-            self.show_finished_state(success=success)
+            self.show_completion(success=success, converted=converted, skipped=skipped, failed=failed)
             
-            messagebox.showinfo(
-                "Conversion Complete",
-                f"CHD conversion finished!\n\nConverted: {converted}\nSkipped: {skipped}\nFailed: {failed}"
-            )
-        
         except Exception as e:
-            self.log(f"\n❌ ERROR: {str(e)}")
+            self.log_to_processing(f"\n❌ ERROR: {str(e)}")
             messagebox.showerror("Error", f"An error occurred:\n{str(e)}")
-            self.show_finished_state(success=False)
+            self.show_completion(success=False)
     
     def find_chdman(self):
         """Try to find chdman executable"""
-        # Check if bundled with app
         bundled_path = os.path.join(os.path.dirname(__file__), 'tools', 
                                     'chdman.exe' if platform.system() == 'Windows' else 'chdman')
         if os.path.exists(bundled_path):
             return bundled_path
         
-        # Check if in system PATH
         chdman_name = 'chdman.exe' if platform.system() == 'Windows' else 'chdman'
         chdman_path = shutil.which(chdman_name)
         if chdman_path:
@@ -915,7 +1017,7 @@ Example:
             elif 'opensuse' in os_info:
                 return "sudo zypper install mame-tools"
             else:
-                return "sudo apt install mame-tools"  # Default to apt
+                return "sudo apt install mame-tools"
         except:
             return "sudo apt install mame-tools"
     
@@ -938,7 +1040,6 @@ Example:
         
         if response:
             try:
-                # Try different terminal emulators (Linux has many)
                 terminals = [
                     ['gnome-terminal', '--'],
                     ['konsole', '-e'],
@@ -982,23 +1083,31 @@ Example:
         
         return False
     
+    def detect_available_formats(self, folder):
+        """Detect which disc formats are available in the folder"""
+        has_cue = len(list(Path(folder).glob("*.cue"))) > 0
+        has_gdi = len(list(Path(folder).glob("*.gdi"))) > 0
+        has_cdi = len(list(Path(folder).glob("*.cdi"))) > 0
+        has_iso = len(list(Path(folder).glob("*.iso"))) > 0
+        has_chd = len(list(Path(folder).glob("*.chd"))) > 0
+        
+        has_original_formats = has_cue or has_gdi or has_cdi or has_iso
+        
+        return has_original_formats, has_chd
+    
     def extract_game_info(self, filename):
         """Extract game name and disc number from filename."""
         name_without_ext = os.path.splitext(filename)[0]
         
-        # Expanded patterns to handle more variations
         patterns = [
-            # Standard disc patterns
-            r'(.*?)[\s\-_]*\(Dis[ck]\s*(\d+)\)',      # (Disc 1) or (Disk 1)
-            r'(.*?)[\s\-_]*\[Dis[ck]\s*(\d+)\]',      # [Disc 1] or [Disk 1]
-            r'(.*?)[\s\-_]*Dis[ck]\s*(\d+)',          # Disc 1 or Disk 1
-            # CD patterns
-            r'(.*?)[\s\-_]*\(CD\s*(\d+)\)',           # (CD1) or (CD 1)
-            r'(.*?)[\s\-_]*\[CD\s*(\d+)\]',           # [CD1] or [CD 1]
-            r'(.*?)[\s\-_]*CD\s*(\d+)',               # CD1 or CD 1
-            # Side/Disk letter patterns (A=1, B=2, etc.)
-            r'(.*?)[\s\-_]*\((?:Side|Dis[ck])\s*([A-Z])\)',  # (Side A) or (Disk A)
-            r'(.*?)[\s\-_]*\[(?:Side|Dis[ck])\s*([A-Z])\]',  # [Side A] or [Disk A]
+            r'(.*?)[\s\-_]*\(Dis[ck]\s*(\d+)\)',
+            r'(.*?)[\s\-_]*\[Dis[ck]\s*(\d+)\]',
+            r'(.*?)[\s\-_]*Dis[ck]\s*(\d+)',
+            r'(.*?)[\s\-_]*\(CD\s*(\d+)\)',
+            r'(.*?)[\s\-_]*\[CD\s*(\d+)\]',
+            r'(.*?)[\s\-_]*CD\s*(\d+)',
+            r'(.*?)[\s\-_]*\((?:Side|Dis[ck])\s*([A-Z])\)',
+            r'(.*?)[\s\-_]*\[(?:Side|Dis[ck])\s*([A-Z])\]',
         ]
         
         for i, pattern in enumerate(patterns):
@@ -1007,8 +1116,7 @@ Example:
                 game_name = match.group(1).strip()
                 disc_identifier = match.group(2)
                 
-                # Convert letter to number (A=1, B=2, etc.) for last two patterns
-                if i >= 6:  # Letter-based patterns
+                if i >= 6:
                     disc_num = ord(disc_identifier.upper()) - ord('A') + 1
                 else:
                     disc_num = int(disc_identifier)
@@ -1017,21 +1125,20 @@ Example:
         
         return None, None
     
-    def find_multidisc_games(self, folder):
+    def find_multidisc_games(self, folder, extensions=None):
         """Scan folder for multi-disc games and group them."""
+        if extensions is None:
+            extensions = ["*.cue", "*.gdi", "*.cdi", "*.iso", "*.chd"]
+        
         games = {}
         
-        # All supported disc image formats
-        extensions = ["*.cue", "*.gdi", "*.cdi", "*.iso", "*.chd"]
-        
-        self.log(f"Scanning for all supported formats: {', '.join(extensions)}")
-        self.log("-" * 60)
+        self.log_to_processing(f"Scanning for: {', '.join(extensions)}")
         
         all_files = []
         for ext_pattern in extensions:
             files = list(Path(folder).glob(ext_pattern))
             if files:
-                self.log(f"Found {len(files)} {ext_pattern} file(s)")
+                self.log_to_processing(f"Found {len(files)} {ext_pattern} file(s)")
                 all_files.extend(files)
         
         for file in all_files:
@@ -1043,21 +1150,17 @@ Example:
                     games[game_name] = []
                 games[game_name].append((disc_num, filename))
         
-        self.log("-" * 60 + "\n")
-        
-        # Filter only games with multiple discs and verify all discs use same format
+        # Filter only games with multiple discs
         multidisc_games = {}
         for name, files in games.items():
             if len(files) > 1:
-                # Check if all files have the same extension
                 extensions_used = set(os.path.splitext(f[1])[1].lower() for f in files)
                 if len(extensions_used) == 1:
                     multidisc_games[name] = files
                 else:
-                    self.log(f"⚠️  Skipping '{name}' - mixed formats detected")
-                    self.log(f"    Formats found: {', '.join(extensions_used)}")
+                    self.log_to_processing(f"⚠️  Skipping '{name}' - mixed formats")
         
-        # Sort disc files by disc number
+        # Sort by disc number
         for game_name in multidisc_games:
             multidisc_games[game_name].sort(key=lambda x: x[0])
         
@@ -1068,111 +1171,234 @@ Example:
         m3u_filename = os.path.join(folder, f"{game_name}.m3u")
         
         if os.path.exists(m3u_filename):
-            self.log(f"  ⚠ M3U already exists: {game_name}.m3u")
+            self.log_to_processing(f"  ⚠️ Already exists: {game_name}.m3u")
             return False
         
         with open(m3u_filename, 'w', encoding='utf-8') as f:
             for disc_num, disc_file in disc_files:
                 f.write(f"{disc_file}\n")
         
-        self.log(f"  ✓ Created: {game_name}.m3u")
-        self.log(f"    Total discs: {len(disc_files)}")
+        self.log_to_processing(f"  ✓ Created: {game_name}.m3u ({len(disc_files)} discs)")
         for disc_num, disc_file in disc_files:
-            self.log(f"      • Disc {disc_num}: {disc_file}")
+            self.log_to_processing(f"      • Disc {disc_num}: {disc_file}")
         
         return True
     
     def create_m3u_files(self, folder):
         try:
-            self.log("=" * 70)
-            self.log("M3U CREATOR - STARTING")
-            self.log("=" * 70)
-            self.log(f"Target folder: {folder}\n")
+            self.update_processing_status(
+                "M3U Creator",
+                "Detecting available disc formats..."
+            )
             
-            self.update_status("Scanning for multi-disc games...", 20, 100)
+            # Detect what formats are available
+            has_original, has_chd = self.detect_available_formats(folder)
             
-            multidisc_games = self.find_multidisc_games(folder)
+            # Determine which extensions to use
+            extensions = None
+            
+            if has_original and has_chd:
+                # Both formats exist - ask user which to use
+                self.log_to_processing("⚠️ Found both original files (CUE/GDI/CDI/ISO) and CHD files")
+                
+                # Create custom dialog
+                choice_dialog = tk.Toplevel(self.root)
+                choice_dialog.title("Choose Format")
+                choice_dialog.geometry("500x250")
+                choice_dialog.configure(bg=self.bg_dark)
+                choice_dialog.transient(self.root)
+                choice_dialog.grab_set()
+                
+                # Center the dialog
+                choice_dialog.update_idletasks()
+                x = (choice_dialog.winfo_screenwidth() // 2) - (500 // 2)
+                y = (choice_dialog.winfo_screenheight() // 2) - (250 // 2)
+                choice_dialog.geometry(f"500x250+{x}+{y}")
+                
+                selected_format = None
+                
+                def select_chd():
+                    nonlocal selected_format
+                    selected_format = "chd"
+                    choice_dialog.destroy()
+                
+                def select_original():
+                    nonlocal selected_format
+                    selected_format = "original"
+                    choice_dialog.destroy()
+                
+                def cancel():
+                    nonlocal selected_format
+                    selected_format = None
+                    choice_dialog.destroy()
+                
+                # Title
+                tk.Label(
+                    choice_dialog,
+                    text="⚠️ Multiple Disc Formats Found",
+                    font=("Arial", 16, "bold"),
+                    bg=self.bg_dark,
+                    fg=self.accent_orange
+                ).pack(pady=(20, 10))
+                
+                # Message
+                tk.Label(
+                    choice_dialog,
+                    text="Both original disc files and CHD files were found.\nWhich format do you want to use for M3U playlists?",
+                    font=("Arial", 11),
+                    bg=self.bg_dark,
+                    fg=self.text_light,
+                    justify="center"
+                ).pack(pady=(0, 30))
+                
+                # Buttons frame
+                btn_frame = tk.Frame(choice_dialog, bg=self.bg_dark)
+                btn_frame.pack(pady=10)
+                
+                tk.Button(
+                    btn_frame,
+                    text="💾 Use CHD Files\n(compressed)",
+                    command=select_chd,
+                    font=("Arial", 11, "bold"),
+                    bg=self.accent_blue,
+                    fg="white",
+                    cursor="hand2",
+                    padx=20,
+                    pady=15,
+                    relief="flat",
+                    width=15
+                ).pack(side="left", padx=10)
+                
+                tk.Button(
+                    btn_frame,
+                    text="📀 Use Original Files\n(CUE/BIN/etc)",
+                    command=select_original,
+                    font=("Arial", 11, "bold"),
+                    bg=self.accent_green,
+                    fg="white",
+                    cursor="hand2",
+                    padx=20,
+                    pady=15,
+                    relief="flat",
+                    width=15
+                ).pack(side="left", padx=10)
+                
+                # Cancel button
+                tk.Button(
+                    choice_dialog,
+                    text="Cancel",
+                    command=cancel,
+                    font=("Arial", 10),
+                    bg=self.bg_frame,
+                    fg=self.text_light,
+                    cursor="hand2",
+                    padx=15,
+                    pady=8,
+                    relief="flat"
+                ).pack(pady=(10, 0))
+                
+                # Wait for dialog to close
+                self.root.wait_window(choice_dialog)
+                
+                if selected_format is None:  # Cancel
+                    self.log_to_processing("❌ Operation cancelled by user")
+                    self.show_completion(success=False)
+                    return
+                elif selected_format == "chd":
+                    extensions = ["*.chd"]
+                    self.log_to_processing("✓ User selected: CHD files")
+                else:  # original
+                    extensions = ["*.cue", "*.gdi", "*.cdi", "*.iso"]
+                    self.log_to_processing("✓ User selected: Original disc files")
+            
+            elif has_chd:
+                # Only CHD files
+                extensions = ["*.chd"]
+                self.log_to_processing("✓ Auto-detected: CHD files only")
+            
+            elif has_original:
+                # Only original files
+                extensions = ["*.cue", "*.gdi", "*.cdi", "*.iso"]
+                self.log_to_processing("✓ Auto-detected: Original disc files only")
+            
+            else:
+                # No disc files found
+                self.log_to_processing("❌ No disc files found")
+                messagebox.showerror("No Files", "No disc image files found in the selected folder.")
+                self.show_completion(success=False)
+                return
+            
+            self.update_processing_status(
+                "M3U Creator",
+                "Scanning for multi-disc games..."
+            )
+            
+            multidisc_games = self.find_multidisc_games(folder, extensions=extensions)
             
             if not multidisc_games:
-                self.log("❌ No multi-disc games found.")
-                self.log("\nMake sure your disc files follow naming conventions like:")
-                self.log("  • Game Name (Disc 1).cue")
-                self.log("  • Game Name (Disc 2).chd")
-                self.log("  • Game Name [Disc 1].bin")
+                self.log_to_processing("❌ No multi-disc games found.")
+                self.log_to_processing("\nMake sure files follow naming conventions like:")
+                self.log_to_processing("  • Game Name (Disc 1).cue")
+                self.log_to_processing("  • Game Name (Disc 2).chd")
                 messagebox.showinfo("No Games Found", "No multi-disc games were found.")
-                self.show_finished_state(success=False)
+                self.show_completion(success=False)
             else:
-                self.log(f"🎮 Found {len(multidisc_games)} multi-disc game(s)\n")
+                self.log_to_processing(f"🎮 Found {len(multidisc_games)} multi-disc game(s)\n")
                 
                 total_games = len(multidisc_games)
                 created_count = 0
                 skipped_count = 0
                 
                 for index, (game_name, disc_files) in enumerate(multidisc_games.items(), 1):
-                    self.update_status(
-                        f"Creating M3U: {game_name}",
+                    self.update_processing_status(
+                        "Creating M3U Playlists",
+                        f"Processing game {index} of {total_games}",
                         index,
-                        total_games
+                        total_games,
+                        f"{game_name}.m3u"
                     )
                     
                     if self.create_m3u_file(game_name, disc_files, folder):
                         created_count += 1
                     else:
                         skipped_count += 1
-                    self.log("")
                 
-                self.log("=" * 70)
-                self.log("✅ COMPLETED SUCCESSFULLY!")
-                self.log(f"  • M3U files created: {created_count}")
-                self.log(f"  • Already existed (skipped): {skipped_count}")
-                self.log("=" * 70)
+                self.log_to_processing("\n" + "=" * 60)
+                self.log_to_processing(f"✅ Created: {created_count} | ⏭️ Skipped: {skipped_count}")
+                self.log_to_processing("=" * 60)
                 
-                self.show_finished_state(success=True)
-                
-                messagebox.showinfo(
-                    "Success!", 
-                    f"M3U creation complete!\n\nCreated: {created_count}\nSkipped: {skipped_count}"
-                )
+                self.show_completion(success=True, converted=created_count, skipped=skipped_count)
         
         except Exception as e:
-            self.log(f"\n❌ ERROR: {str(e)}")
+            self.log_to_processing(f"\n❌ ERROR: {str(e)}")
             messagebox.showerror("Error", f"An error occurred:\n{str(e)}")
-            self.show_finished_state(success=False)
+            self.show_completion(success=False)
     
     def convert_and_create_m3u(self, folder):
         """Convert to CHD then create M3U playlists"""
         try:
-            self.log("=" * 70)
-            self.log("CONVERT TO CHD + CREATE M3U - STARTING")
-            self.log("=" * 70)
-            self.log(f"Target folder: {folder}\n")
-            
-            # Step 1: Convert to CHD
-            self.log("STEP 1: Converting disc images to CHD")
-            self.log("-" * 70)
-            
-            self.update_status("Step 1: Checking for chdman...", 5, 100)
+            self.update_processing_status(
+                "CHD + M3U",
+                "Step 1: Checking for chdman..."
+            )
             
             # Check for chdman
             chdman_path = self.find_chdman()
             if not chdman_path:
-                self.log("❌ ERROR: chdman not found!")
+                self.log_to_processing("❌ ERROR: chdman not found!")
                 
-                # On Linux, offer to install automatically
                 if platform.system() == 'Linux':
-                    self.log("\nOffering automatic installation...")
                     if self.prompt_install_chdman():
-                        self.log("\n⏳ Installation in progress.")
-                        self.log("Please complete installation in the terminal, then try again.")
+                        self.log_to_processing("⏳ Installation in progress.")
                     else:
-                        self.log("\n❌ Installation cancelled.")
+                        self.log_to_processing("❌ Installation cancelled.")
                 else:
-                    messagebox.showerror("chdman Not Found", "chdman is required. See log for details.")
+                    messagebox.showerror("chdman Not Found", "chdman is required.")
                 
-                self.show_finished_state(success=False)
+                self.show_completion(success=False)
                 return
             
-            # Test if chdman actually works
+            # Test chdman
             try:
                 test_result = subprocess.run(
                     [chdman_path, '--help'],
@@ -1183,64 +1409,88 @@ Example:
                 
                 if test_result.returncode != 0 and platform.system() == 'Linux':
                     if 'error while loading shared libraries' in test_result.stderr:
-                        self.log("❌ ERROR: chdman has missing dependencies!")
-                        self.log(f"Error: {test_result.stderr[:150]}")
+                        self.log_to_processing("❌ ERROR: chdman has missing dependencies!")
                         
                         if self.prompt_install_chdman():
-                            self.log("\n⏳ Installation in progress.")
-                            self.log("Please complete installation in the terminal, then try again.")
+                            self.log_to_processing("⏳ Installation in progress.")
                         else:
-                            self.log("\n❌ Installation cancelled.")
+                            self.log_to_processing("❌ Installation cancelled.")
                         
-                        self.show_finished_state(success=False)
+                        self.show_completion(success=False)
                         return
             except Exception as e:
-                self.log(f"⚠️ Warning: Could not test chdman: {e}")
+                self.log_to_processing(f"⚠️ Warning: Could not test chdman: {e}")
             
-            self.log(f"✓ Found chdman: {chdman_path}")
+            self.log_to_processing(f"✓ Found chdman: {chdman_path}")
             
-            self.update_status("Step 1: Scanning for disc images...", 10, 100)
-            
-            # Find all convertible files
+            # Find convertible files
             source_files = []
             for pattern in ["*.cue", "*.gdi", "*.cdi", "*.iso"]:
                 found = list(Path(folder).glob(pattern))
                 if found:
                     source_files.extend(found)
             
+            converted = 0
+            
             if source_files:
                 total_files = len(source_files)
-                self.log(f"Found {total_files} file(s) to convert\n")
+                self.log_to_processing(f"\n=== STEP 1: CHD Conversion ===")
+                self.log_to_processing(f"Found {total_files} file(s) to convert\n")
                 
-                converted = 0
                 for index, source_file in enumerate(source_files, 1):
                     source_path = str(source_file)
                     chd_path = str(source_file.with_suffix('.chd'))
                     
-                    # Calculate progress (0-50% for CHD conversion)
-                    progress = 10 + int((index / total_files) * 40)
-                    self.update_status(
-                        f"Step 1: Converting {source_file.name}",
-                        progress,
-                        100
+                    self.update_processing_status(
+                        "Step 1: Converting to CHD",
+                        f"Processing file {index} of {total_files}",
+                        index,
+                        total_files,
+                        source_file.name
                     )
                     
                     if os.path.exists(chd_path):
-                        self.log(f"⏭️  {source_file.name} (CHD exists)")
+                        self.log_to_processing(f"⏭️  {source_file.name} (CHD exists)")
                         continue
                     
-                    self.log(f"🔄 {source_file.name}")
+                    self.log_to_processing(f"🔄 {source_file.name}")
+                    
+                    # Add a processing indicator
+                    processing_msg = "   Processing"
+                    self.log_to_processing(processing_msg)
+                    log_position = self.processing_log.index("end-2c linestart")
                     
                     try:
-                        result = subprocess.run(
+                        import time
+                        # Start conversion process
+                        process = subprocess.Popen(
                             [chdman_path, 'createcd', '-i', source_path, '-o', chd_path],
-                            capture_output=True,
-                            text=True,
-                            timeout=300
+                            stdout=subprocess.PIPE,
+                            stderr=subprocess.PIPE,
+                            text=True
                         )
                         
-                        if result.returncode == 0:
-                            self.log(f"   ✓ Converted to CHD")
+                        # Animate dots while waiting
+                        dots = 0
+                        while process.poll() is None:
+                            dots = (dots + 1) % 4
+                            dot_str = "." * dots
+                            self.processing_log.config(state='normal')
+                            self.processing_log.delete(log_position, f"{log_position} lineend")
+                            self.processing_log.insert(log_position, f"   Processing{dot_str}")
+                            self.processing_log.config(state='disabled')
+                            self.root.update_idletasks()
+                            time.sleep(0.3)  # Just wait for animation, not the process!
+                        
+                        stdout, stderr = process.communicate()
+                        
+                        # Remove processing line
+                        self.processing_log.config(state='normal')
+                        self.processing_log.delete(f"{log_position} linestart", f"{log_position} lineend+1c")
+                        self.processing_log.config(state='disabled')
+                        
+                        if process.returncode == 0:
+                            self.log_to_processing(f"   ✓ Converted to CHD")
                             converted += 1
                             
                             if self.delete_after_conversion.get():
@@ -1250,61 +1500,68 @@ Example:
                                         bin_file = str(source_file.with_suffix('.bin'))
                                         if os.path.exists(bin_file):
                                             os.remove(bin_file)
-                                    self.log(f"   🗑️  Deleted originals")
+                                    self.log_to_processing(f"   🗑️  Deleted originals")
                                 except:
                                     pass
                         else:
-                            self.log(f"   ❌ Conversion failed")
+                            self.log_to_processing(f"   ❌ Conversion failed")
                     except:
-                        self.log(f"   ❌ Error during conversion")
+                        # Remove processing line if error
+                        try:
+                            self.processing_log.config(state='normal')
+                            self.processing_log.delete(f"{log_position} linestart", f"{log_position} lineend+1c")
+                            self.processing_log.config(state='disabled')
+                        except:
+                            pass
+                        self.log_to_processing(f"   ❌ Error during conversion")
                 
-                self.log(f"\nConverted {converted} file(s) to CHD")
+                self.log_to_processing(f"\nStep 1 complete: Converted {converted} file(s)")
             else:
-                self.log("No files found to convert")
+                self.log_to_processing("No files found to convert")
             
-            # Step 2: Create M3U playlists
-            self.log("\n" + "=" * 70)
-            self.log("STEP 2: Creating M3U playlists")
-            self.log("-" * 70 + "\n")
+            # Step 2: Create M3U
+            self.log_to_processing(f"\n=== STEP 2: M3U Creation ===\n")
             
-            self.update_status("Step 2: Scanning for multi-disc games...", 55, 100)
+            self.update_processing_status(
+                "Step 2: Creating M3U",
+                "Scanning for multi-disc games..."
+            )
             
-            multidisc_games = self.find_multidisc_games(folder)
+            # Only scan for CHD files since we just converted to CHD
+            multidisc_games = self.find_multidisc_games(folder, extensions=["*.chd"])
+            
+            created = 0
             
             if multidisc_games:
                 total_games = len(multidisc_games)
-                self.log(f"Found {total_games} multi-disc game(s)\n")
+                self.log_to_processing(f"Found {total_games} multi-disc game(s)\n")
                 
-                created = 0
-                for index, (game_name, disc_files) in enumerate(multidisc_games.items(), 1):
-                    # Calculate progress (50-100% for M3U creation)
-                    progress = 55 + int((index / total_games) * 45)
-                    self.update_status(
-                        f"Step 2: Creating M3U for {game_name}",
-                        progress,
-                        100
+                for index, (game_name, disc_files) in enumerate(multidisc_games, 1):
+                    self.update_processing_status(
+                        "Step 2: Creating M3U",
+                        f"Processing game {index} of {total_games}",
+                        index,
+                        total_games,
+                        f"{game_name}.m3u"
                     )
                     
                     if self.create_m3u_file(game_name, disc_files, folder):
                         created += 1
-                    self.log("")
                 
-                self.log(f"Created {created} M3U playlist(s)")
+                self.log_to_processing(f"\nStep 2 complete: Created {created} M3U file(s)")
             else:
-                self.log("No multi-disc games found")
+                self.log_to_processing("No multi-disc games found")
             
-            self.log("\n" + "=" * 70)
-            self.log("✅ ALL OPERATIONS COMPLETE!")
-            self.log("=" * 70)
+            self.log_to_processing("\n" + "=" * 60)
+            self.log_to_processing("✅ ALL OPERATIONS COMPLETE!")
+            self.log_to_processing("=" * 60)
             
-            self.show_finished_state(success=True)
-            
-            messagebox.showinfo("Complete!", "CHD conversion and M3U creation finished!")
+            self.show_completion(success=True, converted=converted, skipped=0, failed=0)
         
         except Exception as e:
-            self.log(f"\n❌ ERROR: {str(e)}")
+            self.log_to_processing(f"\n❌ ERROR: {str(e)}")
             messagebox.showerror("Error", f"An error occurred:\n{str(e)}")
-            self.show_finished_state(success=False)
+            self.show_completion(success=False)
 
 
 if __name__ == "__main__":
