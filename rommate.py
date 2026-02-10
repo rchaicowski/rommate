@@ -9,10 +9,10 @@ import platform
 import shutil
 
 
-class MultiDiscManagerGUI:
+class RomMateGUI:
     def __init__(self, root):
         self.root = root
-        self.root.title("Multi-Disc Manager")
+        self.root.title("RomMate")
         self.root.geometry("850x870")
         self.root.resizable(True, True)
         
@@ -231,7 +231,7 @@ class MultiDiscManagerGUI:
         # Title
         title_label = tk.Label(
             self.main_container, 
-            text="Multi-Disc Manager", 
+            text="RomMate", 
             font=("Arial", 24, "bold"),
             bg=self.bg_dark,
             fg=self.text_light
@@ -241,7 +241,7 @@ class MultiDiscManagerGUI:
         # Description
         desc_label = tk.Label(
             self.main_container,
-            text="Create M3U playlists and convert disc images to CHD format",
+            text="Your ROM companion - Convert, compress, and organize disc images",
             font=("Arial", 11),
             bg=self.bg_dark,
             fg=self.text_gray
@@ -687,7 +687,7 @@ What it does:
 • Keeps your game library organized
 
 Best for:
-• PS1 games like Final Fantasy VII, VIII, IX
+• PS1 multi-disc games
 • PS2 multi-disc games
 • Dreamcast multi-disc games
 • Sega Saturn multi-disc games
@@ -1566,5 +1566,5 @@ Example:
 
 if __name__ == "__main__":
     root = tk.Tk()
-    app = MultiDiscManagerGUI(root)
+    app = RomMateGUI(root)
     root.mainloop()
