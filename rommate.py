@@ -12,6 +12,7 @@ from utils.sounds import SoundPlayer
 from core.file_utils import normalize_path, detect_available_formats
 from gui.dialogs import show_format_choice_dialog, show_info_dialog
 from core.chd_converter import CHDConverter 
+from core.m3u_creator import M3UCreator
 
 class RomMateGUI:
     def __init__(self, root):
@@ -45,8 +46,11 @@ class RomMateGUI:
         self.sound_player = SoundPlayer()
         self.sounds_enabled = tk.BooleanVar(value=self.sound_player.sounds_enabled)
 
-        # CHD converter  ← Add these 2 lines
+        # CHD converter
         self.chd_converter = CHDConverter()
+
+        # M3U creator
+        self.m3u_creator = M3UCreator()
 
         # Processing state
         self.is_processing = False
@@ -802,425 +806,177 @@ class RomMateGUI:
             messagebox.showerror("Error", f"An error occurred:\n{str(e)}")
             self.show_completion(success=False)
 
-    def extract_game_info(self, filename):
-        """Extract game name and disc number from filename."""
-        name_without_ext = os.path.splitext(filename)[0]
-
-        patterns = [
-            r"(.*?)[\s\-_]*\(Dis[ck]\s*(\d+)\)",
-            r"(.*?)[\s\-_]*\[Dis[ck]\s*(\d+)\]",
-            r"(.*?)[\s\-_]*Dis[ck]\s*(\d+)",
-            r"(.*?)[\s\-_]*\(CD\s*(\d+)\)",
-            r"(.*?)[\s\-_]*\[CD\s*(\d+)\]",
-            r"(.*?)[\s\-_]*CD\s*(\d+)",
-            r"(.*?)[\s\-_]*\((?:Side|Dis[ck])\s*([A-Z])\)",
-            r"(.*?)[\s\-_]*\[(?:Side|Dis[ck])\s*([A-Z])\]",
-        ]
-
-        for i, pattern in enumerate(patterns):
-            match = re.match(pattern, name_without_ext, re.IGNORECASE)
-            if match:
-                game_name = match.group(1).strip()
-                disc_identifier = match.group(2)
-
-                if i >= 6:
-                    disc_num = ord(disc_identifier.upper()) - ord("A") + 1
-                else:
-                    disc_num = int(disc_identifier)
-
-                return game_name, disc_num
-
-        return None, None
-
-    def find_multidisc_games(self, folder, extensions=None):
-        """Scan folder for multi-disc games and group them."""
-        if extensions is None:
-            extensions = ["*.cue", "*.gdi", "*.cdi", "*.iso", "*.chd"]
-
-        games = {}
-
-        self.log_to_processing(f"Scanning for: {', '.join(extensions)}")
-
-        all_files = []
-        for ext_pattern in extensions:
-            files = list(Path(folder).glob(ext_pattern))
-            if files:
-                self.log_to_processing(
-                    f"Found {len(files)} {ext_pattern} file(s)")
-                all_files.extend(files)
-
-        for file in all_files:
-            filename = file.name
-            game_name, disc_num = self.extract_game_info(filename)
-
-            if game_name and disc_num:
-                if game_name not in games:
-                    games[game_name] = []
-                games[game_name].append((disc_num, filename))
-
-        # Filter only games with multiple discs
-        multidisc_games = {}
-        for name, files in games.items():
-            if len(files) > 1:
-                extensions_used = set(os.path.splitext(
-                    f[1])[1].lower() for f in files)
-                if len(extensions_used) == 1:
-                    multidisc_games[name] = files
-                else:
-                    self.log_to_processing(
-                        f"⚠️  Skipping '{name}' - mixed formats")
-
-        # Sort by disc number
-        for game_name in multidisc_games:
-            multidisc_games[game_name].sort(key=lambda x: x[0])
-
-        return multidisc_games
-
-    def create_m3u_file(self, game_name, disc_files, folder):
-        """Create an .m3u file for a multi-disc game."""
-        m3u_filename = os.path.join(folder, f"{game_name}.m3u")
-
-        if os.path.exists(m3u_filename):
-            self.log_to_processing(f"  ⚠️ Already exists: {game_name}.m3u")
-            return False
-
-        with open(m3u_filename, "w", encoding="utf-8") as f:
-            for disc_num, disc_file in disc_files:
-                f.write(f"{disc_file}\n")
-
-        self.log_to_processing(
-            f"  ✓ Created: {game_name}.m3u ({len(disc_files)} discs)"
-        )
-        for disc_num, disc_file in disc_files:
-            self.log_to_processing(f"      • Disc {disc_num}: {disc_file}")
-
-        return True
-
     def create_m3u_files(self, folder):
+        """Create M3U playlists for multi-disc games"""
         try:
             self.update_processing_status(
-                "M3U Creator", "Detecting available disc formats..."
+                "M3U Creator",
+                "Detecting available disc formats..."
             )
-
-            # Detect what formats are available
-            has_original, has_chd = detect_available_formats(folder)
-
-            # Determine which extensions to use
-            extensions = None
-
-            if has_original and has_chd:
-                # Both formats exist - ask user which to use
-                self.log_to_processing(
-                    "⚠️ Found both original files (CUE/GDI/CDI/ISO) and CHD files")
-
-                selected_format = show_format_choice_dialog(self.root)
-
-                if selected_format is None:  # Cancel
-                    self.log_to_processing("❌ Operation cancelled by user")
-                    self.show_completion(success=False)
-                    return
-                elif selected_format == "chd":
-                    extensions = ["*.chd"]
-                    self.log_to_processing("✓ User selected: CHD files")
-                else:  # original
-                    extensions = ["*.cue", "*.gdi", "*.cdi", "*.iso"]
-                    self.log_to_processing("✓ User selected: Original disc files")
-
-            elif has_chd:
-                # Only CHD files
-                extensions = ["*.chd"]
-                self.log_to_processing("✓ Auto-detected: CHD files only")
-
-            elif has_original:
-                # Only original files
-                extensions = ["*.cue", "*.gdi", "*.cdi", "*.iso"]
-                self.log_to_processing(
-                    "✓ Auto-detected: Original disc files only")
-
-            else:
-                # No disc files found
-                self.log_to_processing("❌ No disc files found")
-                messagebox.showerror(
-                    "No Files", "No disc image files found in the selected folder."
-                )
-                self.show_completion(success=False)
+            
+            # Use M3U creator with auto-detection
+            created, skipped, cancelled = self.m3u_creator.auto_detect_and_create(
+                folder,
+                log_callback=self.log_to_processing,
+                progress_callback=lambda current, total, filename: self.update_processing_status(
+                    "Creating M3U Playlists",
+                    f"Processing game {current} of {total}",
+                    current,
+                    total,
+                    filename
+                ),
+                format_choice_callback=lambda: show_format_choice_dialog(self.root)
+            )
+            
+            if cancelled:
+                # User cancelled
                 return
-
-            self.update_processing_status(
-                "M3U Creator", "Scanning for multi-disc games..."
-            )
-
-            multidisc_games = self.find_multidisc_games(
-                folder, extensions=extensions)
-
-            if not multidisc_games:
+            
+            if created == 0 and skipped == 0:
                 self.log_to_processing("❌ No multi-disc games found.")
-                self.log_to_processing(
-                    "\nMake sure files follow naming conventions like:"
-                )
+                self.log_to_processing("\nMake sure files follow naming conventions like:")
                 self.log_to_processing("  • Game Name (Disc 1).cue")
                 self.log_to_processing("  • Game Name (Disc 2).chd")
-                messagebox.showinfo(
-                    "No Games Found", "No multi-disc games were found.")
+                messagebox.showinfo("No Games Found", "No multi-disc games were found.")
                 self.show_completion(success=False)
             else:
-                self.log_to_processing(
-                    f"🎮 Found {len(multidisc_games)} multi-disc game(s)\n"
+                self.log_to_processing(f"\n{'=' * 60}")
+                self.log_to_processing(f"✅ Created: {created} | ⚠️ Skipped: {skipped}")
+                self.log_to_processing(f"{'=' * 60}\n")
+                self.log_to_processing("✅ ALL OPERATIONS COMPLETE!")
+                self.log_to_processing(f"{'=' * 60}")
+                
+                self.show_completion(success=True, converted=created, skipped=skipped)
+                
+                messagebox.showinfo(
+                    "M3U Creation Complete",
+                    f"M3U playlist creation finished!\n\nCreated: {created}\nSkipped: {skipped}"
                 )
-
-                total_games = len(multidisc_games)
-                created_count = 0
-                skipped_count = 0
-
-                for index, (game_name, disc_files) in enumerate(
-                    multidisc_games.items(), 1
-                ):
-                    self.update_processing_status(
-                        "Creating M3U Playlists",
-                        f"Processing game {index} of {total_games}",
-                        index,
-                        total_games,
-                        f"{game_name}.m3u",
-                    )
-
-                    if self.create_m3u_file(game_name, disc_files, folder):
-                        created_count += 1
-                    else:
-                        skipped_count += 1
-
-                self.log_to_processing("\n" + "=" * 60)
-                self.log_to_processing(
-                    f"✅ Created: {created_count} | ⏭️ Skipped: {skipped_count}"
-                )
-                self.log_to_processing("=" * 60)
-
-                self.show_completion(
-                    success=True, converted=created_count, skipped=skipped_count
-                )
-
+        
         except Exception as e:
             self.log_to_processing(f"\n❌ ERROR: {str(e)}")
             messagebox.showerror("Error", f"An error occurred:\n{str(e)}")
             self.show_completion(success=False)
 
+         
     def convert_and_create_m3u(self, folder):
         """Convert to CHD then create M3U playlists"""
         try:
             self.update_processing_status(
-                "CHD + M3U", "Step 1: Checking for chdman...")
-
+                "CHD + M3U", "Step 1: Checking for chdman..."
+            )
+            
             # Check for chdman
-            chdman_path = self.find_chdman()
-            if not chdman_path:
+            self.chd_converter.chdman_path = self.chd_converter.find_chdman()
+            if not self.chd_converter.chdman_path:
                 self.log_to_processing("❌ ERROR: chdman not found!")
-
+                
                 if platform.system() == "Linux":
-                    if self.prompt_install_chdman():
+                    if self.chd_converter.prompt_install_chdman():
                         self.log_to_processing("⏳ Installation in progress.")
                     else:
                         self.log_to_processing("❌ Installation cancelled.")
                 else:
-                    messagebox.showerror(
-                        "chdman Not Found", "chdman is required.")
-
+                    messagebox.showerror("chdman Not Found", "chdman is required.")
+                
                 self.show_completion(success=False)
                 return
-
+            
             # Test chdman
             try:
                 test_result = subprocess.run(
-                    [chdman_path, "--help"], capture_output=True, text=True, timeout=5
+                    [self.chd_converter.chdman_path, "--help"],
+                    capture_output=True,
+                    text=True,
+                    timeout=5
                 )
-
+                
                 if test_result.returncode != 0 and platform.system() == "Linux":
                     if "error while loading shared libraries" in test_result.stderr:
-                        self.log_to_processing(
-                            "❌ ERROR: chdman has missing dependencies!"
-                        )
-
-                        if self.prompt_install_chdman():
-                            self.log_to_processing(
-                                "⏳ Installation in progress.")
+                        self.log_to_processing("❌ ERROR: chdman has missing dependencies!")
+                        
+                        if self.chd_converter.prompt_install_chdman():
+                            self.log_to_processing("⏳ Installation in progress.")
                         else:
                             self.log_to_processing("❌ Installation cancelled.")
-
+                        
                         self.show_completion(success=False)
                         return
             except Exception as e:
-                self.log_to_processing(
-                    f"⚠️ Warning: Could not test chdman: {e}")
-
-            self.log_to_processing(f"✓ Found chdman: {chdman_path}")
-
-            # Find convertible files
-            source_files = []
-            for pattern in ["*.cue", "*.gdi", "*.cdi", "*.iso"]:
-                found = list(Path(folder).glob(pattern))
-                if found:
-                    source_files.extend(found)
-
-            converted = 0
-
-            if source_files:
-                total_files = len(source_files)
-                self.log_to_processing(f"\n=== STEP 1: CHD Conversion ===")
-                self.log_to_processing(
-                    f"Found {total_files} file(s) to convert\n")
-
-                for index, source_file in enumerate(source_files, 1):
-                    source_path = str(source_file)
-                    chd_path = str(source_file.with_suffix(".chd"))
-
-                    self.update_processing_status(
-                        "Step 1: Converting to CHD",
-                        f"Processing file {index} of {total_files}",
-                        index,
-                        total_files,
-                        source_file.name,
-                    )
-
-                    if os.path.exists(chd_path):
-                        self.log_to_processing(
-                            f"⏭️  {source_file.name} (CHD exists)")
-                        continue
-
-                    self.log_to_processing(f"🔄 {source_file.name}")
-
-                    # Add a processing indicator
-                    processing_msg = "   Processing"
-                    self.log_to_processing(processing_msg)
-                    log_position = self.processing_log.index(
-                        "end-2c linestart")
-
-                    try:
-                        import time
-
-                        # Start conversion process
-                        process = subprocess.Popen(
-                            [
-                                chdman_path,
-                                "createcd",
-                                "-i",
-                                source_path,
-                                "-o",
-                                chd_path,
-                            ],
-                            stdout=subprocess.PIPE,
-                            stderr=subprocess.PIPE,
-                            text=True,
-                        )
-
-                        # Animate dots while waiting
-                        dots = 0
-                        while process.poll() is None:
-                            dots = (dots + 1) % 4
-                            dot_str = "." * dots
-                            self.processing_log.config(state="normal")
-                            self.processing_log.delete(
-                                log_position, f"{log_position} lineend"
-                            )
-                            self.processing_log.insert(
-                                log_position, f"   Processing{dot_str}"
-                            )
-                            self.processing_log.config(state="disabled")
-                            self.root.update_idletasks()
-                            # Just wait for animation, not the process!
-                            time.sleep(0.3)
-
-                        stdout, stderr = process.communicate()
-
-                        # Remove processing line
-                        self.processing_log.config(state="normal")
-                        self.processing_log.delete(
-                            f"{log_position} linestart", f"{log_position} lineend+1c"
-                        )
-                        self.processing_log.config(state="disabled")
-
-                        if process.returncode == 0:
-                            self.log_to_processing(f"   ✓ Converted to CHD")
-                            converted += 1
-
-                            if self.delete_after_conversion.get():
-                                try:
-                                    os.remove(source_path)
-                                    if source_file.suffix.lower() == ".cue":
-                                        bin_file = str(
-                                            source_file.with_suffix(".bin"))
-                                        if os.path.exists(bin_file):
-                                            os.remove(bin_file)
-                                    self.log_to_processing(
-                                        f"   🗑️  Deleted originals")
-                                except:
-                                    pass
-                        else:
-                            self.log_to_processing(f"   ❌ Conversion failed")
-                    except:
-                        # Remove processing line if error
-                        try:
-                            self.processing_log.config(state="normal")
-                            self.processing_log.delete(
-                                f"{log_position} linestart",
-                                f"{log_position} lineend+1c",
-                            )
-                            self.processing_log.config(state="disabled")
-                        except:
-                            pass
-                        self.log_to_processing(f"   ❌ Error during conversion")
-
-                self.log_to_processing(
-                    f"\nStep 1 complete: Converted {converted} file(s)"
+                self.log_to_processing(f"⚠️ Warning: Could not test chdman: {e}")
+            
+            self.log_to_processing(f"✓ Found chdman: {self.chd_converter.chdman_path}")
+            
+            # Step 1: Convert to CHD
+            self.log_to_processing(f"\n=== STEP 1: CHD Conversion ===")
+            
+            converted, skipped, failed = self.chd_converter.convert_folder(
+                folder,
+                delete_after=self.delete_after_conversion.get(),
+                log_callback=self.log_to_processing,
+                progress_callback=lambda current, total, filename: self.update_processing_status(
+                    "Step 1: Converting to CHD",
+                    f"Processing file {current} of {total}",
+                    current,
+                    total,
+                    filename
                 )
+            )
+            
+            if converted > 0 or skipped > 0:
+                self.log_to_processing(f"\nStep 1 complete: Converted {converted} file(s)")
             else:
                 self.log_to_processing("No files found to convert")
-
+            
             # Step 2: Create M3U
             self.log_to_processing(f"\n=== STEP 2: M3U Creation ===\n")
-
+            
             self.update_processing_status(
-                "Step 2: Creating M3U", "Scanning for multi-disc games..."
+                "Step 2: Creating M3U",
+                "Scanning for multi-disc games..."
             )
-
+            
             # Only scan for CHD files since we just converted to CHD
-            multidisc_games = self.find_multidisc_games(
-                folder, extensions=["*.chd"])
-
+            from core.file_utils import find_multidisc_games, create_m3u_file
+            
+            multidisc_games = find_multidisc_games(
+                folder,
+                extensions=["*.chd"],
+                log_callback=self.log_to_processing
+            )
+            
             created = 0
-
+            
             if multidisc_games:
                 total_games = len(multidisc_games)
-                self.log_to_processing(
-                    f"Found {total_games} multi-disc game(s)\n")
-
-                for index, (game_name, disc_files) in enumerate(multidisc_games, 1):
+                self.log_to_processing(f"Found {total_games} multi-disc game(s)\n")
+                
+                for index, (game_name, disc_files) in enumerate(multidisc_games.items(), 1):
                     self.update_processing_status(
                         "Step 2: Creating M3U",
                         f"Processing game {index} of {total_games}",
                         index,
                         total_games,
-                        f"{game_name}.m3u",
+                        f"{game_name}.m3u"
                     )
-
-                    if self.create_m3u_file(game_name, disc_files, folder):
+                    
+                    if create_m3u_file(game_name, disc_files, folder, self.log_to_processing):
                         created += 1
-
-                self.log_to_processing(
-                    f"\nStep 2 complete: Created {created} M3U file(s)"
-                )
+                
+                self.log_to_processing(f"\nStep 2 complete: Created {created} M3U file(s)")
             else:
                 self.log_to_processing("No multi-disc games found")
-
+            
             self.log_to_processing("\n" + "=" * 60)
             self.log_to_processing("✅ ALL OPERATIONS COMPLETE!")
             self.log_to_processing("=" * 60)
-
-            self.show_completion(
-                success=True, converted=converted, skipped=0, failed=0)
-
+            
+            self.show_completion(success=True, converted=converted, skipped=0, failed=0)
+        
         except Exception as e:
             self.log_to_processing(f"\n❌ ERROR: {str(e)}")
             messagebox.showerror("Error", f"An error occurred:\n{str(e)}")
             self.show_completion(success=False)
-
 
 if __name__ == "__main__":
     root = tk.Tk()
