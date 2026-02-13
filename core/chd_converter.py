@@ -204,7 +204,7 @@ class CHDConverter:
             return False, None
     
     def convert_folder(self, folder, delete_after=False, 
-                      log_callback=None, progress_callback=None):
+                      log_callback=None, progress_callback=None, animation_callback=None):
         """Convert all disc images in a folder to CHD
         
         Args:
@@ -261,12 +261,16 @@ class CHDConverter:
             success, _ = self.convert_file(
                 source_file, 
                 delete_after=delete_after,
-                log_callback=log_callback
+                log_callback=log_callback,
+                animation_callback=animation_callback
             )
             
             if success:
+                if log_callback:
+                    log_callback(f"   ✓ Converted to CHD")
                 converted += 1
             else:
+                # Error already logged in convert_file
                 failed += 1
         
         return converted, skipped, failed

@@ -148,6 +148,31 @@ class RomMateGUI:
         self.processing_log.config(state="disabled")
         self.root.update_idletasks()
 
+    def animate_processing_dots(self, text):
+        """Update the animation line in the processing log"""
+        try:
+            # Insert or update animation on its own line
+            self.processing_log.config(state='normal')
+            
+            # Get current content
+            current_text = self.processing_log.get("end-2c linestart", "end-1c")
+            
+            # If last line starts with "   Processing", update it
+            if current_text.strip().startswith("Processing"):
+                log_position = self.processing_log.index("end-2c linestart")
+                self.processing_log.delete(log_position, "end-1c")
+                self.processing_log.insert(log_position, text + "\n")
+            else:
+                # Add new line for animation
+                self.processing_log.insert("end", text + "\n")
+            
+            self.processing_log.config(state='disabled')
+            self.processing_log.see("end")
+            self.root.update_idletasks()
+        except Exception as e:
+            # If animation fails, just skip it
+            pass
+
     def show_completion(self, success=True, converted=0, skipped=0, failed=0):
         """Show completion state in processing panel"""
         # Stop spinner
@@ -779,7 +804,8 @@ class RomMateGUI:
                     current,
                     total,
                     filename
-                )
+                ),
+                animation_callback=self.animate_processing_dots
             )
             
             if converted == 0 and skipped == 0 and failed == 0:
@@ -920,7 +946,8 @@ class RomMateGUI:
                     current,
                     total,
                     filename
-                )
+                ),
+                animation_callback=self.animate_processing_dots
             )
             
             if converted > 0 or skipped > 0:
