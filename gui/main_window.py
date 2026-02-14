@@ -13,6 +13,7 @@ from core.file_utils import normalize_path, detect_available_formats, find_multi
 from gui.dialogs import show_format_choice_dialog, show_info_dialog
 from core.chd_converter import CHDConverter
 from core.m3u_creator import M3UCreator
+from utils.config import Config
 
 class RomMateGUI:
     def __init__(self, root):
@@ -38,6 +39,9 @@ class RomMateGUI:
         self.folder_path = tk.StringVar()
         self.operation_mode = tk.StringVar(value="chd")
         self.m3u_file_type = tk.StringVar(value="all")
+
+        # Load config
+        self.config = Config()
 
         # CHD conversion options
         self.delete_after_conversion = tk.BooleanVar(value=False)
@@ -689,10 +693,20 @@ class RomMateGUI:
         show_info_dialog(self.root)
 
     def browse_folder(self):
-        folder = filedialog.askdirectory(title="Select Game Folder")
+        # Start from last used folder
+        initial_dir = self.config.get('last_folder', str(Path.home()))
+        
+        folder = filedialog.askdirectory(
+            title="Select Game Folder",
+            initialdir=initial_dir
+        )
+        
         if folder:
             folder = normalize_path(folder)
             self.folder_path.set(folder)
+            
+            # Remember this folder for next time
+            self.config.set('last_folder', folder)
 
     def run_process(self):
         folder = self.folder_path.get()
