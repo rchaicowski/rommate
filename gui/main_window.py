@@ -1,4 +1,11 @@
-import tkinter as tk
+try:
+    from tkinterdnd2 import TkinterDnD, DND_FILES
+    import tkinter as tk
+    DND_AVAILABLE = True
+except ImportError:
+    import tkinter as tk
+    DND_AVAILABLE = False
+    print("Warning: tkinterdnd2 not available. Drag & drop disabled.")
 from tkinter import filedialog, scrolledtext, messagebox, ttk
 import os
 import re
@@ -63,6 +70,10 @@ class RomMateGUI:
         self.spinner_index = 0
 
         self.create_widgets()
+
+        # Enable drag and drop if available
+        if DND_AVAILABLE:
+            self.setup_drag_and_drop()
 
     def start_spinner(self):
         """Start the spinner animation"""
@@ -177,6 +188,37 @@ class RomMateGUI:
             # If animation fails, just skip it
             pass
 
+    def setup_drag_and_drop(self):
+        """Enable drag and drop for folder selection"""
+        # Make the folder entry accept drops
+        self.folder_entry.drop_target_register(DND_FILES)
+        self.folder_entry.dnd_bind('<<Drop>>', self.on_drop)
+
+    def on_drop(self, event):
+        """Handle dropped files/folders"""
+        try:
+            # Get the dropped path (remove curly braces if present)
+            dropped_path = event.data.strip('{}').strip()
+            
+            # Handle multiple paths (take first one)
+            if ' ' in dropped_path and not os.path.exists(dropped_path):
+                dropped_path = dropped_path.split()[0].strip('{}')
+            
+            # Normalize the path
+            dropped_path = normalize_path(dropped_path)
+            
+            # Check if it's a directory
+            if os.path.isdir(dropped_path):
+                self.folder_path.set(dropped_path)
+                self.config.set('last_folder', dropped_path)
+            else:
+                # If a file was dropped, use its parent directory
+                parent_dir = os.path.dirname(dropped_path)
+                self.folder_path.set(parent_dir)
+                self.config.set('last_folder', parent_dir)
+        except Exception as e:
+            print(f"Error handling drop: {e}")    
+
     def show_completion(self, success=True, converted=0, skipped=0, failed=0):
         """Show completion state in processing panel"""
         # Stop spinner
@@ -258,13 +300,13 @@ class RomMateGUI:
 
         tk.Label(
             folder_frame,
-            text="Game Folder:",
+            text="Game Folder:" + (" (Drag & Drop)" if DND_AVAILABLE else ""),
             font=("Arial", 11, "bold"),
             bg=self.bg_dark,
             fg=self.text_light,
         ).pack(side="left", padx=(0, 15))
 
-        folder_entry = tk.Entry(
+        self.folder_entry = tk.Entry(
             folder_frame,
             textvariable=self.folder_path,
             width=50,
@@ -278,7 +320,7 @@ class RomMateGUI:
             highlightbackground=self.bg_dark,
             highlightcolor=self.accent_blue,
         )
-        folder_entry.pack(side="left", padx=10, fill="x", expand=True, ipady=6)
+        self.folder_entry.pack(side="left", padx=10, fill="x", expand=True, ipady=6)
 
         browse_btn = tk.Button(
             folder_frame,

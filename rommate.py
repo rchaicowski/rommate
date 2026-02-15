@@ -9,6 +9,11 @@ from gui.main_window import RomMateGUI
 
 
 if __name__ == "__main__":
-    root = tk.Tk()
+    try:
+        from tkinterdnd2 import TkinterDnD
+        root = TkinterDnD.Tk()
+    except ImportError:
+        root = tk.Tk()
+    
     app = RomMateGUI(root)
     root.mainloop()
