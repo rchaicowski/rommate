@@ -852,8 +852,13 @@ class RomMateGUI:
         show_info_dialog(self.root)
 
     def browse_folder(self):
-        # Start from last used folder
-        initial_dir = self.config.get('last_folder', str(Path.home()))
+        # Determine initial directory based on folder mode
+        folder_mode = self.config.get('folder_mode', 'remember_last')
+        
+        if folder_mode == 'use_default':
+            initial_dir = self.config.get('default_folder', str(Path.home()))
+        else:
+            initial_dir = self.config.get('last_folder', str(Path.home()))
         
         folder = filedialog.askdirectory(
             title="Select Game Folder",
@@ -864,7 +869,7 @@ class RomMateGUI:
             folder = normalize_path(folder)
             self.update_folder_display(folder)
             
-            # Remember this folder for next time
+            # Always remember last folder (even in default mode)
             self.config.set('last_folder', folder)
 
     def run_process(self):

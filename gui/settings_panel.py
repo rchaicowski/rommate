@@ -170,40 +170,79 @@ class SettingsPanel:
         content = tk.Frame(section, bg=self.bg_frame)
         content.pack(fill="x", padx=20, pady=(0, 15))
         
-        # Default ROM folder
-        folder_frame = tk.Frame(content, bg=self.bg_frame)
-        folder_frame.pack(fill="x", pady=5)
-        
-        tk.Label(
-            folder_frame,
-            text="Default ROM folder:",
-            font=("Arial", 11),
-            bg=self.bg_frame,
-            fg=self.text_light
-        ).pack(anchor="w", pady=(0, 5))
-        
-        entry_frame = tk.Frame(folder_frame, bg=self.bg_frame)
-        entry_frame.pack(fill="x")
-        
-        self.default_folder_var = tk.StringVar(
-            value=self.config.get('default_rom_folder', 
-                                 self.config.get('last_folder', 'Not set'))
+        # Folder mode selection
+        self.folder_mode = tk.StringVar(
+            value=self.config.get('folder_mode', 'remember_last')
         )
         
-        tk.Entry(
-            entry_frame,
+        # Radio button 1: Remember last folder
+        remember_frame = tk.Frame(content, bg=self.bg_frame)
+        remember_frame.pack(fill="x", pady=5)
+        
+        tk.Radiobutton(
+            remember_frame,
+            text="Remember last folder used",
+            variable=self.folder_mode,
+            value='remember_last',
+            font=("Arial", 11),
+            bg=self.bg_frame,
+            fg=self.text_light,
+            selectcolor=self.bg_dark,
+            activebackground=self.bg_frame,
+            command=self.on_folder_mode_change
+        ).pack(anchor="w")
+        
+        # Show current last folder in gray
+        last_folder = self.config.get('last_folder', 'None')
+        tk.Label(
+            remember_frame,
+            text=f"  Currently: {last_folder}",
+            font=("Arial", 9),
+            bg=self.bg_frame,
+            fg=self.text_gray
+        ).pack(anchor="w", padx=(25, 0))
+        
+        # Radio button 2: Use default folder
+        default_frame = tk.Frame(content, bg=self.bg_frame)
+        default_frame.pack(fill="x", pady=(15, 5))
+        
+        tk.Radiobutton(
+            default_frame,
+            text="Always use default folder:",
+            variable=self.folder_mode,
+            value='use_default',
+            font=("Arial", 11),
+            bg=self.bg_frame,
+            fg=self.text_light,
+            selectcolor=self.bg_dark,
+            activebackground=self.bg_frame,
+            command=self.on_folder_mode_change
+        ).pack(anchor="w")
+        
+        # Default folder path and browse button
+        path_frame = tk.Frame(default_frame, bg=self.bg_frame)
+        path_frame.pack(fill="x", padx=(25, 0), pady=(5, 0))
+        
+        self.default_folder_var = tk.StringVar(
+            value=self.config.get('default_folder', 'Not set')
+        )
+        
+        self.default_folder_entry = tk.Entry(
+            path_frame,
             textvariable=self.default_folder_var,
-            font=("Arial", 10),
-            bg=self.bg_dark,
+            font=("Arial", 11),
+            bg=self.bg_frame,
             fg=self.text_light,
             insertbackground=self.text_light,
-            state='readonly',
             relief="solid",
-            bd=1
-        ).pack(side="left", fill="x", expand=True, padx=(0, 10))
+            bd=1,
+            highlightthickness=2,
+            highlightbackground=self.bg_dark,
+            highlightcolor=self.accent_blue       )
+        self.default_folder_entry.pack(side="left", fill="x", expand=True, padx=(0, 10))
         
-        tk.Button(
-            entry_frame,
+        self.browse_btn = tk.Button(
+            path_frame,
             text="Browse",
             command=self.set_default_folder,
             font=("Arial", 10),
@@ -213,7 +252,11 @@ class SettingsPanel:
             relief="flat",
             padx=20,
             pady=5
-        ).pack(side="left")
+        )
+        self.browse_btn.pack(side="left")
+        
+        # Enable/disable browse button based on mode
+        self.update_folder_ui_state()
     
     def create_conversion_settings(self, parent):
         """Create conversion settings section"""
@@ -345,7 +388,29 @@ class SettingsPanel:
         folder = filedialog.askdirectory(title="Select Default ROM Folder")
         if folder:
             self.default_folder_var.set(folder)
-            self.config.set('default_rom_folder', folder)
+            self.config.set('default_folder', folder)
+    
+    def on_folder_mode_change(self):
+        """Handle folder mode change"""
+        mode = self.folder_mode.get()
+        self.config.set('folder_mode', mode)
+        self.update_folder_ui_state()
+
+    def update_folder_ui_state(self):
+        """Enable/disable UI elements based on folder mode"""
+        if self.folder_mode.get() == 'use_default':
+            # Enable browse button when using default folder
+            self.browse_btn.config(state='normal')
+            self.default_folder_entry.config(fg=self.text_light)
+            # Make sure it shows the default folder path
+            default = self.config.get('default_folder', 'Not set')
+            self.default_folder_var.set(default)
+        else:
+            # Disable when remembering last folder
+            self.browse_btn.config(state='disabled')
+            self.default_folder_entry.config(fg=self.text_gray)
+            # Show "Using last folder mode" or similar
+            self.default_folder_var.set('(Using remember last folder mode)')
     
     def show(self):
         """Show the settings panel"""
