@@ -186,7 +186,8 @@ class SettingsPanel:
         entry_frame.pack(fill="x")
         
         self.default_folder_var = tk.StringVar(
-            value=self.config.get('default_rom_folder', 'Not set')
+            value=self.config.get('default_rom_folder', 
+                                 self.config.get('last_folder', 'Not set'))
         )
         
         tk.Entry(

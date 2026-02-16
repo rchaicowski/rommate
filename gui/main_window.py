@@ -56,6 +56,8 @@ class RomMateGUI:
 
         # Sound player
         self.sound_player = SoundPlayer()
+        self.sound_player.volume = self.config.get('sound_volume', 1.0)
+        self.sound_player.sounds_enabled = self.config.get('sound_enabled', True)
         self.sounds_enabled = tk.BooleanVar(value=self.sound_player.sounds_enabled)
 
         # CHD converter
@@ -281,7 +283,7 @@ class RomMateGUI:
         self.cancel_frame.pack_forget()
 
         # Play sound
-        self.sound_player.play("success" if success else "fail")
+        self.sound_player.play("success" if success else "fail", self.sound_player.volume)
 
         if success:
             self.status_title.config(
@@ -669,7 +671,7 @@ class RomMateGUI:
 
         def test_sound():
             if self.sounds_enabled.get():
-                self.sound_player.play("success")
+                self.sound_player.play("success", self.sound_player.volume)
 
         sound_check = tk.Checkbutton(
             footer_frame,
@@ -1198,6 +1200,8 @@ class RomMateGUI:
         """Handle sound toggle"""
         self.sounds_enabled.set(enabled)
         self.config.set('sound_enabled', enabled)
+        # Actually apply to sound player
+        self.sound_player.sounds_enabled = enabled
 
     def on_delete_toggle(self, enabled):
         """Handle delete toggle"""
@@ -1206,8 +1210,8 @@ class RomMateGUI:
 
     def on_volume_change(self, volume):
         """Handle volume change"""
-        # TODO: Apply volume to sound player
-        pass
+        self.sound_player.volume = volume
+        self.config.set('sound_volume', volume)
 
     def show_settings_panel(self):
         """Show settings panel"""
