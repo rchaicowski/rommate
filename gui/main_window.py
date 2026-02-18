@@ -21,6 +21,7 @@ from core.file_utils import normalize_path, detect_available_formats, find_multi
 from gui.dialogs import show_format_choice_dialog, show_info_dialog
 from core.chd_converter import CHDConverter
 from core.m3u_creator import M3UCreator
+from core.rom_health import ROMHealthChecker
 from utils.config import Config
 
 class RomMateGUI:
@@ -65,6 +66,9 @@ class RomMateGUI:
 
         # M3U creator
         self.m3u_creator = M3UCreator()
+
+        # ROM health checker
+        self.rom_health = ROMHealthChecker()
 
         # Processing state
         self.is_processing = False
@@ -285,19 +289,44 @@ class RomMateGUI:
         # Play sound
         self.sound_player.play("success" if success else "fail", self.sound_player.volume)
 
-        if success:
-            self.status_title.config(
-                text="✅ Completed Successfully!", fg=self.accent_green
-            )
-            self.status_subtitle.config(text="All operations finished")
-            self.processing_panel.config(bg="#1b5e20")
+        # Determine the operation type
+        mode = self.operation_mode.get()
+        
+        if mode == "health":
+            # ROM Health Check completion
+            if success and failed == 0:
+                self.status_title.config(
+                    text="✅ All ROMs Verified Successfully!", fg=self.accent_green
+                )
+                self.status_subtitle.config(text="All CHD files passed verification")
+                self.processing_panel.config(bg="#1b5e20")
+            elif converted > 0:
+                self.status_title.config(
+                    text="⚠️ Health Check Complete with Issues", fg=self.accent_orange
+                )
+                self.status_subtitle.config(text="Some files failed verification - check details above")
+                self.processing_panel.config(bg="#f57f17")
+            else:
+                self.status_title.config(
+                    text="❌ Health Check Failed", fg=self.accent_red
+                )
+                self.status_subtitle.config(text="No files verified successfully")
+                self.processing_panel.config(bg="#b71c1c")
         else:
-            self.status_title.config(
-                text="⚠️ Completed with Errors", fg=self.accent_red)
-            self.status_subtitle.config(
-                text="Some operations failed - check details below"
-            )
-            self.processing_panel.config(bg="#b71c1c")
+            # Existing CHD/M3U completion logic
+            if success:
+                self.status_title.config(
+                    text="✅ Completed Successfully!", fg=self.accent_green
+                )
+                self.status_subtitle.config(text="All operations finished")
+                self.processing_panel.config(bg="#1b5e20")
+            else:
+                self.status_title.config(
+                    text="⚠️ Completed with Errors", fg=self.accent_red)
+                self.status_subtitle.config(
+                    text="Some operations failed - check details below"
+                )
+                self.processing_panel.config(bg="#b71c1c")
 
         # Show completion buttons
         self.completion_frame.pack(pady=20)
@@ -945,7 +974,7 @@ class RomMateGUI:
         
         # Check if ROM tool is selected
         if mode == "health":
-            messagebox.showinfo("Coming Soon", "ROM Health Check feature is under development!")
+            self.check_rom_health()
             return
         elif mode == "validate":
             messagebox.showinfo("Coming Soon", "ROM Name Validator feature is under development!")
@@ -1263,6 +1292,79 @@ class RomMateGUI:
             self.log_to_processing(f"\n❌ ERROR: {str(e)}")
             messagebox.showerror("Error", f"An error occurred:\n{str(e)}")
             self.show_completion(success=False)
+
+    def check_rom_health(self):
+        """Run ROM health check"""
+        folder = self.folder_path.get()
+        
+        # Check if chdman is available
+        if not self.rom_health.find_chdman():
+            response = messagebox.askyesno(
+                "chdman Not Found",
+                "chdman is required for CHD verification.\n\n"
+                "Would you like to install it now?",
+                icon='warning'
+            )
+            if response:
+                self.chd_converter.prompt_install_chdman()
+            return
+        
+        # Switch to processing panel
+        self.show_processing_panel()
+        self.is_processing = True
+        
+        # Reset log
+        self.processing_log.delete(1.0, tk.END)
+        self.log_to_processing(f"🔍 ROM Health Check\n")
+        self.log_to_processing(f"Folder: {folder}\n")
+        self.log_to_processing("=" * 60)
+        
+        # Start spinner
+        self.start_spinner()
+        
+        # Run health check in thread
+        def run_check():
+            try:
+                verified, failed, results = self.rom_health.check_folder(
+                    folder,
+                    log_callback=self.log_to_processing,
+                    progress_callback=lambda current, total, filename: self.update_processing_status(
+                        "Checking ROM Health",
+                        f"Verifying file {current} of {total}",
+                        current,
+                        total,
+                        filename
+                    ),
+                    cancel_check=lambda: self.cancel_requested
+                )
+                
+                # Check if cancelled
+                if self.cancel_requested:
+                    self.reset_and_return()
+                    return
+                
+                # Show summary
+                self.log_to_processing("\n" + "=" * 60)
+                self.log_to_processing(f"✅ Verified: {verified} | ❌ Failed: {failed}")
+                self.log_to_processing("=" * 60)
+                
+                # Show completion
+                if failed == 0 and verified > 0:
+                    self.show_completion(success=True, converted=verified, skipped=0, failed=0)
+                elif verified > 0:
+                    self.show_completion(success=False, converted=verified, skipped=0, failed=failed)
+                else:
+                    self.show_completion(success=False, converted=0, skipped=0, failed=failed)
+                
+            except Exception as e:
+                self.log_to_processing(f"\n❌ Error: {str(e)}")
+                self.show_completion(success=False)
+            finally:
+                self.is_processing = False
+        
+        # Start thread
+        thread = threading.Thread(target=run_check, daemon=True)
+        thread.start()
 
     def on_sound_toggle(self, enabled):
         """Handle sound toggle"""
