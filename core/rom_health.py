@@ -76,7 +76,96 @@ class ROMHealthChecker:
         except Exception as e:
             return False, f"Error: {str(e)}"
     
-    def check_folder(self, folder, log_callback=None, progress_callback=None, cancel_check=None):
+    def parse_cue_file(self, cue_file):
+        """Parse a CUE file and extract BIN file references
+        
+        Args:
+            cue_file (str): Path to CUE file
+            
+        Returns:
+            list: List of referenced BIN files
+        """
+        bin_files = []
+        
+        try:
+            with open(cue_file, 'r', encoding='utf-8', errors='ignore') as f:
+                for line in f:
+                    line = line.strip()
+                    # Look for FILE "filename.bin" BINARY
+                    if line.upper().startswith('FILE'):
+                        # Extract filename between quotes
+                        parts = line.split('"')
+                        if len(parts) >= 2:
+                            filename = parts[1]
+                            bin_files.append(filename)
+        except Exception as e:
+            return []
+        
+        return bin_files
+    
+    def verify_cue_bin(self, cue_file):
+        """Verify a CUE/BIN set
+        
+        Args:
+            cue_file (str): Path to CUE file
+            
+        Returns:
+            tuple: (success: bool, message: str, details: list)
+        """
+        cue_dir = os.path.dirname(cue_file)
+        
+        # Parse CUE file
+        bin_files = self.parse_cue_file(cue_file)
+        
+        if not bin_files:
+            return False, "Could not parse CUE file or no BIN files referenced", []
+        
+        # Check each BIN file
+        missing = []
+        found = []
+        details = []
+        
+        for bin_file in bin_files:
+            # Try exact path first
+            bin_path = os.path.join(cue_dir, bin_file)
+            
+            # Try case-insensitive match (for cross-platform compatibility)
+            if not os.path.exists(bin_path):
+                # Look for case-insensitive match
+                found_match = False
+                for file in os.listdir(cue_dir):
+                    if file.lower() == bin_file.lower():
+                        bin_path = os.path.join(cue_dir, file)
+                        found_match = True
+                        break
+                
+                if not found_match:
+                    missing.append(bin_file)
+                    details.append(f"❌ Missing: {bin_file}")
+                    continue
+            
+            # Check if file is readable and has size
+            try:
+                size = os.path.getsize(bin_path)
+                if size == 0:
+                    details.append(f"⚠️ Empty file: {bin_file}")
+                else:
+                    found.append(bin_file)
+                    size_mb = size / (1024 * 1024)
+                    details.append(f"✅ Found: {bin_file} ({size_mb:.1f} MB)")
+            except Exception as e:
+                details.append(f"❌ Error reading: {bin_file} - {str(e)}")
+                missing.append(bin_file)
+        
+        # Determine overall result
+        if missing:
+            return False, f"{len(missing)} BIN file(s) missing or unreadable", details
+        elif found:
+            return True, f"All {len(found)} BIN file(s) found and readable", details
+        else:
+            return False, "No BIN files could be verified", details
+    
+    def check_folder_chd(self, folder, log_callback=None, progress_callback=None, cancel_check=None):
         """Check all CHD files in a folder
         
         Args:
@@ -148,3 +237,122 @@ class ROMHealthChecker:
                 })
         
         return verified, failed, results
+    
+    def check_folder_cue_bin(self, folder, log_callback=None, progress_callback=None, cancel_check=None):
+        """Check all CUE/BIN sets in a folder
+        
+        Args:
+            folder (str): Folder path to scan
+            log_callback (function): Callback for logging messages
+            progress_callback (function): Callback for progress updates
+            cancel_check (function): Function that returns True if cancelled
+            
+        Returns:
+            tuple: (verified_count, failed_count, results_list)
+        """
+        verified = 0
+        failed = 0
+        results = []
+        
+        # Find all CUE files
+        cue_files = []
+        for root, dirs, files in os.walk(folder):
+            for file in files:
+                if file.lower().endswith('.cue'):
+                    cue_files.append(os.path.join(root, file))
+        
+        if not cue_files:
+            if log_callback:
+                log_callback("❌ No CUE files found in folder")
+            return 0, 0, []
+        
+        if log_callback:
+            log_callback(f"\n🔍 Found {len(cue_files)} CUE file(s) to verify\n")
+        
+        # Verify each CUE/BIN set
+        for index, cue_file in enumerate(cue_files, 1):
+            # Check for cancellation
+            if cancel_check and cancel_check():
+                if log_callback:
+                    log_callback("\n⚠️ Health check cancelled by user")
+                break
+            
+            filename = os.path.basename(cue_file)
+            
+            if progress_callback:
+                progress_callback(index, len(cue_files), filename)
+            
+            if log_callback:
+                log_callback(f"🔎 Verifying: {filename}")
+            
+            # Verify the CUE/BIN set
+            success, message, details = self.verify_cue_bin(cue_file)
+            
+            if success:
+                verified += 1
+                if log_callback:
+                    log_callback(f"   ✅ {message}")
+                    for detail in details:
+                        log_callback(f"      {detail}")
+                results.append({
+                    'file': filename,
+                    'path': cue_file,
+                    'status': 'verified',
+                    'message': message,
+                    'details': details
+                })
+            else:
+                failed += 1
+                if log_callback:
+                    log_callback(f"   ❌ {message}")
+                    for detail in details:
+                        log_callback(f"      {detail}")
+                results.append({
+                    'file': filename,
+                    'path': cue_file,
+                    'status': 'failed',
+                    'message': message,
+                    'details': details
+                })
+        
+        return verified, failed, results
+    
+    def check_folder(self, folder, log_callback=None, progress_callback=None, cancel_check=None):
+        """Check all disc-based ROM files in a folder (CHD and CUE/BIN)
+        
+        Args:
+            folder (str): Folder path to scan
+            log_callback (function): Callback for logging messages
+            progress_callback (function): Callback for progress updates
+            cancel_check (function): Function that returns True if cancelled
+            
+        Returns:
+            tuple: (verified_count, failed_count, results_list)
+        """
+        total_verified = 0
+        total_failed = 0
+        all_results = []
+        
+        # Check CHD files
+        if log_callback:
+            log_callback("\n📀 Checking CHD files...")
+        
+        chd_verified, chd_failed, chd_results = self.check_folder_chd(folder, log_callback, progress_callback, cancel_check)
+        total_verified += chd_verified
+        total_failed += chd_failed
+        all_results.extend(chd_results)
+        
+        # Check if cancelled
+        if cancel_check and cancel_check():
+            return total_verified, total_failed, all_results
+        
+        # Check CUE/BIN files
+        if log_callback:
+            log_callback("\n\n📀 Checking CUE/BIN files...")
+        
+        cue_verified, cue_failed, cue_results = self.check_folder_cue_bin(folder, log_callback, progress_callback, cancel_check)
+        total_verified += cue_verified
+        total_failed += cue_failed
+        all_results.extend(cue_results)
+        
+        return total_verified, total_failed, all_results
