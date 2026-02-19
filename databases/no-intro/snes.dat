@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+<!DOCTYPE datafile PUBLIC "-//Logiqx//DTD ROM Management Datafile//EN" "http://www.logiqx.com/Dats/datafile.dtd">
+<datafile>
+    <header>
+        <name>Nintendo - Super Nintendo Entertainment System</name>
+        <description>Nintendo - Super Nintendo Entertainment System (No-Intro)</description>
+        <version>20240101</version>
+    </header>
+    <game name="Super Mario World (USA)">
+        <description>Super Mario World (USA)</description>
+        <rom name="Super Mario World (USA).sfc" size="524288" crc="B19ED489" md5="C2E0B2B98DD8A88F1B739B2D5C2A9EFC" sha1="6B47BB75D16514B6A476AA0C73A683A2A4C18765"/>
+    </game>
+</datafile>

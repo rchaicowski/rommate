@@ -1297,17 +1297,19 @@ class RomMateGUI:
         """Run ROM health check"""
         folder = self.folder_path.get()
         
-        # Check if chdman is available
+        # Check if chdman is available (only needed for CHD)
         if not self.rom_health.find_chdman():
             response = messagebox.askyesno(
                 "chdman Not Found",
                 "chdman is required for CHD verification.\n\n"
-                "Would you like to install it now?",
+                "Cartridge ROMs can still be checked.\n\n"
+                "Would you like to install chdman now?",
                 icon='warning'
             )
             if response:
                 self.chd_converter.prompt_install_chdman()
-            return
+                return
+            # Continue without chdman (will skip CHD verification)
         
         # Switch to processing panel
         self.show_processing_panel()
@@ -1325,7 +1327,7 @@ class RomMateGUI:
         # Run health check in thread
         def run_check():
             try:
-                verified, failed, results = self.rom_health.check_folder(
+                results = self.rom_health.check_folder(
                     folder,
                     log_callback=self.log_to_processing,
                     progress_callback=lambda current, total, filename: self.update_processing_status(
@@ -1343,21 +1345,48 @@ class RomMateGUI:
                     self.reset_and_return()
                     return
                 
+                # Calculate totals
+                total_verified = (results['chd_verified'] + 
+                                results['cue_verified'] + 
+                                results['cart_verified'])
+                total_issues = (results['chd_failed'] + 
+                              results['cue_failed'] + 
+                              results['cart_has_header'] + 
+                              results['cart_unknown'] + 
+                              results['cart_failed'])
+                
                 # Show summary
                 self.log_to_processing("\n" + "=" * 60)
-                self.log_to_processing(f"✅ Verified: {verified} | ❌ Failed: {failed}")
+                self.log_to_processing("📊 Summary:")
+                self.log_to_processing("=" * 60)
+                
+                if results['chd_verified'] + results['chd_failed'] > 0:
+                    self.log_to_processing(f"CHD Files: ✅ {results['chd_verified']} verified | ❌ {results['chd_failed']} failed")
+                
+                if results['cue_verified'] + results['cue_failed'] > 0:
+                    self.log_to_processing(f"CUE/BIN: ✅ {results['cue_verified']} verified | ❌ {results['cue_failed']} failed")
+                
+                if (results['cart_verified'] + results['cart_has_header'] + 
+                    results['cart_unknown'] + results['cart_failed']) > 0:
+                    self.log_to_processing(f"Cartridges: ✅ {results['cart_verified']} verified | "
+                                         f"⚠️ {results['cart_has_header']} have headers | "
+                                         f"❓ {results['cart_unknown']} unknown | "
+                                         f"❌ {results['cart_failed']} failed")
+                
                 self.log_to_processing("=" * 60)
                 
                 # Show completion
-                if failed == 0 and verified > 0:
-                    self.show_completion(success=True, converted=verified, skipped=0, failed=0)
-                elif verified > 0:
-                    self.show_completion(success=False, converted=verified, skipped=0, failed=failed)
+                if total_issues == 0 and total_verified > 0:
+                    self.show_completion(success=True, converted=total_verified, skipped=0, failed=0)
+                elif total_verified > 0:
+                    self.show_completion(success=False, converted=total_verified, skipped=0, failed=total_issues)
                 else:
-                    self.show_completion(success=False, converted=0, skipped=0, failed=failed)
+                    self.show_completion(success=False, converted=0, skipped=0, failed=total_issues)
                 
             except Exception as e:
                 self.log_to_processing(f"\n❌ Error: {str(e)}")
+                import traceback
+                self.log_to_processing(traceback.format_exc())
                 self.show_completion(success=False)
             finally:
                 self.is_processing = False

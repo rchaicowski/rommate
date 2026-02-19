@@ -4,6 +4,7 @@ import os
 import subprocess
 import shutil
 from pathlib import Path
+from core.cartridge_checker import CartridgeChecker
 
 
 class ROMHealthChecker:
@@ -12,6 +13,7 @@ class ROMHealthChecker:
     def __init__(self):
         """Initialize ROM health checker"""
         self.chdman_path = None
+        self.cartridge_checker = CartridgeChecker()
     
     def find_chdman(self):
         """Find chdman executable"""
@@ -318,7 +320,7 @@ class ROMHealthChecker:
         return verified, failed, results
     
     def check_folder(self, folder, log_callback=None, progress_callback=None, cancel_check=None):
-        """Check all disc-based ROM files in a folder (CHD and CUE/BIN)
+        """Check all ROM files in a folder (disc and cartridge)
         
         Args:
             folder (str): Folder path to scan
@@ -327,32 +329,57 @@ class ROMHealthChecker:
             cancel_check (function): Function that returns True if cancelled
             
         Returns:
-            tuple: (verified_count, failed_count, results_list)
+            dict: Results with counts for each category
         """
-        total_verified = 0
-        total_failed = 0
-        all_results = []
+        results = {
+            'chd_verified': 0,
+            'chd_failed': 0,
+            'cue_verified': 0,
+            'cue_failed': 0,
+            'cart_verified': 0,
+            'cart_has_header': 0,
+            'cart_unknown': 0,
+            'cart_failed': 0,
+            'all_results': []
+        }
         
         # Check CHD files
         if log_callback:
             log_callback("\n📀 Checking CHD files...")
         
         chd_verified, chd_failed, chd_results = self.check_folder_chd(folder, log_callback, progress_callback, cancel_check)
-        total_verified += chd_verified
-        total_failed += chd_failed
-        all_results.extend(chd_results)
+        results['chd_verified'] = chd_verified
+        results['chd_failed'] = chd_failed
+        results['all_results'].extend(chd_results)
         
         # Check if cancelled
         if cancel_check and cancel_check():
-            return total_verified, total_failed, all_results
+            return results
         
         # Check CUE/BIN files
         if log_callback:
             log_callback("\n\n📀 Checking CUE/BIN files...")
         
         cue_verified, cue_failed, cue_results = self.check_folder_cue_bin(folder, log_callback, progress_callback, cancel_check)
-        total_verified += cue_verified
-        total_failed += cue_failed
-        all_results.extend(cue_results)
+        results['cue_verified'] = cue_verified
+        results['cue_failed'] = cue_failed
+        results['all_results'].extend(cue_results)
         
-        return total_verified, total_failed, all_results
+        # Check if cancelled
+        if cancel_check and cancel_check():
+            return results
+        
+        # Check Cartridge ROMs
+        if log_callback:
+            log_callback("\n\n🎮 Checking Cartridge ROMs...")
+        
+        cart_verified, cart_header, cart_unknown, cart_failed, cart_results = self.cartridge_checker.check_folder(
+            folder, log_callback, progress_callback, cancel_check
+        )
+        results['cart_verified'] = cart_verified
+        results['cart_has_header'] = cart_header
+        results['cart_unknown'] = cart_unknown
+        results['cart_failed'] = cart_failed
+        results['all_results'].extend(cart_results)
+        
+        return results
