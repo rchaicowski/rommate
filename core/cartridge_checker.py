@@ -12,7 +12,7 @@ class CartridgeChecker:
     
     # System detection by file extension
     SYSTEM_EXTENSIONS = {
-        # Cartridges
+        # Cartridges (No-Intro)
         'nes': ['.nes', '.unf', '.unif'],
         'snes': ['.sfc', '.smc'],
         'n64': ['.n64', '.z64', '.v64'],
@@ -30,17 +30,29 @@ class CartridgeChecker:
         'pce': ['.pce'],
         'ngp': ['.ngp', '.ngc'],
         'ws': ['.ws', '.wsc'],
-        
+    
         # Disc-based (Redump)
+        'ps1': ['.bin', '.img', '.iso'],
+        'ps2': ['.iso'],
+        'ps3': ['.iso'],
+        'psp': ['.iso', '.cso'],
         'gamecube': ['.iso', '.gcm', '.gcz'],
         'wii': ['.iso', '.wbfs'],
-        'ps3': ['.iso'],
         'xbox': ['.iso'],
         'xbox360': ['.iso'],
+        'saturn': ['.bin', '.iso'],
+        'dreamcast': ['.cdi', '.gdi'],
+        'segacd': ['.bin', '.iso'],
+        'neogeocd': ['.bin', '.iso'],
     }
-    
+
     # Which systems use Redump vs No-Intro
-    REDUMP_SYSTEMS = ['gamecube', 'wii', 'ps3', 'xbox', 'xbox360']
+    REDUMP_SYSTEMS = [
+        'ps1', 'ps2', 'ps3', 'psp',
+        'gamecube', 'wii',
+        'xbox', 'xbox360',
+        'saturn', 'dreamcast', 'segacd', 'neogeocd'
+    ]
     
     # Systems that commonly have external headers
     HEADER_SYSTEMS = {
