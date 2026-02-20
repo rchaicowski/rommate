@@ -216,8 +216,39 @@ class CartridgeChecker:
         
         return False
     
+    def fuzzy_name_match(self, filename, database_name, threshold=0.8):
+        """Check if filename fuzzy matches database name
+        
+        Args:
+            filename (str): ROM filename
+            database_name (str): Name from database
+            threshold (float): Similarity threshold (0.0 to 1.0)
+            
+        Returns:
+            float: Similarity score (0.0 to 1.0)
+        """
+        import difflib
+        
+        # Normalize both names
+        file_clean = filename.lower()
+        db_clean = database_name.lower()
+        
+        # Remove extensions
+        file_clean = file_clean.rsplit('.', 1)[0]
+        
+        # Remove common patterns
+        for pattern in ['(usa)', '(europe)', '(japan)', '(world)', 
+                        '[!]', '[a]', '[b]', '(rev ', '(v1.']:
+            file_clean = file_clean.replace(pattern, '')
+            db_clean = db_clean.replace(pattern, '')
+        
+        # Calculate similarity
+        similarity = difflib.SequenceMatcher(None, file_clean, db_clean).ratio()
+        
+        return similarity
+    
     def verify_rom(self, rom_file):
-        """Verify a single ROM file
+        """Verify a single ROM file with multi-level verification
         
         Args:
             rom_file (str): Path to ROM file
@@ -247,6 +278,9 @@ class CartridgeChecker:
                 'system': system
             }
         
+        # Get file size
+        file_size = os.path.getsize(rom_file)
+        
         # Calculate checksums
         crc32, md5, sha1 = self.calculate_checksums(rom_file)
         
@@ -258,19 +292,23 @@ class CartridgeChecker:
                 'system': system
             }
         
-        # Check database
+        # LEVEL 1: EXACT checksum match (100% certain)
         if crc32 in database:
             match = database[crc32]
-            return {
-                'status': 'verified',
-                'message': 'Verified Good Dump',
-                'filename': filename,
-                'system': system,
-                'game_name': match['name'],
-                'crc32': crc32
-            }
+            # Verify size too
+            expected_size = int(match.get('size', '0'))
+            if expected_size == file_size:
+                return {
+                    'status': 'verified',
+                    'message': 'Verified Good Dump',
+                    'filename': filename,
+                    'system': system,
+                    'game_name': match['name'],
+                    'crc32': crc32,
+                    'confidence': '100%'
+                }
         
-        # Check if has external header
+        # Check if has external header and try without it
         if self.has_external_header(rom_file, system):
             header_size = self.HEADER_SYSTEMS[system]
             crc32_clean, md5_clean, sha1_clean = self.calculate_checksums(rom_file, header_size)
@@ -284,13 +322,72 @@ class CartridgeChecker:
                     'system': system,
                     'game_name': match['name'],
                     'crc32': crc32_clean,
-                    'header_size': header_size
+                    'header_size': header_size,
+                    'confidence': '100%'
                 }
         
-        # Check if might be a ROM hack (look for similar games)
-        # For now, just mark as unknown
-        # TODO: Add fuzzy matching for ROM hacks
+        # LEVEL 2: Multiple checksums match (99% certain)
+        for db_crc, entry in database.items():
+            matches = 0
+            if crc32 == db_crc:
+                matches += 1
+            if md5 and md5 == entry.get('md5', ''):
+                matches += 1
+            if sha1 and sha1 == entry.get('sha1', ''):
+                matches += 1
+            
+            if matches >= 2:
+                return {
+                    'status': 'probable',
+                    'message': f'Probable Good Dump ({matches}/3 checksums match)',
+                    'filename': filename,
+                    'system': system,
+                    'game_name': entry['name'],
+                    'confidence': '99%'
+                }
         
+        # LEVEL 3: Filename + size match (95% certain)
+        best_match = None
+        best_similarity = 0
+        
+        for db_crc, entry in database.items():
+            # Check file size
+            expected_size = int(entry.get('size', '0'))
+            size_diff = abs(file_size - expected_size)
+            
+            # Allow small size differences (headers)
+            if size_diff <= 512:  # Within 512 bytes
+                # Check filename similarity
+                similarity = self.fuzzy_name_match(filename, entry['name'])
+                
+                if similarity > best_similarity and similarity >= 0.8:
+                    best_similarity = similarity
+                    best_match = entry
+        
+        if best_match:
+            return {
+                'status': 'likely',
+                'message': f'Likely Match - Name & Size Match ({int(best_similarity * 100)}% similar)',
+                'filename': filename,
+                'system': system,
+                'game_name': best_match['name'],
+                'confidence': '95%'
+            }
+        
+        # LEVEL 4: Filename only (80% certain)
+        for db_crc, entry in database.items():
+            similarity = self.fuzzy_name_match(filename, entry['name'])
+            if similarity >= 0.7:
+                return {
+                    'status': 'name_match',
+                    'message': f'Name Match - Checksum Differs ({int(similarity * 100)}% similar)',
+                    'filename': filename,
+                    'system': system,
+                    'game_name': entry['name'],
+                    'confidence': '80%'
+                }
+        
+        # LEVEL 5: Unknown
         return {
             'status': 'unknown',
             'message': 'Unknown ROM (not in database)',
@@ -362,6 +459,7 @@ class CartridgeChecker:
                 if log_callback:
                     log_callback(f"   ✅ {result['message']}")
                     log_callback(f"      Game: {result['game_name']}")
+                    log_callback(f"      Confidence: {result['confidence']}")
                     
             elif result['status'] == 'has_header':
                 has_header += 1
@@ -369,6 +467,27 @@ class CartridgeChecker:
                     log_callback(f"   ⚠️ {result['message']}")
                     log_callback(f"      Game: {result['game_name']}")
                     log_callback(f"      Header Size: {result['header_size']} bytes")
+                    
+            elif result['status'] == 'probable':
+                verified += 1  # Count as verified
+                if log_callback:
+                    log_callback(f"   ✅ {result['message']}")
+                    log_callback(f"      Game: {result['game_name']}")
+                    log_callback(f"      Confidence: {result['confidence']}")
+                    
+            elif result['status'] == 'likely':
+                verified += 1  # Count as verified
+                if log_callback:
+                    log_callback(f"   📝 {result['message']}")
+                    log_callback(f"      Game: {result['game_name']}")
+                    log_callback(f"      Confidence: {result['confidence']}")
+                    
+            elif result['status'] == 'name_match':
+                unknown += 1
+                if log_callback:
+                    log_callback(f"   🔍 {result['message']}")
+                    log_callback(f"      Possible: {result['game_name']}")
+                    log_callback(f"      Confidence: {result['confidence']}")
                     
             elif result['status'] == 'unknown':
                 unknown += 1
