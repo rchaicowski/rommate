@@ -361,6 +361,32 @@ class SettingsPanel:
             justify="left"
         ).pack(anchor="w", pady=(0, 10))
         
+        # License info
+        tk.Label(
+            content,
+            text="License: GNU General Public License v3.0 (GPLv3)",
+            font=("Arial", 9, "bold"),
+            fg=self.accent_blue,
+            bg=self.bg_frame
+        ).pack(anchor="w", pady=(5, 2))
+        
+        tk.Label(
+            content,
+            text="Copyright © 2026 Rodrigo. This software is free and open source.",
+            font=("Arial", 8),
+            fg=self.text_gray,
+            bg=self.bg_frame
+        ).pack(anchor="w", pady=(0, 10))
+        
+        # Credits
+        tk.Label(
+            content,
+            text="Credits: MAME/chdman, No-Intro, Redump",
+            font=("Arial", 8),
+            fg=self.text_gray,
+            bg=self.bg_frame
+        ).pack(anchor="w", pady=(0, 10))
+        
         tk.Button(
             content,
             text="📖 View Documentation",
