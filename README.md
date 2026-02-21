@@ -40,7 +40,7 @@
 
 ## 📸 Screenshots
 
-*(Add screenshots here when ready)*
+*(Screenshots here when ready)*
 
 ---
 
