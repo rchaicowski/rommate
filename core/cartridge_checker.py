@@ -247,6 +247,57 @@ class CartridgeChecker:
         
         return similarity
     
+    def detect_rom_hack(self, filename):
+        """Detect if ROM is likely a hack or translation
+        
+        Args:
+            filename (str): ROM filename
+            
+        Returns:
+            tuple: (is_hack: bool, hack_type: str, confidence: str)
+        """
+        filename_lower = filename.lower()
+        
+        # Translation patterns
+        translation_patterns = [
+            '[t+', '[t-', '(t+', '(t-',
+            'translation', 'translated'
+        ]
+        
+        # Hack patterns
+        hack_patterns = [
+            '[hack]', '[h]', '(hack)', '(h)',
+            'improved', 'enhanced', 'redux', 'remastered',
+            'fixed', 'bugfix', 'difficulty',
+            'hack by', 'rom hack'
+        ]
+        
+        # Version/beta patterns (strong indicators)
+        version_patterns = [
+            'v1.', 'v2.', 'v3.', 'v4.', 'v5.',
+            'beta', 'alpha', 'demo', 'proto',
+            'preview', 'test'
+        ]
+        
+        # Check for translations
+        for pattern in translation_patterns:
+            if pattern in filename_lower:
+                return True, 'translation', '95%'
+        
+        # Check for explicit hack markers
+        for pattern in hack_patterns:
+            if pattern in filename_lower:
+                return True, 'hack', '90%'
+        
+        # Check for version numbers (weaker signal)
+        for pattern in version_patterns:
+            if pattern in filename_lower:
+                # Only if it's not an official release pattern
+                if 'rev' not in filename_lower and 'prototype' not in filename_lower:
+                    return True, 'modified', '80%'
+        
+        return False, None, None
+    
     def verify_rom(self, rom_file):
         """Verify a single ROM file with multi-level verification
         
@@ -266,6 +317,24 @@ class CartridgeChecker:
                 'message': 'Unknown file type',
                 'filename': filename,
                 'system': None
+            }
+        
+        # Check if it's a ROM hack/translation FIRST
+        is_hack, hack_type, hack_confidence = self.detect_rom_hack(filename)
+        if is_hack:
+            hack_label = {
+                'translation': '🌍 Translation Patch',
+                'hack': '🎨 ROM Hack',
+                'modified': '📝 Modified ROM'
+            }.get(hack_type, '🎨 Modified')
+            
+            return {
+                'status': 'hack',
+                'message': f'{hack_label} Detected',
+                'filename': filename,
+                'system': system,
+                'hack_type': hack_type,
+                'confidence': hack_confidence
             }
         
         # Load database
@@ -293,17 +362,33 @@ class CartridgeChecker:
             }
         
         # LEVEL 1: EXACT checksum match (100% certain)
-        if crc32 in database:
-            match = database[crc32]
-            # Verify size too
-            expected_size = int(match.get('size', '0'))
-            if expected_size == file_size:
+        # Check all matches to find multiple regions
+        all_matches = []
+        for db_crc, entry in database.items():
+            if crc32 == db_crc:
+                expected_size = int(entry.get('size', '0'))
+                if expected_size == file_size:
+                    all_matches.append(entry['name'])
+        
+        if all_matches:
+            if len(all_matches) > 1:
                 return {
                     'status': 'verified',
                     'message': 'Verified Good Dump',
                     'filename': filename,
                     'system': system,
-                    'game_name': match['name'],
+                    'game_name': all_matches[0],  # Primary match
+                    'all_regions': all_matches,
+                    'crc32': crc32,
+                    'confidence': '100%'
+                }
+            else:
+                return {
+                    'status': 'verified',
+                    'message': 'Verified Good Dump',
+                    'filename': filename,
+                    'system': system,
+                    'game_name': all_matches[0],
                     'crc32': crc32,
                     'confidence': '100%'
                 }
@@ -313,18 +398,36 @@ class CartridgeChecker:
             header_size = self.HEADER_SYSTEMS[system]
             crc32_clean, md5_clean, sha1_clean = self.calculate_checksums(rom_file, header_size)
             
-            if crc32_clean in database:
-                match = database[crc32_clean]
-                return {
-                    'status': 'has_header',
-                    'message': 'Has External Header (fixable)',
-                    'filename': filename,
-                    'system': system,
-                    'game_name': match['name'],
-                    'crc32': crc32_clean,
-                    'header_size': header_size,
-                    'confidence': '100%'
-                }
+            # Check all matches for headerless version
+            all_matches_clean = []
+            for db_crc, entry in database.items():
+                if crc32_clean == db_crc:
+                    all_matches_clean.append(entry['name'])
+            
+            if all_matches_clean:
+                if len(all_matches_clean) > 1:
+                    return {
+                        'status': 'has_header',
+                        'message': 'Has External Header (fixable)',
+                        'filename': filename,
+                        'system': system,
+                        'game_name': all_matches_clean[0],
+                        'all_regions': all_matches_clean,
+                        'crc32': crc32_clean,
+                        'header_size': header_size,
+                        'confidence': '100%'
+                    }
+                else:
+                    return {
+                        'status': 'has_header',
+                        'message': 'Has External Header (fixable)',
+                        'filename': filename,
+                        'system': system,
+                        'game_name': all_matches_clean[0],
+                        'crc32': crc32_clean,
+                        'header_size': header_size,
+                        'confidence': '100%'
+                    }
         
         # LEVEL 2: Multiple checksums match (99% certain)
         for db_crc, entry in database.items():
@@ -414,15 +517,40 @@ class CartridgeChecker:
         failed = 0
         results = []
         
-        # Find all cartridge ROM files
+        # First, find all CUE files to exclude their BINs from cartridge checking
+        cue_bin_files = set()
+        for root, dirs, files in os.walk(folder):
+            for file in files:
+                if file.lower().endswith('.cue'):
+                    cue_path = os.path.join(root, file)
+                    cue_dir = os.path.dirname(cue_path)
+                    try:
+                        with open(cue_path, 'r', encoding='utf-8', errors='ignore') as f:
+                            for line in f:
+                                if 'FILE' in line.upper():
+                                    parts = line.split('"')
+                                    if len(parts) >= 2:
+                                        bin_file = parts[1]
+                                        bin_path = os.path.join(cue_dir, bin_file)
+                                        cue_bin_files.add(os.path.normpath(bin_path))
+                    except:
+                        pass
+        
+        # Find all cartridge ROM files, excluding CUE/BIN files
         rom_files = []
         for root, dirs, files in os.walk(folder):
             for file in files:
+                full_path = os.path.join(root, file)
+                
+                # Skip if it's part of a CUE/BIN set
+                if os.path.normpath(full_path) in cue_bin_files:
+                    continue
+                
                 ext = os.path.splitext(file)[1].lower()
                 # Check if extension is in any system
                 for system, extensions in self.SYSTEM_EXTENSIONS.items():
                     if ext in extensions:
-                        rom_files.append(os.path.join(root, file))
+                        rom_files.append(full_path)
                         break
         
         if not rom_files:
@@ -458,14 +586,20 @@ class CartridgeChecker:
                 verified += 1
                 if log_callback:
                     log_callback(f"   ✅ {result['message']}")
-                    log_callback(f"      Game: {result['game_name']}")
+                    if result.get('all_regions'):
+                        log_callback(f"      Matches: {', '.join(result['all_regions'])}")
+                    else:
+                        log_callback(f"      Game: {result['game_name']}")
                     log_callback(f"      Confidence: {result['confidence']}")
                     
             elif result['status'] == 'has_header':
                 has_header += 1
                 if log_callback:
                     log_callback(f"   ⚠️ {result['message']}")
-                    log_callback(f"      Game: {result['game_name']}")
+                    if result.get('all_regions'):
+                        log_callback(f"      Matches: {', '.join(result['all_regions'])}")
+                    else:
+                        log_callback(f"      Game: {result['game_name']}")
                     log_callback(f"      Header Size: {result['header_size']} bytes")
                     
             elif result['status'] == 'probable':
@@ -480,6 +614,13 @@ class CartridgeChecker:
                 if log_callback:
                     log_callback(f"   📝 {result['message']}")
                     log_callback(f"      Game: {result['game_name']}")
+                    log_callback(f"      Confidence: {result['confidence']}")
+                    
+            elif result['status'] == 'hack':
+                unknown += 1
+                if log_callback:
+                    log_callback(f"   🎨 {result['message']}")
+                    log_callback(f"      Type: {result['hack_type'].title()}")
                     log_callback(f"      Confidence: {result['confidence']}")
                     
             elif result['status'] == 'name_match':
