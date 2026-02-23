@@ -145,7 +145,7 @@ class CHDConverter:
         return False
     
     def convert_file(self, source_file, delete_after=False, 
-                    log_callback=None, animation_callback=None):
+                log_callback=None, animation_callback=None):
         """Convert a single file to CHD
         
         Args:
@@ -167,51 +167,110 @@ class CHDConverter:
             return True, chd_path
         
         try:
-            cmd = [self.chdman_path, 'createcd', '-i', source_path, '-o', chd_path]
+            # Determine if CD or DVD format
+            is_dvd = False
+            file_size = os.path.getsize(source_path)
             
-            # Start conversion process
-            process = subprocess.Popen(
-                cmd,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-                text=True
-            )
+            # Check file size for ISOs - DVDs are larger than 800 MB
+            if source_ext == '.iso' and file_size > 800 * 1024 * 1024:
+                is_dvd = True
             
-            # Animate dots while waiting (if callback provided)
-            if animation_callback:
-                dots = 0
-                while process.poll() is None:
-                    dots = (dots + 1) % 4
-                    dot_str = "." * dots
-                    animation_callback(f"   Processing{dot_str}")
-                    time.sleep(0.3)
+            # Use appropriate chdman command
+            if is_dvd:
+                cmd = [self.chdman_path, 'createdvd', '-i', source_path, '-o', chd_path]
             else:
-                # Just wait without animation
-                process.wait()
+                cmd = [self.chdman_path, 'createcd', '-i', source_path, '-o', chd_path]
             
-            # Get final result
-            stdout, stderr = process.communicate()
-            
-            if process.returncode == 0:
-                # Success - delete originals if requested
-                if delete_after:
-                    try:
-                        os.remove(source_path)
-                        if source_ext == '.cue':
-                            bin_file = source_path.rsplit('.', 1)[0] + '.bin'
-                            if os.path.exists(bin_file):
-                                os.remove(bin_file)
-                        if log_callback:
-                            log_callback(f"   🗑️  Deleted original files")
-                    except Exception as e:
-                        if log_callback:
-                            log_callback(f"   ⚠️  Could not delete originals: {e}")
+            # For large files (> 100 MB), don't capture output to avoid buffering issues
+            if file_size > 100 * 1024 * 1024:
+                # Large file - run without capturing output
+                if log_callback and is_dvd:
+                    log_callback(f"   ⏰ Note: PS2/DVD conversion may take 15-30 minutes")
+                    log_callback(f"   Please wait... (app may appear frozen)")
                 
-                return True, chd_path
+                process = subprocess.Popen(cmd)
+                
+                # Animate dots while waiting
+                if animation_callback:
+                    dots = 0
+                    while process.poll() is None:
+                        dots = (dots + 1) % 4
+                        dot_str = "." * dots
+                        if is_dvd:
+                            animation_callback(f"   Processing (Large DVD - please wait){dot_str}")
+                        else:
+                            animation_callback(f"   Processing{dot_str}")
+                        time.sleep(0.5)
+                else:
+                    # Just wait without animation
+                    process.wait()
+                
+                # Check if successful
+                if process.returncode == 0:
+                    # Success - delete originals if requested
+                    if delete_after:
+                        try:
+                            os.remove(source_path)
+                            if source_ext == '.cue':
+                                bin_file = source_path.rsplit('.', 1)[0] + '.bin'
+                                if os.path.exists(bin_file):
+                                    os.remove(bin_file)
+                            if log_callback:
+                                log_callback(f"   🗑️  Deleted original files")
+                        except Exception as e:
+                            if log_callback:
+                                log_callback(f"   ⚠️  Could not delete originals: {e}")
+                    
+                    return True, chd_path
+                else:
+                    if log_callback:
+                        log_callback(f"   ❌ Conversion failed (return code: {process.returncode})")
+                    return False, None
+            
             else:
-                if log_callback:
-                    log_callback(f"   ❌ Failed: {stderr[:100]}")
-                return False, None
+                # Small file - can safely capture output for error messages
+                process = subprocess.Popen(
+                    cmd,
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE,
+                    text=True
+                )
+                
+                # Animate dots while waiting
+                if animation_callback:
+                    dots = 0
+                    while process.poll() is None:
+                        dots = (dots + 1) % 4
+                        dot_str = "." * dots
+                        animation_callback(f"   Processing{dot_str}")
+                        time.sleep(0.3)
+                else:
+                    # Just wait without animation
+                    process.wait()
+                
+                # Get final result
+                stdout, stderr = process.communicate()
+                
+                if process.returncode == 0:
+                    # Success - delete originals if requested
+                    if delete_after:
+                        try:
+                            os.remove(source_path)
+                            if source_ext == '.cue':
+                                bin_file = source_path.rsplit('.', 1)[0] + '.bin'
+                                if os.path.exists(bin_file):
+                                    os.remove(bin_file)
+                            if log_callback:
+                                log_callback(f"   🗑️  Deleted original files")
+                        except Exception as e:
+                            if log_callback:
+                                log_callback(f"   ⚠️  Could not delete originals: {e}")
+                    
+                    return True, chd_path
+                else:
+                    if log_callback:
+                        log_callback(f"   ❌ Failed: {stderr[:100]}")
+                    return False, None
         
         except Exception as e:
             if log_callback:

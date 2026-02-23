@@ -18,6 +18,7 @@ GNU General Public License for more details.
 import os
 import subprocess
 import shutil
+import platform
 from pathlib import Path
 from core.cartridge_checker import CartridgeChecker
 
@@ -32,6 +33,15 @@ class ROMHealthChecker:
     
     def find_chdman(self):
         """Find chdman executable"""
+        # Check for bundled chdman in tools/ directory FIRST
+        bundled_path = os.path.join(
+            os.path.dirname(__file__), '..', 'tools',
+            'chdman.exe' if platform.system() == 'Windows' else 'chdman')
+    
+        if os.path.exists(bundled_path):
+            self.chdman_path = bundled_path
+            return True
+
         # Check if chdman is in PATH
         chdman_path = shutil.which('chdman')
         if chdman_path:
