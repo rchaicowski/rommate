@@ -278,6 +278,7 @@ class CartridgeChecker:
             float: Similarity score (0.0 to 1.0)
         """
         import difflib
+        import re
         
         # Normalize both names
         file_clean = filename.lower()
@@ -286,17 +287,45 @@ class CartridgeChecker:
         # Remove extensions
         file_clean = file_clean.rsplit('.', 1)[0]
         
-        # Remove common patterns INCLUDING LANGUAGE TAGS
-        for pattern in ['(usa)', '(europe)', '(japan)', '(world)', '(korea)',
-                        '[!]', '[a]', '[b]', '(rev ', '(v1.', '(v2.',
-                        '(en,fr,de,es,it)', '(en,fr,es)', '(en,ja)', 
-                        '(en,fr,de,es,it,nl)', '(demo)', '(beta)']:
+        # EXTRACT region and disc BEFORE stripping
+        file_region = ''
+        db_region = ''
+        for region in ['(usa)', '(europe)', '(japan)', '(us)', '(eu)', '(jp)', '(world)', '(korea)']:
+            if region in file_clean:
+                file_region = region
+            if region in db_clean:
+                db_region = region
+        
+        file_disc = ''
+        db_disc = ''
+        disc_match = re.search(r'disc \d+|disc \d+ of \d+', file_clean)
+        if disc_match:
+            file_disc = disc_match.group()
+        disc_match = re.search(r'disc \d+|disc \d+ of \d+', db_clean)
+        if disc_match:
+            db_disc = disc_match.group()
+        
+        # Remove common patterns (but preserve what we extracted)
+        for pattern in ['[!]', '[a]', '[b]', '(rev ', '(v1.', '(v2.',
+                    '(en,fr,de,es,it)', '(en,fr,es)', '(en,ja)', 
+                    '(en,fr,de,es,it,nl)', '(demo)', '(beta)',
+                    '(ntsc)', '(pal)', '(capcom)', '(sega)', 
+                    'v1.000', 'v1.001', '(2000)', '(2001)', '(2002)']:
             file_clean = file_clean.replace(pattern, '')
             db_clean = db_clean.replace(pattern, '')
         
+        # Remove ALL brackets and parentheses
+        file_clean = re.sub(r'\[.*?\]', '', file_clean)
+        file_clean = re.sub(r'\(.*?\)', '', file_clean)
+        db_clean = re.sub(r'\(.*?\)', '', db_clean)
+        
+        # Add back essential info (region and disc)
+        file_clean = f"{file_clean} {file_region} {file_disc}".strip()
+        db_clean = f"{db_clean} {db_region} {db_disc}".strip()
+        
         # Remove extra whitespace
-        file_clean = ' '.join(file_clean.split())
-        db_clean = ' '.join(db_clean.split())
+        file_clean = ' '.join(file_clean.split()).replace(' - ', ' ').strip()
+        db_clean = ' '.join(db_clean.split()).replace(' - ', ' ').strip()
         
         # Calculate similarity
         similarity = difflib.SequenceMatcher(None, file_clean, db_clean).ratio()
@@ -313,6 +342,13 @@ class CartridgeChecker:
             tuple: (is_hack: bool, hack_type: str, confidence: str)
         """
         filename_lower = filename.lower()
+        
+        # Skip version detection for GDI files (v1.000 is legitimate)
+        if filename_lower.endswith('.gdi'):
+            # Only check for actual hack markers, not version numbers
+            if any(p in filename_lower for p in ['[hack]', '[h]', '(hack)', 'hack by']):
+                return True, 'hack', '90%'
+            return False, None, None
         
         # Translation patterns
         translation_patterns = [
@@ -444,7 +480,7 @@ class CartridgeChecker:
         
         # SPECIAL HANDLING FOR DISC-BASED SYSTEMS (ISO/WBFS/RVZ)
         # Checksums are unreliable for disc images, so match by name + size
-        if system in self.REDUMP_SYSTEMS and source_ext in ['.iso', '.wbfs', '.rvz', '.gcz']:
+        if system in self.REDUMP_SYSTEMS and source_ext in ['.iso', '.wbfs', '.rvz', '.gcz', '.cdi', '.gdi']:
             best_match = None
             best_similarity = 0
             best_size_match = False
@@ -453,12 +489,14 @@ class CartridgeChecker:
             # Extract region from filename
             filename_lower = filename.lower()
             file_regions = []
-            if '(usa)' in filename_lower or '(usa,' in filename_lower:
+            if '(usa)' in filename_lower or '(usa,' in filename_lower or '(us)' in filename_lower:
                 file_regions.append('usa')
-            if '(europe)' in filename_lower or '(europe,' in filename_lower:
+            if '(europe)' in filename_lower or '(europe,' in filename_lower or '(eu)' in filename_lower:
                 file_regions.append('europe')
-            if '(japan)' in filename_lower or '(japan,' in filename_lower:
+            if '(japan)' in filename_lower or '(japan,' in filename_lower or '(jp)' in filename_lower:
                 file_regions.append('japan')
+            if '(spain)' in filename_lower or '(spain,' in filename_lower or '(es)' in filename_lower:
+                file_regions.append('spain')   
             
             for db_crc, entry in database.items():
                 db_name = entry['name']
@@ -481,15 +519,21 @@ class CartridgeChecker:
                     db_name_lower = db_name.lower()
                     region_match = any(region in db_name_lower for region in file_regions)
                     
-                    # Prefer matches with: 1) Higher similarity, 2) Region match, 3) Size match
+                    # Prefer matches with: 1) Region match, 2) Similarity, 3) Size match
                     is_better = False
-                    if similarity > best_similarity:
+                    
+                    # STRONG preference for region match
+                    if region_match and not best_region_match:
+                        # This has region match, best doesn't - always better!
                         is_better = True
-                    elif similarity == best_similarity:
-                        # Same similarity - prefer region match
-                        if region_match and not best_region_match:
+                    elif best_region_match and not region_match:
+                        # Best has region match, this doesn't - never better
+                        is_better = False
+                    else:
+                        # Both match or both don't match - compare similarity
+                        if similarity > best_similarity:
                             is_better = True
-                        elif region_match == best_region_match and size_match and not best_size_match:
+                        elif similarity == best_similarity and size_match and not best_size_match:
                             is_better = True
                     
                     if is_better:
@@ -720,10 +764,11 @@ class CartridgeChecker:
         failed = 0
         results = []
         
-        # First, find all CUE files to exclude their BINs from cartridge checking
+        # First, find all CUE and GDI files to exclude their BINs from cartridge checking
         cue_bin_files = set()
         for root, dirs, files in os.walk(folder):
             for file in files:
+                # Handle CUE files
                 if file.lower().endswith('.cue'):
                     cue_path = os.path.join(root, file)
                     cue_dir = os.path.dirname(cue_path)
@@ -736,6 +781,23 @@ class CartridgeChecker:
                                         bin_file = parts[1]
                                         bin_path = os.path.join(cue_dir, bin_file)
                                         cue_bin_files.add(os.path.normpath(bin_path))
+                    except:
+                        pass
+                
+                # Handle GDI files (Dreamcast format)
+                elif file.lower().endswith('.gdi'):
+                    gdi_path = os.path.join(root, file)
+                    gdi_dir = os.path.dirname(gdi_path)
+                    try:
+                        with open(gdi_path, 'r', encoding='utf-8', errors='ignore') as f:
+                            for line in f:
+                                # GDI format: track_num offset type size filename
+                                # Example: "3 0 4 2352 track03.bin"
+                                parts = line.strip().split()
+                                if len(parts) >= 5:
+                                    bin_file = parts[4]  # Last column is the filename
+                                    bin_path = os.path.join(gdi_dir, bin_file)
+                                    cue_bin_files.add(os.path.normpath(bin_path))
                     except:
                         pass
         
@@ -813,7 +875,7 @@ class CartridgeChecker:
                     log_callback(f"      Confidence: {result['confidence']}")
                     
             elif result['status'] == 'possible':
-                unknown += 1
+                verified += 1
                 if log_callback:
                     log_callback(f"   🔍 {result['message']}")
                     log_callback(f"      Possible: {result['game_name']}")
