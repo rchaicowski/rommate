@@ -15,6 +15,7 @@ GNU General Public License for more details.
 
 """Cartridge ROM validation and health checking"""
 
+from fileinput import filename
 import os
 import hashlib
 import zlib
@@ -285,11 +286,17 @@ class CartridgeChecker:
         # Remove extensions
         file_clean = file_clean.rsplit('.', 1)[0]
         
-        # Remove common patterns
-        for pattern in ['(usa)', '(europe)', '(japan)', '(world)', 
-                        '[!]', '[a]', '[b]', '(rev ', '(v1.']:
+        # Remove common patterns INCLUDING LANGUAGE TAGS
+        for pattern in ['(usa)', '(europe)', '(japan)', '(world)', '(korea)',
+                        '[!]', '[a]', '[b]', '(rev ', '(v1.', '(v2.',
+                        '(en,fr,de,es,it)', '(en,fr,es)', '(en,ja)', 
+                        '(en,fr,de,es,it,nl)', '(demo)', '(beta)']:
             file_clean = file_clean.replace(pattern, '')
             db_clean = db_clean.replace(pattern, '')
+        
+        # Remove extra whitespace
+        file_clean = ' '.join(file_clean.split())
+        db_clean = ' '.join(db_clean.split())
         
         # Calculate similarity
         similarity = difflib.SequenceMatcher(None, file_clean, db_clean).ratio()
@@ -441,6 +448,17 @@ class CartridgeChecker:
             best_match = None
             best_similarity = 0
             best_size_match = False
+            best_region_match = False
+            
+            # Extract region from filename
+            filename_lower = filename.lower()
+            file_regions = []
+            if '(usa)' in filename_lower or '(usa,' in filename_lower:
+                file_regions.append('usa')
+            if '(europe)' in filename_lower or '(europe,' in filename_lower:
+                file_regions.append('europe')
+            if '(japan)' in filename_lower or '(japan,' in filename_lower:
+                file_regions.append('japan')
             
             for db_crc, entry in database.items():
                 db_name = entry['name']
@@ -459,15 +477,26 @@ class CartridgeChecker:
                     else:
                         size_match = False
                     
-                    # Prefer matches with both name AND size match
+                    # Check if region matches
+                    db_name_lower = db_name.lower()
+                    region_match = any(region in db_name_lower for region in file_regions)
+                    
+                    # Prefer matches with: 1) Higher similarity, 2) Region match, 3) Size match
+                    is_better = False
                     if similarity > best_similarity:
+                        is_better = True
+                    elif similarity == best_similarity:
+                        # Same similarity - prefer region match
+                        if region_match and not best_region_match:
+                            is_better = True
+                        elif region_match == best_region_match and size_match and not best_size_match:
+                            is_better = True
+                    
+                    if is_better:
                         best_similarity = similarity
                         best_match = entry
                         best_size_match = size_match
-                    elif similarity == best_similarity and size_match and not best_size_match:
-                        # Same similarity but this one has size match
-                        best_match = entry
-                        best_size_match = size_match
+                        best_region_match = region_match
             
             if best_match:
                 if best_similarity >= 0.95 and best_size_match:
