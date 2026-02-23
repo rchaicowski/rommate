@@ -853,28 +853,42 @@ class RomMateGUI:
         self.health_info = tk.Frame(self.info_content, bg=self.bg_frame)
         tk.Label(
             self.health_info,
-            text="Verifies ROM file integrity:",
+            text="Check ROM files and identify games:",
             font=("Arial", 10),
             fg=self.text_gray,
             bg=self.bg_frame,
         ).pack(anchor="w", pady=(0, 5))
         tk.Label(
             self.health_info,
-            text="• Disc ROMs: Verify CHD integrity, check CUE/BIN matching",
+            text="• CHD Files: Full integrity verification ✓",
             font=("Arial", 9),
             fg=self.text_gray,
             bg=self.bg_frame,
         ).pack(anchor="w", pady=(0, 3))
         tk.Label(
             self.health_info,
-            text="• Cartridge ROMs: Calculate checksums, verify file headers",
+            text="• Cartridge ROMs: Checksum verification ✓",
             font=("Arial", 9),
             fg=self.text_gray,
             bg=self.bg_frame,
         ).pack(anchor="w", pady=(0, 3))
         tk.Label(
             self.health_info,
-            text="• Compare against known good dumps",
+            text="• ISO/CDI/GDI: Identification by name & size",
+            font=("Arial", 9),
+            fg=self.text_gray,
+            bg=self.bg_frame,
+        ).pack(anchor="w", pady=(0, 3))
+        tk.Label(
+            self.health_info,
+            text="  (Cannot verify disc image checksums)",
+            font=("Arial", 8, "italic"),
+            fg=self.accent_orange,
+            bg=self.bg_frame,
+        ).pack(anchor="w", pady=(0, 3))
+        tk.Label(
+            self.health_info,
+            text="• Compare against No-Intro & Redump databases",
             font=("Arial", 9),
             fg=self.text_gray,
             bg=self.bg_frame,
@@ -1384,7 +1398,7 @@ class RomMateGUI:
                 
                 if (results['cart_verified'] + results['cart_has_header'] + 
                     results.get('cart_hacks', 0) + results['cart_unknown'] + results['cart_failed']) > 0:
-                    self.log_to_processing(f"Cartridges: ✅ {results['cart_verified']} verified | "
+                    self.log_to_processing(f"Game Files: ✅ {results['cart_verified']} verified | "
                                          f"⚠️ {results['cart_has_header']} have headers | "
                                          f"🎨 {results.get('cart_hacks', 0)} ROM hacks | "
                                          f"❓ {results['cart_unknown']} unknown | "

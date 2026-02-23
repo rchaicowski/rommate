@@ -89,14 +89,14 @@ class ROMHealthChecker:
             output = result.stdout + result.stderr
             
             if 'verification successful' in output.lower():
-                return True, "Verified OK"
+                return True, "Verified (Integrity Check Passed)"
             elif 'verification failed' in output.lower():
                 return False, "Verification failed - file may be corrupted"
             elif result.returncode != 0:
                 return False, f"Error: {output.strip()}"
             else:
                 # Fallback - if no error and returncode is 0, assume success
-                return True, "Verified OK"
+                return True, "Verified (Integrity Check Passed)"
                 
         except subprocess.TimeoutExpired:
             return False, "Verification timeout (file too large or corrupted)"

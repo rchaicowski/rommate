@@ -547,23 +547,25 @@ class CartridgeChecker:
                     # Very high confidence - name and size match
                     return {
                         'status': 'identified',
-                        'message': f'Identified by Name & Size ({int(best_similarity * 100)}% match)',
+                        'message': f'Identified (Name & Size Match - {int(best_similarity * 100)}%)',
                         'filename': filename,
                         'path': rom_file,
                         'system': system,
                         'game_name': best_match['name'],
-                        'confidence': f'{int(best_similarity * 100)}%'
+                        'confidence': f'{int(best_similarity * 100)}%',
+                        'note': 'Disc images cannot be verified by checksum'
                     }
                 elif best_similarity >= 0.90:
                     # Good name match
                     return {
                         'status': 'identified',
-                        'message': f'Identified by Name ({int(best_similarity * 100)}% match)',
+                        'message': f'Identified (Name Match - {int(best_similarity * 100)}%)',
                         'filename': filename,
                         'path': rom_file,
                         'system': system,
                         'game_name': best_match['name'],
-                        'confidence': f'{int(best_similarity * 100)}%'
+                        'confidence': f'{int(best_similarity * 100)}%',
+                        'note': 'Disc images cannot be verified by checksum'
                     }
                 elif best_similarity >= 0.85:
                     # Possible match
@@ -870,9 +872,10 @@ class CartridgeChecker:
             elif result['status'] == 'identified':
                 verified += 1
                 if log_callback:
-                    log_callback(f"   ✅ {result['message']}")
+                    log_callback(f"   🔍 {result['message']}")
                     log_callback(f"      Game: {result['game_name']}")
-                    log_callback(f"      Confidence: {result['confidence']}")
+                    if result.get('note'):
+                        log_callback(f"      Note: {result['note']}")
                     
             elif result['status'] == 'possible':
                 verified += 1
