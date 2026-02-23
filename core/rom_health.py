@@ -396,7 +396,7 @@ class ROMHealthChecker:
         
         # Check Cartridge ROMs
         if log_callback:
-            log_callback("\n\n🎮 Checking Cartridge ROMs...")
+            log_callback("\n\n🎮 Checking Game Files...")
         
         cart_verified, cart_header, cart_hacks, cart_unknown, cart_failed, cart_results = self.cartridge_checker.check_folder(
             folder, log_callback, progress_callback, cancel_check

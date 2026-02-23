@@ -619,7 +619,7 @@ class CartridgeChecker:
             return 0, 0, 0, 0, 0, []
         
         if log_callback:
-            log_callback(f"\n🎮 Found {len(rom_files)} cartridge ROM(s) to verify\n")
+            log_callback(f"\n🎮 Found {len(rom_files)} game file(s) to verify\n")
         
         # Verify each ROM
         for index, rom_file in enumerate(rom_files, 1):
