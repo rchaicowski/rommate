@@ -90,7 +90,7 @@ class CartridgeChecker:
         )
     
     def detect_system(self, rom_file):
-        """Detect system from file extension
+        """Detect system from file extension (and context for ambiguous types)
         
         Args:
             rom_file (str): Path to ROM file
@@ -100,6 +100,40 @@ class CartridgeChecker:
         """
         ext = os.path.splitext(rom_file)[1].lower()
         
+        # For ambiguous extensions like .iso, use context clues
+        if ext == '.iso':
+            folder_path = os.path.dirname(rom_file).lower()
+            file_size = os.path.getsize(rom_file)
+            
+            # Check folder name for hints
+            if 'gamecube' in folder_path or 'gc' in folder_path or 'ngc' in folder_path:
+                return 'gamecube'
+            elif 'ps2' in folder_path or 'playstation 2' in folder_path:
+                return 'ps2'
+            elif 'ps3' in folder_path or 'playstation 3' in folder_path:
+                return 'ps3'
+            elif 'psp' in folder_path:
+                return 'psp'
+            elif 'wii' in folder_path:
+                return 'wii'
+            elif 'xbox 360' in folder_path or 'x360' in folder_path:
+                return 'xbox360'
+            elif 'xbox' in folder_path:
+                return 'xbox'
+            elif 'dreamcast' in folder_path or 'dc' in folder_path:
+                return 'dreamcast'
+            elif 'saturn' in folder_path:
+                return 'saturn'
+            
+            # Use file size as fallback
+            if file_size > 3 * 1024 * 1024 * 1024:  # > 3 GB = likely PS2/Wii/PS3
+                return 'ps2'  # Default to PS2 for large ISOs
+            elif file_size > 1 * 1024 * 1024 * 1024:  # 1-3 GB = likely GameCube
+                return 'gamecube'
+            else:  # < 1 GB = likely PS1/Dreamcast
+                return 'ps1'
+        
+        # For other extensions, use normal lookup
         for system, extensions in self.SYSTEM_EXTENSIONS.items():
             if ext in extensions:
                 return system
@@ -363,7 +397,7 @@ class CartridgeChecker:
                 'status': 'unknown',
                 'message': 'Unknown file type',
                 'filename': filename,
-                'path': rom_file,  # Added
+                'path': rom_file,
                 'system': None
             }
         
@@ -380,7 +414,7 @@ class CartridgeChecker:
                 'status': 'hack',
                 'message': f'{hack_label} Detected',
                 'filename': filename,
-                'path': rom_file,  # Added
+                'path': rom_file,
                 'system': system,
                 'hack_type': hack_type,
                 'confidence': hack_confidence
@@ -393,13 +427,93 @@ class CartridgeChecker:
                 'status': 'no_database',
                 'message': f'No database available for {system.upper()}',
                 'filename': filename,
-                'path': rom_file,  # Added
+                'path': rom_file,
                 'system': system
             }
         
-        # Get file size
+        # Get file info
         file_size = os.path.getsize(rom_file)
+        source_ext = os.path.splitext(filename)[1].lower()
         
+        # SPECIAL HANDLING FOR DISC-BASED SYSTEMS (ISO/WBFS/RVZ)
+        # Checksums are unreliable for disc images, so match by name + size
+        if system in self.REDUMP_SYSTEMS and source_ext in ['.iso', '.wbfs', '.rvz', '.gcz']:
+            best_match = None
+            best_similarity = 0
+            best_size_match = False
+            
+            for db_crc, entry in database.items():
+                db_name = entry['name']
+                
+                # Get expected size
+                expected_size = int(entry.get('size', '0'))
+                
+                # Check filename similarity first
+                similarity = self.fuzzy_name_match(filename, db_name)
+                
+                if similarity >= 0.85:  # Only consider if reasonably similar
+                    # Check if sizes are close (±10% tolerance for compression)
+                    if expected_size > 0:
+                        size_diff_percent = abs(file_size - expected_size) / expected_size * 100
+                        size_match = size_diff_percent <= 10
+                    else:
+                        size_match = False
+                    
+                    # Prefer matches with both name AND size match
+                    if similarity > best_similarity:
+                        best_similarity = similarity
+                        best_match = entry
+                        best_size_match = size_match
+                    elif similarity == best_similarity and size_match and not best_size_match:
+                        # Same similarity but this one has size match
+                        best_match = entry
+                        best_size_match = size_match
+            
+            if best_match:
+                if best_similarity >= 0.95 and best_size_match:
+                    # Very high confidence - name and size match
+                    return {
+                        'status': 'identified',
+                        'message': f'Identified by Name & Size ({int(best_similarity * 100)}% match)',
+                        'filename': filename,
+                        'path': rom_file,
+                        'system': system,
+                        'game_name': best_match['name'],
+                        'confidence': f'{int(best_similarity * 100)}%'
+                    }
+                elif best_similarity >= 0.90:
+                    # Good name match
+                    return {
+                        'status': 'identified',
+                        'message': f'Identified by Name ({int(best_similarity * 100)}% match)',
+                        'filename': filename,
+                        'path': rom_file,
+                        'system': system,
+                        'game_name': best_match['name'],
+                        'confidence': f'{int(best_similarity * 100)}%'
+                    }
+                elif best_similarity >= 0.85:
+                    # Possible match
+                    return {
+                        'status': 'possible',
+                        'message': f'Possible Match ({int(best_similarity * 100)}% similar)',
+                        'filename': filename,
+                        'path': rom_file,
+                        'system': system,
+                        'game_name': best_match['name'],
+                        'confidence': f'{int(best_similarity * 100)}%'
+                    }
+            
+            # No good match found for disc image
+            return {
+                'status': 'unknown',
+                'message': 'Unknown ROM (not in database)',
+                'filename': filename,
+                'path': rom_file,
+                'system': system
+            }
+        
+        # FOR CARTRIDGE SYSTEMS: Use checksum-based verification
         # Calculate checksums
         crc32, md5, sha1 = self.calculate_checksums(rom_file)
         
@@ -408,7 +522,7 @@ class CartridgeChecker:
                 'status': 'error',
                 'message': 'Could not read ROM file',
                 'filename': filename,
-                'path': rom_file,  # Added
+                'path': rom_file,
                 'system': system
             }
         
@@ -427,9 +541,9 @@ class CartridgeChecker:
                     'status': 'verified',
                     'message': 'Verified Good Dump',
                     'filename': filename,
-                    'path': rom_file,  # Added
+                    'path': rom_file,
                     'system': system,
-                    'game_name': all_matches[0],  # Primary match
+                    'game_name': all_matches[0],
                     'all_regions': all_matches,
                     'crc32': crc32,
                     'confidence': '100%'
@@ -439,7 +553,7 @@ class CartridgeChecker:
                     'status': 'verified',
                     'message': 'Verified Good Dump',
                     'filename': filename,
-                    'path': rom_file,  # Added
+                    'path': rom_file,
                     'system': system,
                     'game_name': all_matches[0],
                     'crc32': crc32,
@@ -463,7 +577,7 @@ class CartridgeChecker:
                         'status': 'has_header',
                         'message': 'Has External Header (fixable)',
                         'filename': filename,
-                        'path': rom_file,  # Added
+                        'path': rom_file,
                         'system': system,
                         'game_name': all_matches_clean[0],
                         'all_regions': all_matches_clean,
@@ -476,7 +590,7 @@ class CartridgeChecker:
                         'status': 'has_header',
                         'message': 'Has External Header (fixable)',
                         'filename': filename,
-                        'path': rom_file,  # Added
+                        'path': rom_file,
                         'system': system,
                         'game_name': all_matches_clean[0],
                         'crc32': crc32_clean,
@@ -499,7 +613,7 @@ class CartridgeChecker:
                     'status': 'probable',
                     'message': f'Probable Good Dump ({matches}/3 checksums match)',
                     'filename': filename,
-                    'path': rom_file,  # Added
+                    'path': rom_file,
                     'system': system,
                     'game_name': entry['name'],
                     'confidence': '99%'
@@ -515,11 +629,11 @@ class CartridgeChecker:
             size_diff = abs(file_size - expected_size)
             
             # Allow small size differences (headers)
-            if size_diff <= 512:  # Within 512 bytes
+            if size_diff <= 512:
                 # Check filename similarity
                 similarity = self.fuzzy_name_match(filename, entry['name'])
                 
-                if similarity > best_similarity and similarity >= 0.8:
+                if similarity > best_similarity and similarity >= 0.85:  # Raised from 0.80
                     best_similarity = similarity
                     best_match = entry
         
@@ -528,21 +642,21 @@ class CartridgeChecker:
                 'status': 'likely',
                 'message': f'Likely Match - Name & Size Match ({int(best_similarity * 100)}% similar)',
                 'filename': filename,
-                'path': rom_file,  # Added
+                'path': rom_file,
                 'system': system,
                 'game_name': best_match['name'],
                 'confidence': '95%'
             }
         
-        # LEVEL 4: Filename only (80% certain)
+        # LEVEL 4: Filename only (80% certain) - RAISED THRESHOLD
         for db_crc, entry in database.items():
             similarity = self.fuzzy_name_match(filename, entry['name'])
-            if similarity >= 0.7:
+            if similarity >= 0.85:  # Raised from 0.70
                 return {
                     'status': 'name_match',
                     'message': f'Name Match - Checksum Differs ({int(similarity * 100)}% similar)',
                     'filename': filename,
-                    'path': rom_file,  # Added
+                    'path': rom_file,
                     'system': system,
                     'game_name': entry['name'],
                     'confidence': '80%'
@@ -553,7 +667,7 @@ class CartridgeChecker:
             'status': 'unknown',
             'message': 'Unknown ROM (not in database)',
             'filename': filename,
-            'path': rom_file,  # Added
+            'path': rom_file,
             'system': system,
             'crc32': crc32
         }
@@ -661,6 +775,20 @@ class CartridgeChecker:
                     else:
                         log_callback(f"      Game: {result['game_name']}")
                     log_callback(f"      Header Size: {result['header_size']} bytes")
+                    
+            elif result['status'] == 'identified':
+                verified += 1
+                if log_callback:
+                    log_callback(f"   ✅ {result['message']}")
+                    log_callback(f"      Game: {result['game_name']}")
+                    log_callback(f"      Confidence: {result['confidence']}")
+                    
+            elif result['status'] == 'possible':
+                unknown += 1
+                if log_callback:
+                    log_callback(f"   🔍 {result['message']}")
+                    log_callback(f"      Possible: {result['game_name']}")
+                    log_callback(f"      Confidence: {result['confidence']}")
                     
             elif result['status'] == 'probable':
                 verified += 1  # Count as verified
