@@ -482,21 +482,28 @@ class CartridgeChecker:
         # Checksums are unreliable for disc images, so match by name + size
         if system in self.REDUMP_SYSTEMS and source_ext in ['.iso', '.wbfs', '.rvz', '.gcz', '.cdi', '.gdi']:
             best_match = None
+            # `best_similarity` stores the BOOSTED similarity (for comparison).
             best_similarity = 0
+            # `best_original_similarity` stores the ORIGINAL similarity (for display).
+            best_original_similarity = 0
             best_size_match = False
             best_region_match = False
             
             # Extract region from filename
             filename_lower = filename.lower()
             file_regions = []
-            if '(usa)' in filename_lower or '(usa,' in filename_lower or '(us)' in filename_lower:
+
+            # USA variants
+            if any(x in filename_lower for x in ['(usa)', '(usa,', '(us)', '(usa, canada)']):
                 file_regions.append('usa')
-            if '(europe)' in filename_lower or '(europe,' in filename_lower or '(eu)' in filename_lower:
+
+            # Europe variants  
+            if any(x in filename_lower for x in ['(europe)', '(europe,', '(eu)', '(europe, australia)']):
                 file_regions.append('europe')
-            if '(japan)' in filename_lower or '(japan,' in filename_lower or '(jp)' in filename_lower:
+
+            # Japan variants
+            if any(x in filename_lower for x in ['(japan)', '(japan,', '(jp)']):
                 file_regions.append('japan')
-            if '(spain)' in filename_lower or '(spain,' in filename_lower or '(es)' in filename_lower:
-                file_regions.append('spain')   
             
             for db_crc, entry in database.items():
                 db_name = entry['name']
@@ -506,8 +513,17 @@ class CartridgeChecker:
                 
                 # Check filename similarity first
                 similarity = self.fuzzy_name_match(filename, db_name)
-                
-                if similarity >= 0.85:  # Only consider if reasonably similar
+                original_similarity = similarity  # Save original for display
+
+                # Use a boosted similarity for threshold/comparison only
+                boosted_similarity = similarity
+                if file_regions:
+                    for file_region in file_regions:
+                        if file_region in db_name.lower():
+                            boosted_similarity += 0.05  # 5% boost for region match
+                            break
+
+                if boosted_similarity >= 0.85:  # Only consider if reasonably similar
                     # Check if sizes are close (±10% tolerance for compression)
                     if expected_size > 0:
                         size_diff_percent = abs(file_size - expected_size) / expected_size * 100
@@ -516,10 +532,28 @@ class CartridgeChecker:
                         size_match = False
                     
                     # Check if region matches
+                    # Check if region matches (including compound regions)
                     db_name_lower = db_name.lower()
-                    region_match = any(region in db_name_lower for region in file_regions)
+                    region_match = False
+
+                    for file_region in file_regions:
+                        if file_region == 'usa':
+                            # Match USA, (USA, Canada), (US)
+                            if any(x in db_name_lower for x in ['(usa)', '(usa,', '(us)']):
+                                region_match = True
+                                break
+                        elif file_region == 'europe':
+                            # Match Europe, (Europe, Australia), (EU)
+                            if any(x in db_name_lower for x in ['(europe)', '(europe,', '(eu)']):
+                                region_match = True
+                                break
+                        elif file_region == 'japan':
+                            # Match Japan, (JP)
+                            if any(x in db_name_lower for x in ['(japan)', '(japan,', '(jp)']):
+                                region_match = True
+                                break
                     
-                    # Prefer matches with: 1) Region match, 2) Similarity, 3) Size match
+                    # Prefer matches with: 1) Region match, 2) boosted similarity, 3) Size match
                     is_better = False
                     
                     # STRONG preference for region match
@@ -530,55 +564,63 @@ class CartridgeChecker:
                         # Best has region match, this doesn't - never better
                         is_better = False
                     else:
-                        # Both match or both don't match - compare similarity
-                        if similarity > best_similarity:
+                        # Both match or both don't match - compare boosted similarity
+                        if boosted_similarity > best_similarity:
                             is_better = True
-                        elif similarity == best_similarity and size_match and not best_size_match:
+                        elif boosted_similarity == best_similarity and size_match and not best_size_match:
                             is_better = True
                     
                     if is_better:
-                        best_similarity = similarity
+                        # Store boosted for comparisons and original for display
+                        best_similarity = boosted_similarity
+                        best_original_similarity = original_similarity
                         best_match = entry
                         best_size_match = size_match
                         best_region_match = region_match
             
             if best_match:
-                if best_similarity >= 0.95 and best_size_match:
+                if best_original_similarity >= 0.90 and best_size_match:
                     # Very high confidence - name and size match
                     return {
                         'status': 'identified',
-                        'message': f'Identified (Name & Size Match - {int(best_similarity * 100)}%)',
+                        'message': f'Identified (Name & Size Match - {int(best_original_similarity * 100)}%)',
                         'filename': filename,
                         'path': rom_file,
                         'system': system,
                         'game_name': best_match['name'],
-                        'confidence': f'{int(best_similarity * 100)}%',
+                        'confidence': f'{int(best_original_similarity * 100)}%',
                         'note': 'Disc images cannot be verified by checksum'
                     }
-                elif best_similarity >= 0.90:
+                elif best_original_similarity >= 0.85:
                     # Good name match
                     return {
                         'status': 'identified',
-                        'message': f'Identified (Name Match - {int(best_similarity * 100)}%)',
+                        'message': f'Identified (Name Match - {int(best_original_similarity * 100)}%)',
                         'filename': filename,
                         'path': rom_file,
                         'system': system,
                         'game_name': best_match['name'],
-                        'confidence': f'{int(best_similarity * 100)}%',
+                        'confidence': f'{int(best_original_similarity * 100)}%',
                         'note': 'Disc images cannot be verified by checksum'
                     }
-                elif best_similarity >= 0.85:
+                elif best_original_similarity >= 0.80:
                     # Possible match
                     return {
                         'status': 'possible',
-                        'message': f'Possible Match ({int(best_similarity * 100)}% similar)',
+                        'message': f'Possible Match ({int(best_original_similarity * 100)}% similar)',
                         'filename': filename,
                         'path': rom_file,
                         'system': system,
                         'game_name': best_match['name'],
-                        'confidence': f'{int(best_similarity * 100)}%'
+                        'confidence': f'{int(best_original_similarity * 100)}%'
                     }
             
+            # DEBUG - check if best_match was set
+            if 'super mario sunshine' in filename.lower():
+                print(f"DEBUG FINAL: best_match = {best_match}")
+                print(f"  best_similarity = {best_similarity:.2f}")
+                print(f"  best_original = {best_original_similarity:.2f}")
+
             # No good match found for disc image
             return {
                 'status': 'unknown',
