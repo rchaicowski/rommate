@@ -782,6 +782,20 @@ class RomMateGUI:
         ).pack(anchor="w", pady=(0, 5))
         tk.Label(
             self.chd_info,
+            text="Supported: PS1, PS2, Dreamcast, Saturn, PSP",
+            font=("Arial", 9),
+            fg=self.text_gray,
+            bg=self.bg_frame,
+        ).pack(anchor="w", pady=(0, 3))
+        tk.Label(
+            self.chd_info,
+            text="Not supported: GameCube (use GCZ), Wii (use RVZ/WBFS)",
+            font=("Arial", 9, "italic"),
+            fg=self.accent_orange,
+            bg=self.bg_frame,
+        ).pack(anchor="w", pady=(0, 5))
+        tk.Label(
+            self.chd_info,
             text="• CHD files are compressed and save 40-60% space",
             font=("Arial", 9),
             fg=self.text_gray,
@@ -874,16 +888,9 @@ class RomMateGUI:
         ).pack(anchor="w", pady=(0, 3))
         tk.Label(
             self.health_info,
-            text="• ISO/CDI/GDI: Identification by name & size",
+            text="• ISO/CDI/GDI: Identification by name & size (Cannot verify disc image checksums)",
             font=("Arial", 9),
             fg=self.text_gray,
-            bg=self.bg_frame,
-        ).pack(anchor="w", pady=(0, 3))
-        tk.Label(
-            self.health_info,
-            text="  (Cannot verify disc image checksums)",
-            font=("Arial", 8, "italic"),
-            fg=self.accent_orange,
             bg=self.bg_frame,
         ).pack(anchor="w", pady=(0, 3))
         tk.Label(
