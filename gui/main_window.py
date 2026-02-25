@@ -1013,7 +1013,7 @@ class RomMateGUI:
             self.check_rom_health()
             return
         elif mode == "validate":
-            messagebox.showinfo("Coming Soon", "ROM Name Validator feature is under development!")
+            self.validate_rom_names()
             return
         self.is_processing = True
 
@@ -1444,6 +1444,275 @@ class RomMateGUI:
         # Start thread
         thread = threading.Thread(target=run_check, daemon=True)
         thread.start()
+
+    def validate_rom_names(self):
+        """Validate and fix ROM names"""
+        folder = self.folder_path.get()
+        
+        # Import the validator
+        from core.name_validator import NameValidator
+        
+        if not hasattr(self, 'name_validator'):
+            self.name_validator = NameValidator()
+        
+        self.is_processing = True
+        self.cancel_requested = False
+        
+        # Switch to processing panel
+        self.show_processing_panel()
+        
+        # Run validation in separate thread
+        thread = threading.Thread(target=self.run_validation, args=(folder,))
+        thread.daemon = True
+        thread.start()
+
+    def run_validation(self, folder):
+        """Run ROM name validation in background thread"""
+        try:
+            self.log_to_processing("🔍 ROM Name Validator")
+            self.log_to_processing(f"Folder: {folder}")
+            self.log_to_processing("=" * 60)
+            
+            # Validate folder
+            results = self.name_validator.validate_folder(
+                folder,
+                log_callback=self.log_to_processing,
+                progress_callback=lambda current, total, filename: 
+                    self.log_to_processing(f"Processing file {current} of {total}: {filename}"),
+                cancel_check=lambda: self.cancel_requested
+            )
+            
+            # Check if cancelled
+            if self.cancel_requested:
+                self.reset_and_return()
+                return
+            
+            # Show summary
+            self.log_to_processing("\n" + "=" * 60)
+            self.log_to_processing("📊 Summary:")
+            self.log_to_processing("=" * 60)
+            
+            needs_rename = len(results)
+            
+            if needs_rename == 0:
+                self.log_to_processing("✅ All ROM names are correct!")
+                self.show_completion(success=True, converted=0, skipped=0, failed=0)
+            else:
+                self.log_to_processing(f"📝 Found {needs_rename} ROM(s) that need renaming")
+                
+                # Show rename dialog
+                self.root.after(100, lambda: self.show_rename_dialog(results))
+            
+        except Exception as e:
+            self.log_to_processing(f"\n❌ Error: {str(e)}")
+            import traceback
+            self.log_to_processing(traceback.format_exc())
+            self.show_completion(success=False, converted=0, skipped=0, failed=1)
+
+    def show_rename_dialog(self, results):
+        """Show dialog to review and rename ROMs
+        
+        Args:
+            results (list): List of ROMs that need renaming
+        """
+        # Create dialog
+        dialog = tk.Toplevel(self.root)
+        dialog.title("ROM Name Validator - Review Changes")
+        dialog.configure(bg=self.bg_dark)
+        dialog.transient(self.root)
+        dialog.grab_set()
+        
+        # Set size and position
+        dialog.update_idletasks()
+        width = 900
+        height = 600
+        x = (dialog.winfo_screenwidth() // 2) - (width // 2)
+        y = (dialog.winfo_screenheight() // 2) - (height // 2)
+        dialog.geometry(f"{width}x{height}+{x}+{y}")
+        dialog.minsize(900, 600)
+        
+        # Title
+        title_frame = tk.Frame(dialog, bg=self.accent_blue, height=60)
+        title_frame.pack(fill="x")
+        title_frame.pack_propagate(False)
+        
+        tk.Label(
+            title_frame,
+            text=f"📝 Review ROM Names ({len(results)} files need renaming)",
+            font=("Arial", 14, "bold"),
+            bg=self.accent_blue,
+            fg="white"
+        ).pack(expand=True)
+        
+        # Content
+        content = tk.Frame(dialog, bg=self.bg_dark, padx=20, pady=20)
+        content.pack(fill="both", expand=True)
+        
+        # List frame with scrollbar
+        list_frame = tk.Frame(content, bg=self.bg_frame, relief="sunken", bd=1)
+        list_frame.pack(fill="both", expand=True, pady=(0, 15))
+        
+        # Create canvas for scrolling
+        canvas = tk.Canvas(list_frame, bg=self.bg_frame, highlightthickness=0)
+        scrollbar = tk.Scrollbar(list_frame, orient="vertical", command=canvas.yview)
+        scrollable_frame = tk.Frame(canvas, bg=self.bg_frame)
+        
+        scrollable_frame.bind(
+            "<Configure>",
+            lambda e: canvas.configure(scrollregion=canvas.bbox("all"))
+        )
+        
+        canvas.create_window((0, 0), window=scrollable_frame, anchor="nw")
+        canvas.configure(yscrollcommand=scrollbar.set)
+        
+        canvas.pack(side="left", fill="both", expand=True)
+        scrollbar.pack(side="right", fill="y")
+        
+        # Track which items are selected for rename
+        rename_vars = []
+        
+        # Add each ROM to the list
+        for idx, result in enumerate(results):
+            item_frame = tk.Frame(scrollable_frame, bg=self.bg_frame, pady=10, padx=10)
+            item_frame.pack(fill="x", padx=5, pady=5)
+            
+            if idx > 0:
+                # Add separator
+                tk.Frame(item_frame, bg=self.text_gray, height=1).pack(fill="x", pady=(0, 10))
+            
+            # Checkbox for this item
+            var = tk.BooleanVar(value=True)
+            rename_vars.append((var, result))
+            
+            tk.Checkbutton(
+                item_frame,
+                text=f"Rename this file",
+                variable=var,
+                font=("Arial", 10, "bold"),
+                bg=self.bg_frame,
+                fg=self.text_light,
+                selectcolor=self.bg_dark,
+                activebackground=self.bg_frame,
+            ).pack(anchor="w")
+            
+            # Current name
+            tk.Label(
+                item_frame,
+                text=f"Current:  {result['current_name']}",
+                font=("Arial", 9),
+                fg="#ff6b6b",
+                bg=self.bg_frame,
+                anchor="w"
+            ).pack(fill="x", padx=20, pady=(5, 2))
+            
+            # Suggested name
+            tk.Label(
+                item_frame,
+                text=f"Suggested: {result['suggested_name']}",
+                font=("Arial", 9),
+                fg="#51cf66",
+                bg=self.bg_frame,
+                anchor="w"
+            ).pack(fill="x", padx=20, pady=(2, 2))
+            
+            # Confidence
+            tk.Label(
+                item_frame,
+                text=f"Confidence: {result['confidence']} | System: {result['system'].upper()}",
+                font=("Arial", 8),
+                fg=self.text_gray,
+                bg=self.bg_frame,
+                anchor="w"
+            ).pack(fill="x", padx=20, pady=(2, 5))
+        
+        # Buttons
+        btn_frame = tk.Frame(content, bg=self.bg_dark)
+        btn_frame.pack(fill="x")
+        
+        def do_rename():
+            renamed = 0
+            failed = 0
+            
+            for var, result in rename_vars:
+                if var.get():  # If checkbox is checked
+                    success, message, new_path = self.name_validator.rename_rom(
+                        result['path'],
+                        result['suggested_name']
+                    )
+                    if success:
+                        renamed += 1
+                    else:
+                        failed += 1
+            
+            dialog.destroy()
+            
+            # Show result
+            if failed == 0:
+                messagebox.showinfo(
+                    "Rename Complete",
+                    f"✅ Successfully renamed {renamed} file(s)!"
+                )
+            else:
+                messagebox.showwarning(
+                    "Partial Success",
+                    f"✅ Renamed: {renamed}\n❌ Failed: {failed}\n\n"
+                    "Some files could not be renamed."
+                )
+            
+            # Return to main screen
+            self.reset_and_return()
+        
+        tk.Button(
+            btn_frame,
+            text="Select All",
+            command=lambda: [var.set(True) for var, _ in rename_vars],
+            font=("Arial", 10),
+            bg=self.bg_frame,
+            fg=self.text_light,
+            cursor="hand2",
+            relief="flat",
+            padx=15,
+            pady=8
+        ).pack(side="left", padx=(0, 10))
+        
+        tk.Button(
+            btn_frame,
+            text="Select None",
+            command=lambda: [var.set(False) for var, _ in rename_vars],
+            font=("Arial", 10),
+            bg=self.bg_frame,
+            fg=self.text_light,
+            cursor="hand2",
+            relief="flat",
+            padx=15,
+            pady=8
+        ).pack(side="left", padx=(0, 10))
+        
+        tk.Button(
+            btn_frame,
+            text="Cancel",
+            command=lambda: (dialog.destroy(), self.reset_and_return()),
+            font=("Arial", 10),
+            bg=self.bg_frame,
+            fg=self.text_light,
+            cursor="hand2",
+            relief="flat",
+            padx=15,
+            pady=8
+        ).pack(side="right", padx=(10, 0))
+        
+        tk.Button(
+            btn_frame,
+            text="✓ Rename Selected",
+            command=do_rename,
+            font=("Arial", 10, "bold"),
+            bg=self.accent_green,
+            fg="white",
+            cursor="hand2",
+            relief="flat",
+            padx=20,
+            pady=8
+        ).pack(side="right")        
 
     def offer_header_fix(self, results):
         """Offer to fix ROMs with external headers
