@@ -77,15 +77,20 @@ class NameValidator:
             for file in files:
                 full_path = os.path.join(root, file)
                 
-                # Skip if it's part of a CUE/BIN or GDI set
-                if os.path.normpath(full_path) in cue_bin_files:
-                    continue
-                
                 # Skip backup files
                 if file.endswith('.backup'):
                     continue
                 
                 ext = os.path.splitext(file)[1].lower()
+                
+                # Include CUE and GDI files for validation
+                if ext in ['.cue', '.gdi']:
+                    rom_files.append(full_path)
+                    continue
+                
+                # Skip if it's a BIN/track from a CUE/GDI set
+                if os.path.normpath(full_path) in cue_bin_files:
+                    continue
                 
                 # Check if extension is in any system
                 for system, extensions in self.cartridge_checker.SYSTEM_EXTENSIONS.items():

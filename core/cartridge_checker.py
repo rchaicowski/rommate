@@ -134,10 +134,82 @@ class CartridgeChecker:
             else:  # < 1 GB = likely PS1/Dreamcast
                 return 'ps1'
         
+        # For CUE files, try to detect from BIN header
+        if ext == '.cue':
+            system = self.detect_system_from_cue(rom_file)
+            if system:
+                return system
+            return 'ps1'  # Default to PS1 if detection fails
+        elif ext == '.gdi':
+            return 'dreamcast'  # GDI is always Dreamcast
+        
         # For other extensions, use normal lookup
         for system, extensions in self.SYSTEM_EXTENSIONS.items():
             if ext in extensions:
                 return system
+        
+        return None
+    
+    def detect_system_from_cue(self, cue_path):
+        """Detect system by reading disc header from BIN file referenced in CUE
+        
+        Args:
+            cue_path (str): Path to CUE file
+            
+        Returns:
+            str: System name ('ps1', 'saturn', 'segacd') or None
+        """
+        try:
+            # Parse CUE to find first BIN file
+            cue_dir = os.path.dirname(cue_path)
+            bin_path = None
+            
+            with open(cue_path, 'r', encoding='utf-8', errors='ignore') as f:
+                for line in f:
+                    if 'FILE' in line.upper():
+                        parts = line.split('"')
+                        if len(parts) >= 2:
+                            bin_file = parts[1]
+                            bin_path = os.path.join(cue_dir, bin_file)
+                            break
+            
+            if not bin_path or not os.path.exists(bin_path):
+                return None
+            
+            # Read disc header from BIN file
+            with open(bin_path, 'rb') as b:
+                # Check for Sega Saturn (at offset 0x0)
+                b.seek(0x0)
+                saturn_header = b.read(16)
+                if b'SEGA SEGASATURN' in saturn_header:
+                    return 'saturn'
+                
+                # Check for Sega CD (at offset 0x0)
+                if b'SEGADISCSYSTEM' in saturn_header or b'SEGA MEGA-CD' in saturn_header:
+                    return 'segacd'
+                
+                # Check for PS1 (at offset 0x9320 - inside first data track)
+                # Skip to potential PS1 license area
+                try:
+                    b.seek(0x9320)
+                    ps1_check = b.read(32)
+                    if b'PLAYSTATION' in ps1_check or b'Licensed by' in ps1_check:
+                        return 'ps1'
+                except:
+                    pass
+                
+                # Alternative PS1 check at offset 0x8000
+                try:
+                    b.seek(0x8000)
+                    ps1_alt = b.read(256)
+                    if b'Sony Computer Entertainment' in ps1_alt:
+                        return 'ps1'
+                except:
+                    pass
+        
+        except Exception as e:
+            # If any error, return None
+            pass
         
         return None
     
