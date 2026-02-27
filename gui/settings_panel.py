@@ -108,6 +108,11 @@ class SettingsPanel:
             fg=self.text_light,
             selectcolor=self.bg_dark,
             activebackground=self.bg_frame,
+            bd=0,
+            relief="flat",
+            highlightthickness=0,
+            highlightbackground=self.bg_frame,
+            highlightcolor=self.bg_frame,
             command=lambda: self.callbacks.get('on_sound_toggle')(self.sound_var.get())
         ).pack(anchor="w", pady=5)
         
@@ -189,7 +194,12 @@ class SettingsPanel:
             fg=self.text_light,
             selectcolor=self.bg_dark,
             activebackground=self.bg_frame,
-            command=self.on_folder_mode_change
+            command=self.on_folder_mode_change,
+            bd=0,
+            relief="flat",
+            highlightthickness=0,
+            highlightbackground=self.bg_frame,
+            highlightcolor=self.bg_frame,
         ).pack(anchor="w")
         
         # Show current last folder in gray
@@ -216,7 +226,12 @@ class SettingsPanel:
             fg=self.text_light,
             selectcolor=self.bg_dark,
             activebackground=self.bg_frame,
-            command=self.on_folder_mode_change
+            command=self.on_folder_mode_change,
+            bd=0,
+            relief="flat",
+            highlightthickness=0,
+            highlightbackground=self.bg_frame,
+            highlightcolor=self.bg_frame,
         ).pack(anchor="w")
         
         # Default folder path and browse button
@@ -288,6 +303,11 @@ class SettingsPanel:
             fg=self.text_light,
             selectcolor=self.bg_dark,
             activebackground=self.bg_frame,
+            bd=0,
+            relief="flat",
+            highlightthickness=0,
+            highlightbackground=self.bg_frame,
+            highlightcolor=self.bg_frame,
             command=lambda: self.callbacks.get('on_delete_toggle')(self.delete_var.get())
         ).pack(anchor="w", pady=5)
         

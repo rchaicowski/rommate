@@ -393,6 +393,9 @@ class RomMateGUI:
             relief="flat",
             activebackground=self.bg_frame,
             bd=0,
+            highlightthickness=0,
+            highlightbackground=self.bg_frame,
+            highlightcolor=self.bg_frame,
             padx=10
         )
         settings_btn.place(relx=1.0, x=-10, y=0, anchor="ne")
