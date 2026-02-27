@@ -438,7 +438,6 @@ class CartridgeChecker:
         
         # Version/beta patterns (strong indicators)
         version_patterns = [
-            'v1.', 'v2.', 'v3.', 'v4.', 'v5.',
             'beta', 'alpha', 'demo', 'proto',
             'preview', 'test'
         ]
