@@ -43,7 +43,7 @@ class RomMateGUI:
     def __init__(self, root):
         self.root = root
         self.root.title("RomMate")
-        self.root.geometry("850x1000")
+        self.root.geometry("700x1000")
         self.root.resizable(True, True)
 
         # Use theme colors
@@ -590,9 +590,11 @@ class RomMateGUI:
 
         # ===== INFO SECTION (context-sensitive) =====
         self.info_frame = tk.Frame(
-            self.main_container, bg=self.bg_frame, relief="groove", bd=2
+            self.main_container, bg=self.bg_frame, relief="groove", bd=2,
+            height=170
         )
         self.info_frame.pack(pady=20, fill="x")
+        self.info_frame.pack_propagate(False)
 
         self.info_title = tk.Label(
             self.info_frame,
@@ -622,6 +624,7 @@ class RomMateGUI:
             height=2,
             padx=50,
             relief="flat",
+            width=15,
         )
         self.process_btn.pack(pady=30)
 
@@ -949,27 +952,27 @@ class RomMateGUI:
         operation = self.operation_mode.get()
         
         if operation == "health":
-            self.health_info.pack(fill="x")
+            self.health_info.pack(fill="x", expand=True)
             if hasattr(self, 'process_btn'):
                 self.process_btn.config(text="▶ Check ROM Health")
                 
         elif operation == "validate":
-            self.validate_info.pack(fill="x")
+            self.validate_info.pack(fill="x", expand=True)
             if hasattr(self, 'process_btn'):
                 self.process_btn.config(text="▶ Validate ROM Names")
                 
         elif operation == "chd":
-            self.chd_info.pack(fill="x")
+            self.chd_info.pack(fill="x", expand=True)
             if hasattr(self, 'process_btn'):
                 self.process_btn.config(text="▶ Convert to CHD")
                 
         elif operation == "m3u":
-            self.m3u_info.pack(fill="x")
+            self.m3u_info.pack(fill="x", expand=True)
             if hasattr(self, 'process_btn'):
                 self.process_btn.config(text="▶ Create M3U Files")
                 
         elif operation == "both":
-            self.both_info.pack(fill="x")
+            self.both_info.pack(fill="x", expand=True)
             if hasattr(self, 'process_btn'):
                 self.process_btn.config(text="▶ Convert & Create M3U")
 
