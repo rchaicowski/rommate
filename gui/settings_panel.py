@@ -65,16 +65,43 @@ class SettingsPanel:
         )
         close_btn.place(relx=1.0, x=-10, rely=0.5, anchor="e")
         
-        # Content area
-        content_frame = tk.Frame(self.panel, bg=self.bg_dark)
-        content_frame.pack(fill="both", expand=True, padx=50, pady=20)
+        # Content area with scrollbar
+        container = tk.Frame(self.panel, bg=self.bg_dark)
+        container.pack(fill="both", expand=True, padx=20, pady=(0, 20))
         
-        # Create settings sections
-        self.create_sound_settings(content_frame)
-        self.create_folder_settings(content_frame)
-        self.create_conversion_settings(content_frame)
-        self.create_language_settings(content_frame)
-        self.create_about_section(content_frame)
+        # Create canvas and scrollbar
+        canvas = tk.Canvas(container, bg=self.bg_dark, highlightthickness=0)
+        scrollbar = tk.Scrollbar(container, orient="vertical", command=canvas.yview)
+        scrollable_frame = tk.Frame(canvas, bg=self.bg_dark)
+        
+        # Configure scrolling
+        scrollable_frame.bind(
+            "<Configure>",
+            lambda e: canvas.configure(scrollregion=canvas.bbox("all"))
+        )
+        
+        window_id = canvas.create_window((0, 0), window=scrollable_frame, anchor="nw")
+        canvas.configure(yscrollcommand=scrollbar.set)
+
+        # Make scrollable_frame expand to canvas width
+        def _configure_scroll_frame(event):
+            canvas.itemconfig(window_id, width=event.width)
+
+        canvas.bind("<Configure>", _configure_scroll_frame)
+        
+        # Pack canvas and scrollbar
+        canvas.pack(side="left", fill="both", expand=True, padx=(0, 15))
+        scrollbar.pack(side="right", fill="y")
+        
+        # Mouse wheel scrolling
+        canvas.bind_all("<MouseWheel>", lambda e: self._on_mousewheel(e, canvas))
+        
+        # Create settings sections in scrollable frame
+        self.create_sound_settings(scrollable_frame)
+        self.create_folder_settings(scrollable_frame)
+        self.create_conversion_settings(scrollable_frame)
+        self.create_language_settings(scrollable_frame)
+        self.create_about_section(scrollable_frame)
     
     def create_sound_settings(self, parent):
         """Create sound settings section"""
@@ -468,3 +495,7 @@ class SettingsPanel:
         # Call the callback to show main panel
         if 'on_close' in self.callbacks:
             self.callbacks['on_close']()
+
+    def _on_mousewheel(self, event, canvas):
+        """Handle mouse wheel scrolling"""
+        canvas.yview_scroll(int(-1*(event.delta/120)), "units")

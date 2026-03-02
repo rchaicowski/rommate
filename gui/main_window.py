@@ -591,7 +591,7 @@ class RomMateGUI:
         # ===== INFO SECTION (context-sensitive) =====
         self.info_frame = tk.Frame(
             self.main_container, bg=self.bg_frame, relief="groove", bd=2,
-            height=170
+            height=185
         )
         self.info_frame.pack(pady=20, fill="x")
         self.info_frame.pack_propagate(False)
