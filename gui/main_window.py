@@ -49,12 +49,28 @@ class RomMateGUI:
         # Use theme colors
         self.bg_dark = Theme.BG_DARK
         self.bg_frame = Theme.BG_FRAME
+        self.bg_processing = Theme.BG_PROCESSING
+        self.bg_info_box = Theme.BG_INFO_BOX
+
         self.text_light = Theme.TEXT_LIGHT
         self.text_gray = Theme.TEXT_GRAY
+        self.text_processing = Theme.TEXT_PROCESSING
+        self.text_info = Theme.TEXT_INFO
+        self.text_error = Theme.TEXT_ERROR
+        self.text_success = Theme.TEXT_SUCCESS
+
         self.accent_blue = Theme.ACCENT_BLUE
         self.accent_green = Theme.ACCENT_GREEN
         self.accent_red = Theme.ACCENT_RED
         self.accent_orange = Theme.ACCENT_ORANGE
+
+        self.state_success = Theme.STATE_SUCCESS
+        self.state_warning = Theme.STATE_WARNING
+        self.state_error = Theme.STATE_ERROR
+
+        self.active_green = Theme.ACTIVE_GREEN
+        self.active_red = Theme.ACTIVE_RED
+        self.active_blue = Theme.ACTIVE_BLUE
 
         # Configure root background
         self.root.configure(bg=self.bg_dark)
@@ -314,19 +330,19 @@ class RomMateGUI:
                     text="✅ All ROMs Verified Successfully!", fg=self.accent_green
                 )
                 self.status_subtitle.config(text="All CHD files passed verification")
-                self.processing_panel.config(bg="#1b5e20")
+                self.processing_panel.config(bg=self.state_success)
             elif converted > 0:
                 self.status_title.config(
                     text="⚠️ Health Check Complete with Issues", fg=self.accent_orange
                 )
                 self.status_subtitle.config(text="Some files failed verification - check details above")
-                self.processing_panel.config(bg="#f57f17")
+                self.processing_panel.config(bg=self.state_warning)
             else:
                 self.status_title.config(
                     text="❌ Health Check Failed", fg=self.accent_red
                 )
                 self.status_subtitle.config(text="No files verified successfully")
-                self.processing_panel.config(bg="#b71c1c")
+                self.processing_panel.config(bg=self.state_error)
         else:
             # Existing CHD/M3U completion logic
             if success:
@@ -334,14 +350,14 @@ class RomMateGUI:
                     text="✅ Completed Successfully!", fg=self.accent_green
                 )
                 self.status_subtitle.config(text="All operations finished")
-                self.processing_panel.config(bg="#1b5e20")
+                self.processing_panel.config(bg=self.state_success)
             else:
                 self.status_title.config(
                     text="⚠️ Completed with Errors", fg=self.accent_red)
                 self.status_subtitle.config(
                     text="Some operations failed - check details below"
                 )
-                self.processing_panel.config(bg="#b71c1c")
+                self.processing_panel.config(bg=self.state_error)
 
         # Show completion buttons
         self.completion_frame.pack(pady=20)
@@ -462,7 +478,7 @@ class RomMateGUI:
             padx=20,
             pady=8,
             relief="flat",
-            activebackground="#4caf50",
+            activebackground=self.active_green,
             activeforeground="white",
             bd=0,
         )
@@ -701,8 +717,8 @@ class RomMateGUI:
             width=80,
             height=12,
             font=("Consolas", 9),
-            bg="#1e1e1e",
-            fg="#d4d4d4",
+            bg=self.bg_processing,
+            fg=self.text_processing,
             wrap=tk.WORD,
             state="disabled",
             relief="flat",
@@ -727,7 +743,7 @@ class RomMateGUI:
             padx=25,
             pady=10,
             relief="flat",
-            activebackground="#d32f2f"
+            activebackground=self.active_red
         )
         self.cancel_btn.pack()
 
@@ -749,7 +765,7 @@ class RomMateGUI:
             padx=30,
             pady=12,
             relief="flat",
-            activebackground="#4caf50",
+            activebackground=self.active_green,
             bd=0,
         ).pack(side="left", padx=10)
 
@@ -764,7 +780,7 @@ class RomMateGUI:
             padx=20,
             pady=12,
             relief="flat",
-            activebackground="#1e88e5",
+            activebackground=self.active_blue,
             bd=0,
         ).pack(side="left", padx=10)
 
@@ -825,7 +841,7 @@ class RomMateGUI:
             bg=self.bg_frame,
         ).pack(anchor="w", pady=(0, 10))
         
-        info_box = tk.Frame(self.m3u_info, bg="#1a237e", relief="flat")
+        info_box = tk.Frame(self.m3u_info, bg=self.bg_info_box, relief="flat")
         info_box.pack(fill="x", pady=(0, 5))
         tk.Label(
             info_box,
@@ -833,8 +849,8 @@ class RomMateGUI:
             "    Works with PSX, PS2, Dreamcast, Saturn, Sega CD, and more!\n"
             "    If both CUE and CHD files exist, you'll be asked which to use.",
             font=("Arial", 9),
-            bg="#1a237e",
-            fg="#90caf9",
+            bg=self.bg_info_box,
+            fg=self.text_info,
             justify="left",
         ).pack(padx=15, pady=12, anchor="w")
 
@@ -1606,7 +1622,7 @@ class RomMateGUI:
                 item_frame,
                 text=f"Current:  {result['current_name']}",
                 font=("Arial", 9),
-                fg="#ff6b6b",
+                fg=self.text_error,
                 bg=self.bg_frame,
                 anchor="w"
             ).pack(fill="x", padx=20, pady=(5, 2))
@@ -1616,7 +1632,7 @@ class RomMateGUI:
                 item_frame,
                 text=f"Suggested: {result['suggested_name']}",
                 font=("Arial", 9),
-                fg="#51cf66",
+                fg=self.text_success,
                 bg=self.bg_frame,
                 anchor="w"
             ).pack(fill="x", padx=20, pady=(2, 2))
@@ -1808,7 +1824,7 @@ class RomMateGUI:
         rom_listbox.select_set(0, tk.END)
         
         # Info box
-        info_frame = tk.Frame(content, bg="#1a237e", relief="flat", padx=15, pady=12)
+        info_frame = tk.Frame(content, bg=self.bg_info_box, relief="flat", padx=15, pady=12)
         info_frame.pack(fill="x", pady=(0, 15))
         
         tk.Label(
@@ -1820,8 +1836,8 @@ class RomMateGUI:
                  "• Improves compatibility with emulators\n"
                  "• Matches No-Intro standards",
             font=("Arial", 9),
-            bg="#1a237e",
-            fg="#90caf9",
+            bg=self.bg_info_box,
+            fg=self.text_info,
             justify="left"
         ).pack()
         
