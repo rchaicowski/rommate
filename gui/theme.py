@@ -20,7 +20,7 @@ class DarkTheme:
     
     # Accent colors
     ACCENT_BLUE = "#42a5f5"
-    ACCENT_GREEN = "#66bb6a"
+    ACCENT_GREEN = "#42a5f5"
     ACCENT_RED = "#ef5350"
     ACCENT_ORANGE = "#ff9800"
     
@@ -38,36 +38,49 @@ class DarkTheme:
 class LightTheme:
     """Light theme (Famicom inspired) colors for RomMate"""
     
-    # Background colors (Famicom beige/cream)
-    BG_DARK = "#f5f3e8"
-    BG_FRAME = "#ffffff"
-    BG_PROCESSING = "#fafafa"
-    BG_INFO_BOX = "#fff8e1"
+    # Background colors (Famicom beige/cream with gold accents)
+    BG_DARK = "#d4a574"           # Gold/tan (main background)
+    BG_FRAME = "#f5f3e8"          # Cream/beige (sections)
+    BG_PROCESSING = "#fafafa"     # Light processing panel
+    BG_INFO_BOX = "#fff8e1"       # Light yellow info box
     
     # Text colors
-    TEXT_LIGHT = "#2d2d2d"
-    TEXT_GRAY = "#616161"
-    TEXT_PROCESSING = "#424242"
-    TEXT_INFO = "#8b2635"
-    TEXT_ERROR = "#c62828"
-    TEXT_SUCCESS = "#2e7d32"
+    TEXT_LIGHT = "#2d2d2d"        # Dark text
+    TEXT_GRAY = "#5d4037"         # Brown-grey text 
+    TEXT_PROCESSING = "#424242"   # Processing text
+    TEXT_INFO = "#8b2635"         # Burgundy info text
+    TEXT_ERROR = "#c62828"        # Red error
+    TEXT_SUCCESS = "#2e7d32"      # Green success
     
     # Accent colors (Famicom burgundy/gold)
-    ACCENT_BLUE = "#1976d2"
-    ACCENT_GREEN = "#43a047"
-    ACCENT_RED = "#8b2635"
-    ACCENT_ORANGE = "#d4a574"
+    ACCENT_BLUE = "#8b2635"       # Burgundy instead of blue!
+    ACCENT_GREEN = "#8b2635"      # Green accent
+    ACCENT_RED = "#8b2635"        # Burgundy (Famicom red)
+    ACCENT_ORANGE = "#d4a574"     # Gold accent
     
-    # State colors (background states)
-    STATE_SUCCESS = "#c8e6c9"
-    STATE_WARNING = "#fff3e0"
-    STATE_ERROR = "#ffcdd2"
+    # State colors
+    STATE_SUCCESS = "#c8e6c9"     # Light green background
+    STATE_WARNING = "#fff3e0"     # Light orange background
+    STATE_ERROR = "#ffcdd2"       # Light red background
     
     # Active/hover colors
     ACTIVE_GREEN = "#66bb6a"
-    ACTIVE_RED = "#e53935"
-    ACTIVE_BLUE = "#42a5f5"
+    ACTIVE_RED = "#a52a2a"        # Darker burgundy 
+    ACTIVE_BLUE = "#8b2635"       # Burgundy 
 
 
-# Default theme (will be switchable in settings later)
+# Default theme - will be set by config
+_current_theme = 'dark'
+
+def set_theme(theme_name):
+    """Set the active theme"""
+    global Theme, _current_theme
+    _current_theme = theme_name
+    if theme_name == 'light':
+        Theme = LightTheme
+    else:
+        Theme = DarkTheme
+    return Theme
+
+# Initialize with dark theme
 Theme = DarkTheme

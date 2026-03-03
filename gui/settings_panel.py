@@ -3,6 +3,7 @@
 import tkinter as tk
 from tkinter import filedialog
 from gui.theme import Theme
+import customtkinter as ctk
 
 
 class SettingsPanel:
@@ -20,6 +21,9 @@ class SettingsPanel:
         self.config = config
         self.callbacks = callbacks
         
+         # Re-import Theme to get current theme
+        from gui.theme import Theme
+
         # Theme colors
         self.bg_dark = Theme.BG_DARK
         self.bg_frame = Theme.BG_FRAME
@@ -73,7 +77,7 @@ class SettingsPanel:
         canvas = tk.Canvas(container, bg=self.bg_dark, highlightthickness=0)
         scrollbar = tk.Scrollbar(container, orient="vertical", command=canvas.yview)
         scrollable_frame = tk.Frame(canvas, bg=self.bg_dark)
-        
+
         # Configure scrolling
         scrollable_frame.bind(
             "<Configure>",
@@ -93,12 +97,28 @@ class SettingsPanel:
         canvas.pack(side="left", fill="both", expand=True, padx=(0, 15))
         scrollbar.pack(side="right", fill="y")
         
-        # Mouse wheel scrolling
+        # Mouse wheel scrolling (Windows/Mac)
         canvas.bind_all("<MouseWheel>", lambda e: self._on_mousewheel(e, canvas))
+
+        # Linux mouse wheel
+        canvas.bind_all("<Button-4>", lambda e: canvas.yview_scroll(-1, "units"))
+        canvas.bind_all("<Button-5>", lambda e: canvas.yview_scroll(1, "units"))
+
+        # Touchpad scrolling (Linux)
+        def on_touchpad_scroll(event):
+            if event.delta:
+                canvas.yview_scroll(int(-1*(event.delta/120)), "units")
+            return "break"
+
+        canvas.bind_all("<Shift-MouseWheel>", on_touchpad_scroll)  # Horizontal becomes vertical
+
+        # Bind to canvas (not bind_all) - works better with touchpad
+        canvas.bind("<Enter>", lambda e: canvas.focus_set())  # Focus when mouse enters
         
         # Create settings sections in scrollable frame
         self.create_sound_settings(scrollable_frame)
         self.create_folder_settings(scrollable_frame)
+        self.create_theme_settings(scrollable_frame)
         self.create_conversion_settings(scrollable_frame)
         self.create_language_settings(scrollable_frame)
         self.create_about_section(scrollable_frame)
@@ -346,6 +366,65 @@ class SettingsPanel:
             fg=self.text_gray
         ).pack(anchor="w", padx=(25, 0))
     
+    def on_theme_toggle(self):
+        """Handle theme toggle"""
+        new_theme = 'light' if self.theme_switch.get() else 'dark'
+        self.config.set('theme', new_theme)
+        self.hide()
+        if hasattr(self.callbacks, 'get') and self.callbacks.get('reload_theme'):
+            self.callbacks['reload_theme'](new_theme)
+
+    def create_theme_settings(self, parent):
+        """Create theme settings section"""
+        section = tk.Frame(parent, bg=self.bg_frame, relief="solid", bd=1)
+        section.pack(fill="x", pady=(0, 20))
+
+        tk.Label(
+            section,
+            text="🎨 Theme",
+            font=("Arial", 14, "bold"),
+            bg=self.bg_frame,
+            fg=self.text_light
+        ).pack(anchor="w", padx=20, pady=(15, 10))
+
+        # Theme toggle frame
+        toggle_frame = tk.Frame(section, bg=self.bg_frame)
+        toggle_frame.pack(fill="x", padx=20, pady=(0, 10))
+
+        tk.Label(
+            toggle_frame,
+            text="🌙 Dark",
+            font=("Arial", 11),
+            bg=self.bg_frame,
+            fg=self.text_light
+        ).pack(side="left", padx=(0, 10))
+
+        current_theme = self.config.get('theme', 'dark')
+
+        self.theme_switch = ctk.CTkSwitch(
+            toggle_frame,
+            text="",
+            width=50,
+            height=25,
+            command=self.on_theme_toggle,
+            fg_color=self.accent_red,
+            progress_color=self.accent_blue
+        )
+        self.theme_switch.pack(side="left", padx=10)
+
+        if current_theme == 'light':
+            self.theme_switch.select()
+        else:
+            self.theme_switch.deselect()
+
+        tk.Label(
+            toggle_frame,
+            text="☀️ Light",
+            font=("Arial", 11),
+            bg=self.bg_frame,
+            fg=self.text_light
+        ).pack(side="left", padx=(10, 0))
+
     def create_language_settings(self, parent):
         """Create language settings section"""
         section = tk.Frame(parent, bg=self.bg_frame, relief="solid", bd=1)
