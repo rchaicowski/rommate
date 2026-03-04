@@ -149,7 +149,7 @@ class RomMateGUI:
     #  Theme reload — the safe way                                         #
     # ------------------------------------------------------------------ #
 
-    def reload_theme(self, theme_name):
+    def reload_theme(self, theme_name, return_to_settings=False):
         """Switch theme by destroying only widgets and rebuilding the UI."""
         # Preserve user state across rebuild
         saved_folder = self.folder_path.get()
@@ -178,6 +178,11 @@ class RomMateGUI:
         self.folder_path.set(saved_folder)
         self.operation_mode.set(saved_mode)
         self.update_info_section()
+
+        if return_to_settings:
+            self.show_settings_panel()
+        else:
+            self.update_info_section()
 
     # ------------------------------------------------------------------ #
     #  Spinner                                                             #

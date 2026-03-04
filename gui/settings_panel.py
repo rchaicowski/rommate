@@ -370,9 +370,8 @@ class SettingsPanel:
         """Handle theme toggle"""
         new_theme = 'light' if self.theme_switch.get() else 'dark'
         self.config.set('theme', new_theme)
-        self.hide()
         if hasattr(self.callbacks, 'get') and self.callbacks.get('reload_theme'):
-            self.callbacks['reload_theme'](new_theme)
+            self.callbacks['reload_theme'](new_theme, return_to_settings=True)
 
     def create_theme_settings(self, parent):
         """Create theme settings section"""
