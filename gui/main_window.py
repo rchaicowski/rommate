@@ -21,23 +21,32 @@ except ImportError:
     import tkinter as tk
     DND_AVAILABLE = False
     print("Warning: tkinterdnd2 not available. Drag & drop disabled.")
-from tkinter import filedialog, scrolledtext, messagebox, ttk
+
+from tkinter import filedialog, scrolledtext, messagebox
 import os
-import re
-from pathlib import Path
-import threading
-import subprocess
-import platform
 import shutil
+import threading
+import platform
+from pathlib import Path
+
 from gui.theme import Theme
 from gui.settings_panel import SettingsPanel
-from utils.sounds import SoundPlayer
-from core.file_utils import normalize_path, detect_available_formats, find_multidisc_games, create_m3u_file
 from gui.dialogs import show_format_choice_dialog, show_info_dialog
+from gui.operations import (
+    convert_to_chd,
+    create_m3u_files,
+    convert_and_create_m3u,
+    check_rom_health,
+    validate_rom_names,
+)
+from utils.sounds import SoundPlayer
+from utils.config import Config
+from core.file_utils import normalize_path
 from core.chd_converter import CHDConverter
 from core.m3u_creator import M3UCreator
 from core.rom_health import ROMHealthChecker
-from utils.config import Config
+from core.name_validator import NameValidator
+
 
 class RomMateGUI:
     def __init__(self, root):
@@ -46,18 +55,13 @@ class RomMateGUI:
         self.root.geometry("700x1000")
         self.root.resizable(True, True)
 
-        # Load config
         self.config = Config()
 
-        # Apply saved theme before reading Theme colors
         saved_theme = self.config.get('theme', 'dark')
         import gui.theme as theme_module
         theme_module.set_theme(saved_theme)
 
-        # Initialize app state (variables that survive UI rebuilds)
         self._init_state()
-
-        # Build UI
         self._apply_theme_colors()
         self.root.configure(bg=self.bg_dark)
         self.create_widgets()
@@ -67,23 +71,21 @@ class RomMateGUI:
             self.setup_drag_and_drop()
 
     # ------------------------------------------------------------------ #
-    #  State & theme helpers                                               #
+    #  State & theme                                                       #
     # ------------------------------------------------------------------ #
 
     def _init_state(self):
-        """Initialize non-UI state. Called once; survives UI rebuilds."""
-        # Only create these once so we don't reset in-progress state
         if not hasattr(self, 'folder_path'):
-            self.folder_path      = tk.StringVar()
-            self.operation_mode   = tk.StringVar(value="chd")
-            self.m3u_file_type    = tk.StringVar(value="all")
+            self.folder_path             = tk.StringVar()
+            self.operation_mode          = tk.StringVar(value="chd")
+            self.m3u_file_type           = tk.StringVar(value="all")
             self.delete_after_conversion = tk.BooleanVar(value=False)
-            self.sounds_enabled   = tk.BooleanVar(value=True)
+            self.sounds_enabled          = tk.BooleanVar(value=True)
 
         if not hasattr(self, 'sound_player'):
-            self.sound_player = SoundPlayer()
-            self.sound_player.volume        = self.config.get('sound_volume', 1.0)
-            self.sound_player.sounds_enabled = self.config.get('sound_enabled', True)
+            self.sound_player                  = SoundPlayer()
+            self.sound_player.volume           = self.config.get('sound_volume', 1.0)
+            self.sound_player.sounds_enabled   = self.config.get('sound_enabled', True)
             self.sounds_enabled.set(self.sound_player.sounds_enabled)
 
         if not hasattr(self, 'chd_converter'):
@@ -92,8 +94,9 @@ class RomMateGUI:
             self.m3u_creator = M3UCreator()
         if not hasattr(self, 'rom_health'):
             self.rom_health = ROMHealthChecker()
+        if not hasattr(self, 'name_validator'):
+            self.name_validator = NameValidator()
 
-        # Processing state
         self.is_processing    = False
         self.cancel_requested = False
         self.spinner_running  = False
@@ -101,35 +104,29 @@ class RomMateGUI:
         self.spinner_index    = 0
 
     def _apply_theme_colors(self):
-        """Read current Theme class values into instance attributes."""
         from gui.theme import Theme
         self.bg_dark       = Theme.BG_DARK
         self.bg_frame      = Theme.BG_FRAME
         self.bg_processing = Theme.BG_PROCESSING
         self.bg_info_box   = Theme.BG_INFO_BOX
-
         self.text_light      = Theme.TEXT_LIGHT
         self.text_gray       = Theme.TEXT_GRAY
         self.text_processing = Theme.TEXT_PROCESSING
         self.text_info       = Theme.TEXT_INFO
         self.text_error      = Theme.TEXT_ERROR
         self.text_success    = Theme.TEXT_SUCCESS
-
         self.accent_blue   = Theme.ACCENT_BLUE
         self.accent_green  = Theme.ACCENT_GREEN
         self.accent_red    = Theme.ACCENT_RED
         self.accent_orange = Theme.ACCENT_ORANGE
-
         self.state_success = Theme.STATE_SUCCESS
         self.state_warning = Theme.STATE_WARNING
         self.state_error   = Theme.STATE_ERROR
-
-        self.active_green = Theme.ACTIVE_GREEN
-        self.active_red   = Theme.ACTIVE_RED
-        self.active_blue  = Theme.ACTIVE_BLUE
+        self.active_green  = Theme.ACTIVE_GREEN
+        self.active_red    = Theme.ACTIVE_RED
+        self.active_blue   = Theme.ACTIVE_BLUE
 
     def _create_settings_panel(self):
-        """(Re-)create the SettingsPanel after the main UI exists."""
         self.settings_panel = SettingsPanel(
             self.root,
             self.config,
@@ -146,43 +143,51 @@ class RomMateGUI:
         )
 
     # ------------------------------------------------------------------ #
-    #  Theme reload — the safe way                                         #
+    #  Theme reload                                                        #
     # ------------------------------------------------------------------ #
 
     def reload_theme(self, theme_name, return_to_settings=False):
-        """Switch theme by destroying only widgets and rebuilding the UI."""
-        # Preserve user state across rebuild
         saved_folder = self.folder_path.get()
         saved_mode   = self.operation_mode.get()
 
-        # Apply new theme to the module-level Theme class
         import gui.theme as theme_module
         theme_module.set_theme(theme_name)
 
-        # Destroy every widget (but NOT the Tk root itself)
         for widget in self.root.winfo_children():
             widget.destroy()
 
-        # Refresh color attributes from the updated Theme class
         self._apply_theme_colors()
         self.root.configure(bg=self.bg_dark)
-
-        # Rebuild UI (state variables are untouched)
         self.create_widgets()
         self._create_settings_panel()
 
         if DND_AVAILABLE:
             self.setup_drag_and_drop()
 
-        # Restore user state
         self.folder_path.set(saved_folder)
         self.operation_mode.set(saved_mode)
-        self.update_info_section()
 
         if return_to_settings:
             self.show_settings_panel()
         else:
             self.update_info_section()
+
+    # ------------------------------------------------------------------ #
+    #  Callbacks dict for operations                                       #
+    # ------------------------------------------------------------------ #
+
+    def _build_callbacks(self):
+        return {
+            'log':              self.log_to_processing,
+            'progress':         self.update_processing_status,
+            'animate':          self.animate_processing_dots,
+            'cancel':           lambda: self.cancel_requested,
+            'complete':         self.show_completion,
+            'return':           self.reset_and_return,
+            'set_processing':   lambda v: setattr(self, 'is_processing', v),
+            'offer_header_fix': self.offer_header_fix,
+            'show_rename_dialog': self.show_rename_dialog,
+        }
 
     # ------------------------------------------------------------------ #
     #  Spinner                                                             #
@@ -294,7 +299,7 @@ class RomMateGUI:
             print(f"Error handling drop: {e}")
 
     # ------------------------------------------------------------------ #
-    #  Folder entry helpers                                                #
+    #  Folder helpers                                                      #
     # ------------------------------------------------------------------ #
 
     def add_placeholder_to_entry(self):
@@ -320,6 +325,19 @@ class RomMateGUI:
     def update_folder_display(self, folder):
         self.folder_path.set(folder)
         self.folder_entry.config(fg=self.text_light, justify='left')
+
+    def browse_folder(self):
+        folder_mode = self.config.get('folder_mode', 'remember_last')
+        initial_dir = (
+            self.config.get('default_folder', str(Path.home()))
+            if folder_mode == 'use_default'
+            else self.config.get('last_folder', str(Path.home()))
+        )
+        folder = filedialog.askdirectory(title="Select Game Folder", initialdir=initial_dir)
+        if folder:
+            folder = normalize_path(folder)
+            self.update_folder_display(folder)
+            self.config.set('last_folder', folder)
 
     # ------------------------------------------------------------------ #
     #  Completion / cancel                                                 #
@@ -375,14 +393,76 @@ class RomMateGUI:
             self.log_to_processing("Cleaning up and returning to main screen...")
 
     # ------------------------------------------------------------------ #
+    #  Run process                                                         #
+    # ------------------------------------------------------------------ #
+
+    def run_process(self):
+        folder = self.folder_path.get()
+        if not folder:
+            messagebox.showwarning("No Folder", "Please select a folder first.")
+            return
+        if not os.path.exists(folder):
+            messagebox.showerror("Error", f"Selected folder does not exist!\n\nPath: {folder}")
+            return
+
+        mode = self.operation_mode.get()
+        callbacks = self._build_callbacks()
+
+        self.is_processing = True
+        self.show_processing_panel()
+
+        if mode == "chd":
+            threading.Thread(
+                target=convert_to_chd,
+                args=(folder, self.delete_after_conversion.get(), self.chd_converter, callbacks),
+                daemon=True
+            ).start()
+
+        elif mode == "m3u":
+            threading.Thread(
+                target=create_m3u_files,
+                args=(folder, self.m3u_creator, self.root, callbacks),
+                daemon=True
+            ).start()
+
+        elif mode == "both":
+            threading.Thread(
+                target=convert_and_create_m3u,
+                args=(folder, self.delete_after_conversion.get(), self.chd_converter, callbacks),
+                daemon=True
+            ).start()
+
+        elif mode == "health":
+            if not self.rom_health.find_chdman():
+                if messagebox.askyesno(
+                    "chdman Not Found",
+                    "chdman is required for CHD verification.\n\nCartridge ROMs can still be checked.\n\nWould you like to install chdman now?",
+                    icon='warning'
+                ):
+                    self.chd_converter.prompt_install_chdman()
+                    self.is_processing = False
+                    self.show_main_panel()
+                    return
+            self.log_to_processing(f"🔍 ROM Health Check\n\nFolder: {folder}\n{'=' * 60}")
+            self.start_spinner()
+            check_rom_health(
+                folder, self.rom_health, self.chd_converter,
+                self.root, callbacks, self.root.after
+            )
+
+        elif mode == "validate":
+            self.cancel_requested = False
+            validate_rom_names(
+                folder, self.name_validator, self.root, callbacks, self.root.after
+            )
+
+    # ------------------------------------------------------------------ #
     #  Widget construction                                                 #
     # ------------------------------------------------------------------ #
 
     def create_widgets(self):
-        # Main container
         self.main_container = tk.Frame(self.root, bg=self.bg_dark)
 
-        # Title section
         title_outer = tk.Frame(self.main_container, bg=self.bg_dark)
         title_outer.pack(fill="x", pady=(10, 5))
 
@@ -431,7 +511,7 @@ class RomMateGUI:
             activebackground=self.active_green, activeforeground="white", bd=0
         ).pack(side="left")
 
-        # Disc-Based ROMs section
+        # Disc-Based ROMs
         disc_frame = tk.Frame(self.main_container, bg=self.bg_frame, relief="groove", bd=2)
         disc_frame.pack(pady=20, fill="x")
 
@@ -460,7 +540,7 @@ class RomMateGUI:
             cursor="hand2", relief="flat", padx=15, pady=6
         ).pack(anchor="w", padx=25, pady=(0, 15))
 
-        # ROM Tools section
+        # ROM Tools
         rom_tools_frame = tk.Frame(self.main_container, bg=self.bg_frame, relief="groove", bd=2)
         rom_tools_frame.pack(pady=20, fill="x")
 
@@ -485,17 +565,15 @@ class RomMateGUI:
         self.info_frame.pack(pady=20, fill="x")
         self.info_frame.pack_propagate(False)
 
-        self.info_title = tk.Label(
+        tk.Label(
             self.info_frame, text="ℹ️  Info", font=("Arial", 12, "bold"),
             bg=self.bg_frame, fg=self.text_light
-        )
-        self.info_title.pack(anchor="w", padx=25, pady=(15, 10))
+        ).pack(anchor="w", padx=25, pady=(15, 10))
 
         self.info_content = tk.Frame(self.info_frame, bg=self.bg_frame)
         self.info_content.pack(fill="x", padx=25, pady=(0, 15))
 
-        # Process button — created BEFORE create_info_sections so
-        # update_info_section() can safely reference it
+        # Process button — must exist before create_info_sections()
         self.process_btn = tk.Button(
             self.main_container, text="▶ Start Operation",
             command=self.run_process, font=("Arial", 14, "bold"),
@@ -504,8 +582,6 @@ class RomMateGUI:
         )
         self.process_btn.pack(pady=30)
 
-        # Build info sub-frames (calls update_info_section internally,
-        # which is now safe because process_btn already exists)
         self.create_info_sections()
 
         # Processing panel
@@ -558,13 +634,12 @@ class RomMateGUI:
         self.cancel_frame = tk.Frame(self.processing_panel, bg=self.bg_frame)
         self.cancel_frame.pack(pady=10)
 
-        self.cancel_btn = tk.Button(
+        tk.Button(
             self.cancel_frame, text="✖ Cancel", command=self.cancel_processing,
             font=("Arial", 11, "bold"), bg=self.accent_red, fg="white",
             cursor="hand2", padx=25, pady=10, relief="flat",
             activebackground=self.active_red
-        )
-        self.cancel_btn.pack()
+        ).pack()
 
         self.completion_frame = tk.Frame(self.processing_panel, bg=self.bg_frame)
         btn_frame = tk.Frame(self.completion_frame, bg=self.bg_frame)
@@ -594,8 +669,6 @@ class RomMateGUI:
         show_info_dialog(self.root)
 
     def create_info_sections(self):
-        """Create all info section contents."""
-        # CHD Info
         self.chd_info = tk.Frame(self.info_content, bg=self.bg_frame)
         for text, font, fg in [
             ("Converts: CUE, GDI, CDI, ISO → CHD format", ("Arial", 10), self.text_gray),
@@ -606,7 +679,6 @@ class RomMateGUI:
         ]:
             tk.Label(self.chd_info, text=text, font=font, fg=fg, bg=self.bg_frame).pack(anchor="w", pady=(0, 5))
 
-        # M3U Info
         self.m3u_info = tk.Frame(self.info_content, bg=self.bg_frame)
         tk.Label(
             self.m3u_info, text="Scans for: CUE, GDI, CDI, ISO, CHD files",
@@ -622,7 +694,6 @@ class RomMateGUI:
             font=("Arial", 9), bg=self.bg_info_box, fg=self.text_info, justify="left"
         ).pack(padx=15, pady=12, anchor="w")
 
-        # Both Info
         self.both_info = tk.Frame(self.info_content, bg=self.bg_frame)
         for text, font in [
             ("Step 1: Convert all disc images to CHD", ("Arial", 10, "bold")),
@@ -634,7 +705,6 @@ class RomMateGUI:
                      fg=self.text_light if "bold" in font else self.text_gray,
                      bg=self.bg_frame).pack(anchor="w", pady=(0, 5))
 
-        # Health Info
         self.health_info = tk.Frame(self.info_content, bg=self.bg_frame)
         tk.Label(self.health_info, text="Check ROM files and identify games:",
                  font=("Arial", 10), fg=self.text_gray, bg=self.bg_frame).pack(anchor="w", pady=(0, 5))
@@ -647,7 +717,6 @@ class RomMateGUI:
             tk.Label(self.health_info, text=text, font=("Arial", 9),
                      fg=self.text_gray, bg=self.bg_frame).pack(anchor="w", pady=(0, 3))
 
-        # Validate Info
         self.validate_info = tk.Frame(self.info_content, bg=self.bg_frame)
         tk.Label(self.validate_info, text="Checks and fixes ROM filenames:",
                  font=("Arial", 10), fg=self.text_gray, bg=self.bg_frame).pack(anchor="w", pady=(0, 5))
@@ -659,11 +728,9 @@ class RomMateGUI:
             tk.Label(self.validate_info, text=text, font=("Arial", 9),
                      fg=self.text_gray, bg=self.bg_frame).pack(anchor="w", pady=(0, 3))
 
-        # Show the correct section for the current mode
         self.update_info_section()
 
     def update_info_section(self):
-        """Update the info section based on selected operation."""
         for frame in [self.chd_info, self.m3u_info, self.both_info,
                       self.health_info, self.validate_info]:
             frame.pack_forget()
@@ -677,349 +744,10 @@ class RomMateGUI:
         }
         label, frame = btn_labels.get(self.operation_mode.get(), ("▶ Start Operation", self.chd_info))
         frame.pack(fill="x", expand=True)
-        # process_btn is always created before this method is called
         self.process_btn.config(text=label)
 
     # ------------------------------------------------------------------ #
-    #  Browse / run process                                                #
-    # ------------------------------------------------------------------ #
-
-    def browse_folder(self):
-        folder_mode = self.config.get('folder_mode', 'remember_last')
-        initial_dir = (
-            self.config.get('default_folder', str(Path.home()))
-            if folder_mode == 'use_default'
-            else self.config.get('last_folder', str(Path.home()))
-        )
-        folder = filedialog.askdirectory(title="Select Game Folder", initialdir=initial_dir)
-        if folder:
-            folder = normalize_path(folder)
-            self.update_folder_display(folder)
-            self.config.set('last_folder', folder)
-
-    def run_process(self):
-        folder = self.folder_path.get()
-        if not folder:
-            messagebox.showwarning("No Folder", "Please select a folder first.")
-            return
-        if not os.path.exists(folder):
-            messagebox.showerror("Error", f"Selected folder does not exist!\n\nPath: {folder}")
-            return
-
-        mode = self.operation_mode.get()
-        if mode == "health":
-            self.check_rom_health()
-            return
-        elif mode == "validate":
-            self.validate_rom_names()
-            return
-
-        self.is_processing = True
-        self.show_processing_panel()
-
-        targets = {
-            "m3u":  self.create_m3u_files,
-            "chd":  self.convert_to_chd,
-            "both": self.convert_and_create_m3u,
-        }
-        thread = threading.Thread(target=targets[mode], args=(folder,))
-        thread.start()
-
-    # ------------------------------------------------------------------ #
-    #  Operations (unchanged logic, kept intact)                           #
-    # ------------------------------------------------------------------ #
-
-    def convert_to_chd(self, folder):
-        try:
-            self.update_processing_status("CHD Conversion", "Checking for chdman tool...", 0, 1)
-            self.chd_converter.chdman_path = self.chd_converter.find_chdman()
-            if not self.chd_converter.chdman_path:
-                self.log_to_processing("❌ ERROR: chdman not found!")
-                if platform.system() == 'Linux':
-                    self.log_to_processing("\nOffering automatic installation...")
-                    if self.chd_converter.prompt_install_chdman():
-                        self.log_to_processing("\n⏳ Installation in progress.")
-                        self.log_to_processing("Please complete installation in the terminal, then try again.")
-                    else:
-                        self.log_to_processing("\n❌ Installation cancelled.")
-                else:
-                    self.log_to_processing("\nchdman is required for CHD conversion.")
-                    self.log_to_processing("It should be in the tools/ folder.")
-                    messagebox.showerror("chdman Not Found", "chdman is required for CHD conversion.\n\nIt should be bundled in the tools/ folder.")
-                self.show_completion(success=False)
-                return
-
-            try:
-                test_result = subprocess.run([self.chd_converter.chdman_path, '--help'], capture_output=True, text=True, timeout=5)
-                if test_result.returncode != 0 and platform.system() == 'Linux':
-                    if 'error while loading shared libraries' in test_result.stderr:
-                        self.log_to_processing("❌ ERROR: chdman has missing dependencies!")
-                        self.log_to_processing(f"Error: {test_result.stderr[:150]}")
-                        if self.chd_converter.prompt_install_chdman():
-                            self.log_to_processing("\n⏳ Installation in progress.")
-                            self.log_to_processing("Please complete installation in the terminal, then try again.")
-                        else:
-                            self.log_to_processing("\n❌ Installation cancelled.")
-                        self.show_completion(success=False)
-                        return
-            except Exception as e:
-                self.log_to_processing(f"⚠️ Warning: Could not test chdman: {e}")
-
-            self.log_to_processing(f"✓ Found chdman: {self.chd_converter.chdman_path}")
-            self.update_processing_status("CHD Conversion", "Scanning for disc images...")
-
-            converted, skipped, failed = self.chd_converter.convert_folder(
-                folder,
-                delete_after=self.delete_after_conversion.get(),
-                log_callback=self.log_to_processing,
-                progress_callback=lambda current, total, filename: self.update_processing_status(
-                    "Converting to CHD", f"Processing file {current} of {total}", current, total, filename),
-                animation_callback=self.animate_processing_dots,
-                cancel_check=lambda: self.cancel_requested
-            )
-
-            if self.cancel_requested:
-                self.reset_and_return()
-                return
-
-            if converted == 0 and skipped == 0 and failed == 0:
-                self.log_to_processing("\n❌ No convertible files found.")
-                self.log_to_processing("Supported formats: CUE, GDI, CDI, ISO")
-                messagebox.showinfo("No Files", "No convertible disc images found.")
-                self.show_completion(success=False)
-                return
-
-            self.log_to_processing("\n" + "=" * 60)
-            self.log_to_processing(f"✅ Converted: {converted} | ⏭️ Skipped: {skipped} | ❌ Failed: {failed}")
-            self.log_to_processing("=" * 60)
-
-            if self.cancel_requested:
-                self.reset_and_return()
-                return
-
-            self.show_completion(success=failed == 0, converted=converted, skipped=skipped, failed=failed)
-            messagebox.showinfo("Conversion Complete", f"CHD conversion finished!\n\nConverted: {converted}\nSkipped: {skipped}\nFailed: {failed}")
-
-        except Exception as e:
-            self.log_to_processing(f"\n❌ ERROR: {str(e)}")
-            messagebox.showerror("Error", f"An error occurred:\n{str(e)}")
-            self.show_completion(success=False)
-
-    def create_m3u_files(self, folder):
-        try:
-            self.update_processing_status("M3U Creator", "Detecting available disc formats...")
-            created, skipped, cancelled = self.m3u_creator.auto_detect_and_create(
-                folder,
-                log_callback=self.log_to_processing,
-                progress_callback=lambda current, total, filename: self.update_processing_status(
-                    "Creating M3U Playlists", f"Processing game {current} of {total}", current, total, filename),
-                format_choice_callback=lambda: show_format_choice_dialog(self.root)
-            )
-            if cancelled:
-                self.reset_and_return()
-                return
-            if created == 0 and skipped == 0:
-                self.log_to_processing("❌ No multi-disc games found.")
-                self.log_to_processing("\nMake sure files follow naming conventions like:")
-                self.log_to_processing("  • Game Name (Disc 1).cue")
-                self.log_to_processing("  • Game Name (Disc 2).chd")
-                messagebox.showinfo("No Games Found", "No multi-disc games were found.")
-                self.show_completion(success=False)
-            else:
-                self.log_to_processing(f"\n{'=' * 60}")
-                self.log_to_processing(f"✅ Created: {created} | ⚠️ Skipped: {skipped}")
-                self.log_to_processing(f"{'=' * 60}\n✅ ALL OPERATIONS COMPLETE!\n{'=' * 60}")
-                self.show_completion(success=True, converted=created, skipped=skipped)
-                messagebox.showinfo("M3U Creation Complete", f"M3U playlist creation finished!\n\nCreated: {created}\nSkipped: {skipped}")
-        except Exception as e:
-            self.log_to_processing(f"\n❌ ERROR: {str(e)}")
-            messagebox.showerror("Error", f"An error occurred:\n{str(e)}")
-            self.show_completion(success=False)
-
-    def convert_and_create_m3u(self, folder):
-        try:
-            self.update_processing_status("CHD + M3U", "Step 1: Checking for chdman...")
-            self.chd_converter.chdman_path = self.chd_converter.find_chdman()
-            if not self.chd_converter.chdman_path:
-                self.log_to_processing("❌ ERROR: chdman not found!")
-                if platform.system() == "Linux":
-                    if self.chd_converter.prompt_install_chdman():
-                        self.log_to_processing("⏳ Installation in progress.")
-                    else:
-                        self.log_to_processing("❌ Installation cancelled.")
-                else:
-                    messagebox.showerror("chdman Not Found", "chdman is required.")
-                self.show_completion(success=False)
-                return
-
-            try:
-                test_result = subprocess.run([self.chd_converter.chdman_path, "--help"], capture_output=True, text=True, timeout=5)
-                if test_result.returncode != 0 and platform.system() == "Linux":
-                    if "error while loading shared libraries" in test_result.stderr:
-                        self.log_to_processing("❌ ERROR: chdman has missing dependencies!")
-                        if self.chd_converter.prompt_install_chdman():
-                            self.log_to_processing("⏳ Installation in progress.")
-                        else:
-                            self.log_to_processing("❌ Installation cancelled.")
-                        self.show_completion(success=False)
-                        return
-            except Exception as e:
-                self.log_to_processing(f"⚠️ Warning: Could not test chdman: {e}")
-
-            self.log_to_processing(f"✓ Found chdman: {self.chd_converter.chdman_path}")
-            self.log_to_processing("\n=== STEP 1: CHD Conversion ===")
-
-            converted, skipped, failed = self.chd_converter.convert_folder(
-                folder,
-                delete_after=self.delete_after_conversion.get(),
-                log_callback=self.log_to_processing,
-                progress_callback=lambda current, total, filename: self.update_processing_status(
-                    "Step 1: Converting to CHD", f"Processing file {current} of {total}", current, total, filename),
-                animation_callback=self.animate_processing_dots,
-                cancel_check=lambda: self.cancel_requested
-            )
-
-            self.log_to_processing(f"\nStep 1 complete: Converted {converted} file(s)" if converted > 0 or skipped > 0 else "No files found to convert")
-            self.log_to_processing("\n=== STEP 2: M3U Creation ===\n")
-            self.update_processing_status("Step 2: Creating M3U", "Scanning for multi-disc games...")
-
-            multidisc_games = find_multidisc_games(folder, extensions=["*.chd"], log_callback=self.log_to_processing)
-            created = 0
-
-            if multidisc_games:
-                total_games = len(multidisc_games)
-                self.log_to_processing(f"Found {total_games} multi-disc game(s)\n")
-                for index, (game_name, disc_files) in enumerate(multidisc_games.items(), 1):
-                    self.update_processing_status("Step 2: Creating M3U", f"Processing game {index} of {total_games}", index, total_games, f"{game_name}.m3u")
-                    if create_m3u_file(game_name, disc_files, folder, self.log_to_processing):
-                        created += 1
-                self.log_to_processing(f"\nStep 2 complete: Created {created} M3U file(s)")
-            else:
-                self.log_to_processing("No multi-disc games found")
-
-            self.log_to_processing("\n" + "=" * 60 + "\n✅ ALL OPERATIONS COMPLETE!\n" + "=" * 60)
-
-            if self.cancel_requested:
-                self.reset_and_return()
-                return
-
-            self.show_completion(success=True, converted=created, skipped=0, failed=0)
-
-        except Exception as e:
-            self.log_to_processing(f"\n❌ ERROR: {str(e)}")
-            messagebox.showerror("Error", f"An error occurred:\n{str(e)}")
-            self.show_completion(success=False)
-
-    def check_rom_health(self):
-        folder = self.folder_path.get()
-        if not self.rom_health.find_chdman():
-            if messagebox.askyesno(
-                "chdman Not Found",
-                "chdman is required for CHD verification.\n\nCartridge ROMs can still be checked.\n\nWould you like to install chdman now?",
-                icon='warning'
-            ):
-                self.chd_converter.prompt_install_chdman()
-                return
-
-        self.show_processing_panel()
-        self.is_processing = True
-        self.processing_log.delete(1.0, tk.END)
-        self.log_to_processing(f"🔍 ROM Health Check\n\nFolder: {folder}\n{'=' * 60}")
-        self.start_spinner()
-
-        def run_check():
-            try:
-                results = self.rom_health.check_folder(
-                    folder,
-                    log_callback=self.log_to_processing,
-                    progress_callback=lambda current, total, filename: self.update_processing_status(
-                        "Checking ROM Health", f"Verifying file {current} of {total}", current, total, filename),
-                    cancel_check=lambda: self.cancel_requested
-                )
-
-                if self.cancel_requested:
-                    self.reset_and_return()
-                    return
-
-                total_verified = results['chd_verified'] + results['cue_verified'] + results['cart_verified']
-                total_issues   = results['chd_failed'] + results['cue_failed'] + results['cart_has_header'] + results['cart_unknown'] + results['cart_failed']
-
-                self.log_to_processing("\n" + "=" * 60 + "\n📊 Summary:\n" + "=" * 60)
-                if results['chd_verified'] + results['chd_failed'] > 0:
-                    self.log_to_processing(f"CHD Files: ✅ {results['chd_verified']} verified | ❌ {results['chd_failed']} failed")
-                if results['cue_verified'] + results['cue_failed'] > 0:
-                    self.log_to_processing(f"CUE/BIN: ✅ {results['cue_verified']} verified | ❌ {results['cue_failed']} failed")
-                if (results['cart_verified'] + results['cart_has_header'] + results.get('cart_hacks', 0) + results['cart_unknown'] + results['cart_failed']) > 0:
-                    self.log_to_processing(
-                        f"Game Files: ✅ {results['cart_verified']} verified | "
-                        f"⚠️ {results['cart_has_header']} have headers | "
-                        f"🎨 {results.get('cart_hacks', 0)} ROM hacks | "
-                        f"❓ {results['cart_unknown']} unknown | "
-                        f"❌ {results['cart_failed']} failed"
-                    )
-                self.log_to_processing("=" * 60)
-
-                if self.cancel_requested:
-                    self.reset_and_return()
-                    return
-
-                if results.get('cart_has_header', 0) > 0:
-                    self.root.after(100, lambda: self.offer_header_fix(results))
-
-                if total_issues == 0 and total_verified > 0:
-                    self.show_completion(success=True, converted=total_verified, skipped=0, failed=0)
-                elif total_verified > 0:
-                    self.show_completion(success=False, converted=total_verified, skipped=0, failed=total_issues)
-                else:
-                    self.show_completion(success=False, converted=0, skipped=0, failed=total_issues)
-
-            except Exception as e:
-                self.log_to_processing(f"\n❌ Error: {str(e)}")
-                import traceback
-                self.log_to_processing(traceback.format_exc())
-                self.show_completion(success=False)
-            finally:
-                self.is_processing = False
-
-        threading.Thread(target=run_check, daemon=True).start()
-
-    def validate_rom_names(self):
-        from core.name_validator import NameValidator
-        if not hasattr(self, 'name_validator'):
-            self.name_validator = NameValidator()
-        self.is_processing    = True
-        self.cancel_requested = False
-        self.show_processing_panel()
-        threading.Thread(target=self.run_validation, args=(self.folder_path.get(),), daemon=True).start()
-
-    def run_validation(self, folder):
-        try:
-            self.log_to_processing(f"🔍 ROM Name Validator\nFolder: {folder}\n{'=' * 60}")
-            results = self.name_validator.validate_folder(
-                folder,
-                log_callback=self.log_to_processing,
-                progress_callback=lambda current, total, filename:
-                    self.log_to_processing(f"Processing file {current} of {total}: {filename}"),
-                cancel_check=lambda: self.cancel_requested
-            )
-            if self.cancel_requested:
-                self.reset_and_return()
-                return
-            self.log_to_processing("\n" + "=" * 60 + "\n📊 Summary:\n" + "=" * 60)
-            if not results:
-                self.log_to_processing("✅ All ROM names are correct!")
-                self.show_completion(success=True, converted=0, skipped=0, failed=0)
-            else:
-                self.log_to_processing(f"📝 Found {len(results)} ROM(s) that need renaming")
-                self.root.after(100, lambda: self.show_rename_dialog(results))
-        except Exception as e:
-            self.log_to_processing(f"\n❌ Error: {str(e)}")
-            import traceback
-            self.log_to_processing(traceback.format_exc())
-            self.show_completion(success=False, converted=0, skipped=0, failed=1)
-
-    # ------------------------------------------------------------------ #
-    #  Dialogs (unchanged logic)                                           #
+    #  Dialogs                                                             #
     # ------------------------------------------------------------------ #
 
     def show_rename_dialog(self, results):
@@ -1188,20 +916,22 @@ class RomMateGUI:
                     except Exception as e:
                         failed_roms.append((rom['filename'], f"Backup failed: {str(e)}"))
                         continue
-                success, msg = self.rom_health.cartridge_checker.remove_header(rom['path'], rom['header_size'], create_backup=False)
+                success, msg = self.rom_health.cartridge_checker.remove_header(
+                    rom['path'], rom['header_size'], create_backup=False)
                 if success: fixed_roms.append(rom)
                 else:       failed_roms.append((rom['filename'], msg))
 
             if fixed_roms:
-                verified_roms = []
-                still_bad     = []
+                verified_roms, still_bad = [], []
                 for rom in fixed_roms:
                     result = self.rom_health.cartridge_checker.verify_rom(rom['path'])
                     if result['status'] == 'verified': verified_roms.append(rom['filename'])
-                    else:                              still_bad.append((rom['filename'], result.get('message', 'Unknown status')))
+                    else: still_bad.append((rom['filename'], result.get('message', 'Unknown status')))
 
                 if still_bad:
-                    msg = f"⚠️ Header removal completed but some ROMs still don't verify:\n\n✅ Successfully verified: {len(verified_roms)}\n❌ Still not verified: {len(still_bad)}\n\nFailed ROMs:\n"
+                    msg = (f"⚠️ Header removal completed but some ROMs still don't verify:\n\n"
+                           f"✅ Successfully verified: {len(verified_roms)}\n"
+                           f"❌ Still not verified: {len(still_bad)}\n\nFailed ROMs:\n")
                     msg += "".join(f"• {fn}: {st}\n" for fn, st in still_bad)
                     msg += f"\n💾 Backups kept in: {backup_folder}"
                     messagebox.showwarning("Partial Success", msg)
@@ -1209,7 +939,10 @@ class RomMateGUI:
                     if backup_var.get():
                         if messagebox.askyesno(
                             "Headers Removed Successfully!",
-                            f"✅ Successfully removed headers from {len(verified_roms)} ROM(s)!\n✅ All ROMs verified as good dumps!\n\nBackups are stored in:\n{backup_folder}\n\nWould you like to delete the backup folder?",
+                            f"✅ Successfully removed headers from {len(verified_roms)} ROM(s)!\n"
+                            f"✅ All ROMs verified as good dumps!\n\n"
+                            f"Backups are stored in:\n{backup_folder}\n\n"
+                            f"Would you like to delete the backup folder?",
                             icon='question'
                         ):
                             try:
@@ -1220,16 +953,24 @@ class RomMateGUI:
                         else:
                             messagebox.showinfo("Backups Kept", f"💾 Backups kept in:\n{backup_folder}")
                     else:
-                        messagebox.showinfo("Headers Removed Successfully!", f"✅ Successfully removed headers from {len(verified_roms)} ROM(s)!\n✅ All ROMs verified as good dumps!")
+                        messagebox.showinfo(
+                            "Headers Removed Successfully!",
+                            f"✅ Successfully removed headers from {len(verified_roms)} ROM(s)!\n"
+                            f"✅ All ROMs verified as good dumps!")
 
             if failed_roms:
-                messagebox.showerror("Errors Occurred", "❌ Some ROMs failed to process:\n\n" + "".join(f"• {fn}: {err}\n" for fn, err in failed_roms))
+                messagebox.showerror("Errors Occurred",
+                    "❌ Some ROMs failed to process:\n\n" +
+                    "".join(f"• {fn}: {err}\n" for fn, err in failed_roms))
 
         tk.Button(btn_frame, text="Learn More",
                   command=lambda: messagebox.showinfo(
                       "External Copier Headers",
-                      "External headers are NOT part of the original ROM.\n\nThey were added by devices like:\n• Super Magicom\n• Game Doctor\n• Super Wild Card\n\n"
-                      "Removing them:\n✅ Makes ROMs match No-Intro databases\n✅ Fixes checksum verification\n✅ Safe - your ROM data is unchanged\n\nThe actual cartridge ROM data starts after the header!"
+                      "External headers are NOT part of the original ROM.\n\n"
+                      "They were added by devices like:\n• Super Magicom\n• Game Doctor\n• Super Wild Card\n\n"
+                      "Removing them:\n✅ Makes ROMs match No-Intro databases\n"
+                      "✅ Fixes checksum verification\n✅ Safe - your ROM data is unchanged\n\n"
+                      "The actual cartridge ROM data starts after the header!"
                   ),
                   font=("Arial", 10), bg=self.bg_frame, fg=self.text_light,
                   cursor="hand2", relief="flat", padx=15, pady=8).pack(side="left", padx=(0, 10))
