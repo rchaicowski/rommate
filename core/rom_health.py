@@ -168,20 +168,20 @@ class ROMHealthChecker:
                 
                 if not found_match:
                     missing.append(bin_file)
-                    details.append(f"❌ Missing: {bin_file}")
+                    details.append(f"   [x] Missing: {bin_file}")
                     continue
             
             # Check if file is readable and has size
             try:
                 size = os.path.getsize(bin_path)
                 if size == 0:
-                    details.append(f"⚠️ Empty file: {bin_file}")
+                    details.append(f"   [!] Empty file: {bin_file}")
                 else:
                     found.append(bin_file)
                     size_mb = size / (1024 * 1024)
-                    details.append(f"✅ Found: {bin_file} ({size_mb:.1f} MB)")
+                    details.append(f"   [✓] Found: {bin_file} ({size_mb:.1f} MB)")
             except Exception as e:
-                details.append(f"❌ Error reading: {bin_file} - {str(e)}")
+                details.append(f"   [x] Error reading: {bin_file} - {str(e)}")
                 missing.append(bin_file)
         
         # Determine overall result
@@ -217,18 +217,18 @@ class ROMHealthChecker:
         
         if not chd_files:
             if log_callback:
-                log_callback("❌ No CHD files found in folder")
+                log_callback("[x] No CHD files found in folder")
             return 0, 0, []
         
         if log_callback:
-            log_callback(f"\n🔍 Found {len(chd_files)} CHD file(s) to verify\n")
+            log_callback(f"\nFound {len(chd_files)} CHD file(s) to verify\n")
         
         # Verify each CHD
         for index, chd_file in enumerate(chd_files, 1):
             # Check for cancellation
             if cancel_check and cancel_check():
                 if log_callback:
-                    log_callback("\n⚠️ Health check cancelled by user")
+                    log_callback("\n[!] Health check cancelled by user")
                 break
             
             filename = os.path.basename(chd_file)
@@ -237,7 +237,7 @@ class ROMHealthChecker:
                 progress_callback(index, len(chd_files), filename)
             
             if log_callback:
-                log_callback(f"🔎 Verifying: {filename}")
+                log_callback(f">> {filename}")
             
             # Verify the CHD
             success, message = self.verify_chd(chd_file)
@@ -245,7 +245,7 @@ class ROMHealthChecker:
             if success:
                 verified += 1
                 if log_callback:
-                    log_callback(f"   ✅ {message}")
+                    log_callback(f"   [✓] {message}")
                 results.append({
                     'file': filename,
                     'path': chd_file,
@@ -255,7 +255,7 @@ class ROMHealthChecker:
             else:
                 failed += 1
                 if log_callback:
-                    log_callback(f"   ❌ {message}")
+                    log_callback(f"   [x] {message}")
                 results.append({
                     'file': filename,
                     'path': chd_file,
@@ -290,18 +290,18 @@ class ROMHealthChecker:
         
         if not cue_files:
             if log_callback:
-                log_callback("❌ No CUE files found in folder")
+                log_callback("[x] No CUE files found in folder")
             return 0, 0, []
         
         if log_callback:
-            log_callback(f"\n🔍 Found {len(cue_files)} CUE file(s) to verify\n")
+            log_callback(f"\nFound {len(cue_files)} CUE file(s) to verify\n")
         
         # Verify each CUE/BIN set
         for index, cue_file in enumerate(cue_files, 1):
             # Check for cancellation
             if cancel_check and cancel_check():
                 if log_callback:
-                    log_callback("\n⚠️ Health check cancelled by user")
+                    log_callback("\n[!] Health check cancelled by user")
                 break
             
             filename = os.path.basename(cue_file)
@@ -310,7 +310,7 @@ class ROMHealthChecker:
                 progress_callback(index, len(cue_files), filename)
             
             if log_callback:
-                log_callback(f"🔎 Verifying: {filename}")
+                log_callback(f">> {filename}")
             
             # Verify the CUE/BIN set
             success, message, details = self.verify_cue_bin(cue_file)
@@ -318,7 +318,7 @@ class ROMHealthChecker:
             if success:
                 verified += 1
                 if log_callback:
-                    log_callback(f"   ✅ {message}")
+                    log_callback(f"   [✓] {message}")
                     for detail in details:
                         log_callback(f"      {detail}")
                 results.append({
@@ -331,7 +331,7 @@ class ROMHealthChecker:
             else:
                 failed += 1
                 if log_callback:
-                    log_callback(f"   ❌ {message}")
+                    log_callback(f"   [x] {message}")
                     for detail in details:
                         log_callback(f"      {detail}")
                 results.append({
@@ -370,7 +370,7 @@ class ROMHealthChecker:
         
         # Check CHD files
         if log_callback:
-            log_callback("\n📀 Checking CHD files...")
+            log_callback("\n-- CHD files --")
         
         chd_verified, chd_failed, chd_results = self.check_folder_chd(folder, log_callback, progress_callback, cancel_check)
         results['chd_verified'] = chd_verified
@@ -383,7 +383,7 @@ class ROMHealthChecker:
         
         # Check CUE/BIN files
         if log_callback:
-            log_callback("\n\n📀 Checking CUE/BIN files...")
+            log_callback("\n\n-- CUE/BIN files --")
         
         cue_verified, cue_failed, cue_results = self.check_folder_cue_bin(folder, log_callback, progress_callback, cancel_check)
         results['cue_verified'] = cue_verified
@@ -396,7 +396,7 @@ class ROMHealthChecker:
         
         # Check Cartridge ROMs
         if log_callback:
-            log_callback("\n\n🎮 Checking Game Files...")
+            log_callback("\n\n-- Game files --")
         
         cart_verified, cart_header, cart_hacks, cart_unknown, cart_failed, cart_results = self.cartridge_checker.check_folder(
             folder, log_callback, progress_callback, cancel_check

@@ -46,7 +46,7 @@ class M3UCreator:
             return 0, 0
         
         if log_callback:
-            log_callback(f"🎮 Found {len(multidisc_games)} multi-disc game(s)\n")
+            log_callback(f"Found {len(multidisc_games)} multi-disc game(s)\n")
         
         total_games = len(multidisc_games)
         created_count = 0
@@ -90,23 +90,23 @@ class M3UCreator:
         if has_original and has_chd:
             # Both formats exist - ask user which to use
             if log_callback:
-                log_callback("⚠️ Found both original files (CUE/GDI/CDI/ISO) and CHD files")
+                log_callback("[!] Found both original files (CUE/GDI/CDI/ISO) and CHD files")
             
             if format_choice_callback:
                 choice = format_choice_callback()
                 
                 if choice is None:  # User cancelled
                     if log_callback:
-                        log_callback("❌ Operation cancelled by user")
+                        log_callback("[!] Operation cancelled by user")
                     return 0, 0, True
                 elif choice == "chd":
                     extensions = ["*.chd"]
                     if log_callback:
-                        log_callback("✓ User selected: CHD files")
+                        log_callback("[✓] User selected: CHD files")
                 else:  # original
                     extensions = ["*.cue", "*.gdi", "*.cdi", "*.iso"]
                     if log_callback:
-                        log_callback("✓ User selected: Original disc files")
+                        log_callback("[✓] User selected: Original disc files")
             else:
                 # No callback - default to CHD
                 extensions = ["*.chd"]
@@ -115,18 +115,18 @@ class M3UCreator:
             # Only CHD files
             extensions = ["*.chd"]
             if log_callback:
-                log_callback("✓ Auto-detected: CHD files only")
+                log_callback("[✓] Auto-detected: CHD files only")
         
         elif has_original:
             # Only original files
             extensions = ["*.cue", "*.gdi", "*.cdi", "*.iso"]
             if log_callback:
-                log_callback("✓ Auto-detected: Original disc files only")
+                log_callback("[✓] Auto-detected: Original disc files only")
         
         else:
             # No disc files found
             if log_callback:
-                log_callback("❌ No disc files found")
+                log_callback("[x] No disc files found")
             return 0, 0, False
         
         # Create playlists

@@ -140,7 +140,7 @@ def find_multidisc_games(folder, extensions=None, log_callback=None):
                 multidisc_games[name] = files
             else:
                 if log_callback:
-                    log_callback(f"⚠️  Skipping '{name}' - mixed formats")
+                    log_callback(f"[!] Skipping '{name}' - mixed formats")
     
     # Sort by disc number
     for game_name in multidisc_games:
@@ -165,7 +165,7 @@ def create_m3u_file(game_name, disc_files, folder, log_callback=None):
     
     if os.path.exists(m3u_filename):
         if log_callback:
-            log_callback(f"  ⚠️ Already exists: {game_name}.m3u")
+            log_callback(f"  [!] Already exists: {game_name}.m3u")
         return False
     
     with open(m3u_filename, 'w', encoding='utf-8') as f:
@@ -173,7 +173,7 @@ def create_m3u_file(game_name, disc_files, folder, log_callback=None):
             f.write(f"{disc_file}\n")
     
     if log_callback:
-        log_callback(f"  ✓ Created: {game_name}.m3u ({len(disc_files)} discs)")
+        log_callback(f"  [✓] Created: {game_name}.m3u ({len(disc_files)} discs)")
         for disc_num, disc_file in disc_files:
             log_callback(f"      • Disc {disc_num}: {disc_file}")
     

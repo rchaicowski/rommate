@@ -185,7 +185,7 @@ class CHDConverter:
             if file_size > 100 * 1024 * 1024:
                 # Large file - run without capturing output
                 if log_callback and is_dvd:
-                    log_callback(f"   ⏰ Note: PS2/DVD conversion may take 15-30 minutes")
+                    log_callback(f"   [!] Note: PS2/DVD conversion may take 15-30 minutes")
                     log_callback(f"   Please wait... (app may appear frozen)")
                 
                 process = subprocess.Popen(cmd)
@@ -216,15 +216,15 @@ class CHDConverter:
                                 if os.path.exists(bin_file):
                                     os.remove(bin_file)
                             if log_callback:
-                                log_callback(f"   🗑️  Deleted original files")
+                                log_callback(f"   Deleted original files")
                         except Exception as e:
                             if log_callback:
-                                log_callback(f"   ⚠️  Could not delete originals: {e}")
+                                log_callback(f"   [!] Could not delete originals: {e}")
                     
                     return True, chd_path
                 else:
                     if log_callback:
-                        log_callback(f"   ❌ Conversion failed (return code: {process.returncode})")
+                        log_callback(f"   [x] Conversion failed (return code: {process.returncode})")
                     return False, None
             
             else:
@@ -261,20 +261,20 @@ class CHDConverter:
                                 if os.path.exists(bin_file):
                                     os.remove(bin_file)
                             if log_callback:
-                                log_callback(f"   🗑️  Deleted original files")
+                                log_callback(f"   Deleted original files")
                         except Exception as e:
                             if log_callback:
-                                log_callback(f"   ⚠️  Could not delete originals: {e}")
+                                log_callback(f"   [!] Could not delete originals: {e}")
                     
                     return True, chd_path
                 else:
                     if log_callback:
-                        log_callback(f"   ❌ Failed: {stderr[:100]}")
+                        log_callback(f"   [x] Failed: {stderr[:100]}")
                     return False, None
         
         except Exception as e:
             if log_callback:
-                log_callback(f"   ❌ Error: {str(e)}")
+                log_callback(f"   [x] Error: {str(e)}")
             return False, None
     
     def convert_folder(self, folder, delete_after=False, 
@@ -322,7 +322,7 @@ class CHDConverter:
             # Check if cancellation was requested
             if cancel_check and cancel_check():
                 if log_callback:
-                    log_callback("❌ Conversion cancelled by user")
+                    log_callback("[!] Conversion cancelled by user")
                 return converted, skipped, failed
             
             if progress_callback:
@@ -332,12 +332,12 @@ class CHDConverter:
             chd_path = str(source_file.with_suffix('.chd'))
             if os.path.exists(chd_path):
                 if log_callback:
-                    log_callback(f"⏭️  Skipped: {source_file.name} (CHD already exists)")
+                    log_callback(f"   Skipped: {source_file.name} (CHD already exists)")
                 skipped += 1
                 continue
             
             if log_callback:
-                log_callback(f"🔄 Converting: {source_file.name}")
+                log_callback(f">> {source_file.name}")
             
             success, chd_path = self.convert_file(
                 source_file, 
@@ -352,16 +352,16 @@ class CHDConverter:
                     try:
                         os.remove(chd_path)
                         if log_callback:
-                            log_callback(f"   🗑️ Deleted incomplete: {os.path.basename(chd_path)}")
+                            log_callback(f"   Deleted incomplete: {os.path.basename(chd_path)}")
                     except:
                         pass
                 if log_callback:
-                    log_callback("❌ Conversion cancelled by user")
+                    log_callback("[!] Conversion cancelled by user")
                 return converted, skipped, failed
             
             if success:
                 if log_callback:
-                    log_callback(f"   ✓ Converted to CHD")
+                    log_callback(f"   [✓] Converted to CHD")
                 converted += 1
             else:
                 # Error already logged in convert_file

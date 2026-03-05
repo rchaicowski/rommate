@@ -100,11 +100,11 @@ class NameValidator:
         
         if not rom_files:
             if log_callback:
-                log_callback("❌ No ROM files found in folder")
+                log_callback("[x] No ROM files found in folder")
             return []
         
         if log_callback:
-            log_callback(f"\n🔍 Found {len(rom_files)} ROM(s) to validate\n")
+            log_callback(f"\nFound {len(rom_files)} ROM(s) to validate\n")
         
         # Validate each ROM
         for index, rom_file in enumerate(rom_files, 1):
@@ -117,7 +117,7 @@ class NameValidator:
                 progress_callback(index, len(rom_files), filename)
             
             if log_callback:
-                log_callback(f"🔎 Checking: {filename}")
+                log_callback(f">> {filename}")
             
             result = self.validate_rom(rom_file, log_callback)
             if result:
@@ -149,7 +149,7 @@ class NameValidator:
             # Check if names are different (case-insensitive comparison)
             if current_name.lower() != suggested_name_full.lower():
                 if log_callback:
-                    log_callback(f"   📝 Needs rename")
+                    log_callback(f"   [!] Needs rename")
                     log_callback(f"      Current: {current_name}")
                     log_callback(f"      Suggested: {suggested_name_full}")
                     log_callback(f"      Confidence: {rom_result.get('confidence', 'N/A')}")
@@ -166,15 +166,15 @@ class NameValidator:
                 }
             else:
                 if log_callback:
-                    log_callback(f"   ✅ Name is correct")
+                    log_callback(f"   [✓] Name is correct")
                 return None
         else:
             # ROM unknown or hack
             if log_callback:
                 if rom_result['status'] == 'hack':
-                    log_callback(f"   🎨 ROM hack - skipping")
+                    log_callback(f"   [!] ROM hack - skipping")
                 else:
-                    log_callback(f"   ❓ Unknown ROM - cannot suggest name")
+                    log_callback(f"   [?] Unknown ROM - cannot suggest name")
             return None
     
     def rename_rom(self, rom_path, new_name):

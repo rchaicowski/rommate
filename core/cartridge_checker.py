@@ -519,10 +519,10 @@ class CartridgeChecker:
         is_hack, hack_type, hack_confidence = self.detect_rom_hack(filename)
         if is_hack:
             hack_label = {
-                'translation': '🌍 Translation Patch',
-                'hack': '🎨 ROM Hack',
-                'modified': '📝 Modified ROM'
-            }.get(hack_type, '🎨 Modified')
+                'translation': 'Translation Patch',
+                'hack': 'ROM Hack',
+                'modified': 'Modified ROM'
+            }.get(hack_type, 'Modified')
             
             return {
                 'status': 'hack',
@@ -935,18 +935,18 @@ class CartridgeChecker:
         
         if not rom_files:
             if log_callback:
-                log_callback("❌ No cartridge ROM files found in folder")
+                log_callback("[x] No cartridge ROM files found in folder")
             return 0, 0, 0, 0, 0, []
         
         if log_callback:
-            log_callback(f"\n🎮 Found {len(rom_files)} game file(s) to verify\n")
+            log_callback(f"\nFound {len(rom_files)} game file(s) to verify\n")
         
         # Verify each ROM
         for index, rom_file in enumerate(rom_files, 1):
             # Check for cancellation
             if cancel_check and cancel_check():
                 if log_callback:
-                    log_callback("\n⚠️ Health check cancelled by user")
+                    log_callback("\n[!] Health check cancelled by user")
                 break
             
             filename = os.path.basename(rom_file)
@@ -955,7 +955,7 @@ class CartridgeChecker:
                 progress_callback(index, len(rom_files), filename)
             
             if log_callback:
-                log_callback(f"🔎 Verifying: {filename}")
+                log_callback(f">> {filename}")
             
             # Verify the ROM
             result = self.verify_rom(rom_file)
@@ -965,7 +965,7 @@ class CartridgeChecker:
             if result['status'] == 'verified':
                 verified += 1
                 if log_callback:
-                    log_callback(f"   ✅ {result['message']}")
+                    log_callback(f"   [✓] {result['message']}")
                     if result.get('all_regions'):
                         log_callback(f"      Matches: {', '.join(result['all_regions'])}")
                     else:
@@ -975,7 +975,7 @@ class CartridgeChecker:
             elif result['status'] == 'has_header':
                 has_header += 1
                 if log_callback:
-                    log_callback(f"   ⚠️ {result['message']}")
+                    log_callback(f"   [!] {result['message']}")
                     if result.get('all_regions'):
                         log_callback(f"      Matches: {', '.join(result['all_regions'])}")
                     else:
@@ -985,7 +985,7 @@ class CartridgeChecker:
             elif result['status'] == 'identified':
                 verified += 1
                 if log_callback:
-                    log_callback(f"   🔍 {result['message']}")
+                    log_callback(f"   [~] {result['message']}")
                     log_callback(f"      Game: {result['game_name']}")
                     if result.get('note'):
                         log_callback(f"      Note: {result['note']}")
@@ -993,51 +993,51 @@ class CartridgeChecker:
             elif result['status'] == 'possible':
                 verified += 1
                 if log_callback:
-                    log_callback(f"   🔍 {result['message']}")
+                    log_callback(f"   [~] {result['message']}")
                     log_callback(f"      Possible: {result['game_name']}")
                     log_callback(f"      Confidence: {result['confidence']}")
                     
             elif result['status'] == 'probable':
                 verified += 1  # Count as verified
                 if log_callback:
-                    log_callback(f"   ✅ {result['message']}")
+                    log_callback(f"   [✓] {result['message']}")
                     log_callback(f"      Game: {result['game_name']}")
                     log_callback(f"      Confidence: {result['confidence']}")
                     
             elif result['status'] == 'likely':
                 verified += 1  # Count as verified
                 if log_callback:
-                    log_callback(f"   📝 {result['message']}")
+                    log_callback(f"   [~] {result['message']}")
                     log_callback(f"      Game: {result['game_name']}")
                     log_callback(f"      Confidence: {result['confidence']}")
                     
             elif result['status'] == 'hack':
                 rom_hacks += 1
                 if log_callback:
-                    log_callback(f"   🎨 {result['message']}")
+                    log_callback(f"   [!] {result['message']}")
                     log_callback(f"      Type: {result['hack_type'].title()}")
                     log_callback(f"      Confidence: {result['confidence']}")
                     
             elif result['status'] == 'name_match':
                 unknown += 1
                 if log_callback:
-                    log_callback(f"   🔍 {result['message']}")
+                    log_callback(f"   [?] {result['message']}")
                     log_callback(f"      Possible: {result['game_name']}")
                     log_callback(f"      Confidence: {result['confidence']}")
                     
             elif result['status'] == 'unknown':
                 unknown += 1
                 if log_callback:
-                    log_callback(f"   ❓ {result['message']}")
+                    log_callback(f"   [?] {result['message']}")
                     
             elif result['status'] == 'no_database':
                 unknown += 1
                 if log_callback:
-                    log_callback(f"   ⚠️ {result['message']}")
+                    log_callback(f"   [!] {result['message']}")
                     
             else:
                 failed += 1
                 if log_callback:
-                    log_callback(f"   ❌ {result['message']}")
+                    log_callback(f"   [x] {result['message']}")
         
         return verified, has_header, rom_hacks, unknown, failed, results
