@@ -20,12 +20,12 @@ class ProcessingPanel:
             get_is_processing:  Callable returning bool
             set_cancel:         Callable(bool) to set cancel_requested
         """
-        self.parent           = parent
-        self.c                = colors
-        self.sound_player     = sound_player
-        self.get_mode         = get_operation_mode
+        self.parent            = parent
+        self.c                 = colors
+        self.sound_player      = sound_player
+        self.get_mode          = get_operation_mode
         self.get_is_processing = get_is_processing
-        self.set_cancel       = set_cancel
+        self.set_cancel        = set_cancel
 
         # Spinner state
         self.spinner_running = False
@@ -132,6 +132,9 @@ class ProcessingPanel:
         self.frame.pack(fill="both", expand=True, padx=30, pady=20)
         self.set_cancel(False)
 
+        # Reset background for all widgets back to normal
+        self._set_bg_recursive(self.frame, self.c['bg_frame'])
+
         self.status_title.config(text="Starting", fg=self.c['text_light'])
         self.status_subtitle.config(text="Initializing")
         self.file_counter_label.config(text="0 / 0 files")
@@ -149,7 +152,26 @@ class ProcessingPanel:
         self.frame.pack_forget()
 
     def reset_bg(self):
-        self.frame.config(bg=self.c['bg_frame'])
+        self._set_bg_recursive(self.frame, self.c['bg_frame'])
+
+    # ------------------------------------------------------------------ #
+    #  Background helper                                                   #
+    # ------------------------------------------------------------------ #
+
+    def _set_bg_recursive(self, widget, color):
+        """Recursively set bg color on all widgets, skipping those that don't support it
+        (e.g. ScrolledText internals) and intentionally-colored widgets like the log."""
+        # Keep the log box always dark and buttons always their original color
+        if widget is self.processing_log:
+            return
+        if isinstance(widget, tk.Button):
+            return
+        try:
+            widget.config(bg=color)
+        except tk.TclError:
+            pass
+        for child in widget.winfo_children():
+            self._set_bg_recursive(child, color)
 
     # ------------------------------------------------------------------ #
     #  Spinner                                                             #
@@ -246,24 +268,24 @@ class ProcessingPanel:
             if success and failed == 0:
                 self.status_title.config(text="✅ All ROMs Verified Successfully!", fg=c['accent_green'])
                 self.status_subtitle.config(text="All CHD files passed verification")
-                self.frame.config(bg=c['state_success'])
+                self._set_bg_recursive(self.frame, c['state_success'])
             elif converted > 0:
                 self.status_title.config(text="⚠️ Health Check Complete with Issues", fg=c['accent_orange'])
                 self.status_subtitle.config(text="Some files failed verification - check details above")
-                self.frame.config(bg=c['state_warning'])
+                self._set_bg_recursive(self.frame, c['state_warning'])
             else:
                 self.status_title.config(text="❌ Health Check Failed", fg=c['accent_red'])
                 self.status_subtitle.config(text="No files verified successfully")
-                self.frame.config(bg=c['state_error'])
+                self._set_bg_recursive(self.frame, c['state_error'])
         else:
             if success:
                 self.status_title.config(text="✅ Completed Successfully!", fg=c['accent_green'])
                 self.status_subtitle.config(text="All operations finished")
-                self.frame.config(bg=c['state_success'])
+                self._set_bg_recursive(self.frame, c['state_success'])
             else:
                 self.status_title.config(text="⚠️ Completed with Errors", fg=c['accent_red'])
                 self.status_subtitle.config(text="Some operations failed - check details below")
-                self.frame.config(bg=c['state_error'])
+                self._set_bg_recursive(self.frame, c['state_error'])
 
         self.completion_frame.pack(pady=20)
         self.parent.update_idletasks()
