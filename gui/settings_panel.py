@@ -132,7 +132,7 @@ class SettingsPanel:
         # Header
         tk.Label(
             section,
-            text="🔊 Sound",
+            text="Sound",
             font=("Arial", 14, "bold"),
             bg=self.bg_frame,
             fg=self.text_light
@@ -212,7 +212,7 @@ class SettingsPanel:
         # Header
         tk.Label(
             section,
-            text="📁 Folders",
+            text="Folders",
             font=("Arial", 14, "bold"),
             bg=self.bg_frame,
             fg=self.text_light
@@ -328,7 +328,7 @@ class SettingsPanel:
         # Header
         tk.Label(
             section,
-            text="🗑️ Conversion",
+            text="Conversion",
             font=("Arial", 14, "bold"),
             bg=self.bg_frame,
             fg=self.text_light
@@ -380,7 +380,7 @@ class SettingsPanel:
 
         tk.Label(
             section,
-            text="🎨 Theme",
+            text="Theme",
             font=("Arial", 14, "bold"),
             bg=self.bg_frame,
             fg=self.text_light
@@ -432,7 +432,7 @@ class SettingsPanel:
         # Header
         tk.Label(
             section,
-            text="🌍 Language",
+            text="Language",
             font=("Arial", 14, "bold"),
             bg=self.bg_frame,
             fg=self.text_light
@@ -514,7 +514,7 @@ class SettingsPanel:
         
         tk.Button(
             content,
-            text="📖 View Documentation",
+            text="View Documentation",
             command=self.callbacks.get('show_help'),
             font=("Arial", 10),
             bg=self.accent_blue,

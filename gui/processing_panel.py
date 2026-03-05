@@ -112,7 +112,7 @@ class ProcessingPanel:
         ).pack(side="left", padx=10)
 
         tk.Button(
-            btn_frame, text="🔄 Process Another Folder",
+            btn_frame, text="↺ Process Another Folder",
             command=self._on_return,
             font=("Arial", 11), bg=c['accent_blue'], fg="white",
             cursor="hand2", padx=20, pady=12, relief="flat",
@@ -208,7 +208,7 @@ class ProcessingPanel:
         if progress is not None and total is not None and total > 0:
             self.file_counter_label.config(text=f"{progress} / {total} files")
         if current_file:
-            self.current_file_label.config(text=f"📄 {current_file}")
+            self.current_file_label.config(text=f">> {current_file}")
         if was_spinning:
             self.start_spinner()
         self.parent.update_idletasks()
@@ -249,7 +249,7 @@ class ProcessingPanel:
             icon='warning'
         ):
             self.set_cancel(True)
-            self.log("\n⚠️ Cancellation requested...")
+            self.log("\n[!] Cancellation requested...")
             self.log("Cleaning up and returning to main screen...")
 
     # ------------------------------------------------------------------ #
@@ -266,24 +266,24 @@ class ProcessingPanel:
 
         if mode == "health":
             if success and failed == 0:
-                self.status_title.config(text="✅ All ROMs Verified Successfully!", fg=c['accent_green'])
+                self.status_title.config(text="[✓] All ROMs Verified Successfully!", fg=c['accent_green'])
                 self.status_subtitle.config(text="All CHD files passed verification")
                 self._set_bg_recursive(self.frame, c['state_success'])
             elif converted > 0:
-                self.status_title.config(text="⚠️ Health Check Complete with Issues", fg=c['accent_orange'])
+                self.status_title.config(text="[!] Health Check Complete with Issues", fg=c['accent_orange'])
                 self.status_subtitle.config(text="Some files failed verification - check details above")
                 self._set_bg_recursive(self.frame, c['state_warning'])
             else:
-                self.status_title.config(text="❌ Health Check Failed", fg=c['accent_red'])
+                self.status_title.config(text="[x] Health Check Failed", fg=c['accent_red'])
                 self.status_subtitle.config(text="No files verified successfully")
                 self._set_bg_recursive(self.frame, c['state_error'])
         else:
             if success:
-                self.status_title.config(text="✅ Completed Successfully!", fg=c['accent_green'])
+                self.status_title.config(text="[✓] Completed Successfully!", fg=c['accent_green'])
                 self.status_subtitle.config(text="All operations finished")
                 self._set_bg_recursive(self.frame, c['state_success'])
             else:
-                self.status_title.config(text="⚠️ Completed with Errors", fg=c['accent_red'])
+                self.status_title.config(text="[!] Completed with Errors", fg=c['accent_red'])
                 self.status_subtitle.config(text="Some operations failed - check details below")
                 self._set_bg_recursive(self.frame, c['state_error'])
 

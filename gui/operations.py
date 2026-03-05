@@ -22,14 +22,14 @@ def _check_chdman(converter, callbacks):
 
     converter.chdman_path = converter.find_chdman()
     if not converter.chdman_path:
-        log("❌ ERROR: chdman not found!")
+        log("[x] chdman not found")
         if platform.system() == 'Linux':
             log("\nOffering automatic installation...")
             if converter.prompt_install_chdman():
-                log("\n⏳ Installation in progress.")
+                log("\nInstallation in progress...")
                 log("Please complete installation in the terminal, then try again.")
             else:
-                log("\n❌ Installation cancelled.")
+                log("\n[!] Installation cancelled")
         else:
             log("\nchdman is required for CHD conversion.")
             log("It should be in the tools/ folder.")
@@ -47,19 +47,19 @@ def _check_chdman(converter, callbacks):
         )
         if test.returncode != 0 and platform.system() == 'Linux':
             if 'error while loading shared libraries' in test.stderr:
-                log("❌ ERROR: chdman has missing dependencies!")
+                log("[x] chdman has missing dependencies")
                 log(f"Error: {test.stderr[:150]}")
                 if converter.prompt_install_chdman():
-                    log("\n⏳ Installation in progress.")
+                    log("\nInstallation in progress...")
                     log("Please complete installation in the terminal, then try again.")
                 else:
-                    log("\n❌ Installation cancelled.")
+                    log("\n[!] Installation cancelled")
                 done(success=False)
                 return False
     except Exception as e:
-        log(f"⚠️ Warning: Could not test chdman: {e}")
+        log(f"[!] Could not test chdman: {e}")
 
-    log(f"✓ Found chdman: {converter.chdman_path}")
+    log(f"[✓] chdman: {converter.chdman_path}")
     return True
 
 
@@ -99,14 +99,14 @@ def convert_to_chd(folder, delete_after, converter, callbacks):
             return
 
         if converted == 0 and skipped == 0 and failed == 0:
-            log("\n❌ No convertible files found.")
+            log("\n[x] No convertible files found")
             log("Supported formats: CUE, GDI, CDI, ISO")
             messagebox.showinfo("No Files", "No convertible disc images found.")
             done(success=False)
             return
 
         log("\n" + "=" * 60)
-        log(f"✅ Converted: {converted} | ⏭️ Skipped: {skipped} | ❌ Failed: {failed}")
+        log(f"Converted: {converted}  |  Skipped: {skipped}  |  Failed: {failed}")
         log("=" * 60)
 
         if cancel():
@@ -120,7 +120,7 @@ def convert_to_chd(folder, delete_after, converter, callbacks):
         )
 
     except Exception as e:
-        log(f"\n❌ ERROR: {str(e)}")
+        log(f"\n[x] Error: {str(e)}")
         messagebox.showerror("Error", f"An error occurred:\n{str(e)}")
         done(success=False)
 
@@ -152,7 +152,7 @@ def create_m3u_files(folder, m3u_creator, root, callbacks):
             return
 
         if created == 0 and skipped == 0:
-            log("❌ No multi-disc games found.")
+            log("[x] No multi-disc games found")
             log("\nMake sure files follow naming conventions like:")
             log("  • Game Name (Disc 1).cue")
             log("  • Game Name (Disc 2).chd")
@@ -160,8 +160,8 @@ def create_m3u_files(folder, m3u_creator, root, callbacks):
             done(success=False)
         else:
             log(f"\n{'=' * 60}")
-            log(f"✅ Created: {created} | ⚠️ Skipped: {skipped}")
-            log(f"{'=' * 60}\n✅ ALL OPERATIONS COMPLETE!\n{'=' * 60}")
+            log(f"Created: {created}  |  Skipped: {skipped}")
+            log(f"{'=' * 60}\nALL OPERATIONS COMPLETE\n{'=' * 60}")
             done(success=True, converted=created, skipped=skipped)
             messagebox.showinfo(
                 "M3U Creation Complete",
@@ -169,7 +169,7 @@ def create_m3u_files(folder, m3u_creator, root, callbacks):
             )
 
     except Exception as e:
-        log(f"\n❌ ERROR: {str(e)}")
+        log(f"\n[x] Error: {str(e)}")
         messagebox.showerror("Error", f"An error occurred:\n{str(e)}")
         done(success=False)
 
@@ -234,7 +234,7 @@ def convert_and_create_m3u(folder, delete_after, converter, callbacks):
         else:
             log("No multi-disc games found")
 
-        log("\n" + "=" * 60 + "\n✅ ALL OPERATIONS COMPLETE!\n" + "=" * 60)
+        log("\n" + "=" * 60 + "\nALL OPERATIONS COMPLETE\n" + "=" * 60)
 
         if cancel():
             ret()
@@ -243,7 +243,7 @@ def convert_and_create_m3u(folder, delete_after, converter, callbacks):
         done(success=True, converted=created, skipped=0, failed=0)
 
     except Exception as e:
-        log(f"\n❌ ERROR: {str(e)}")
+        log(f"\n[x] Error: {str(e)}")
         messagebox.showerror("Error", f"An error occurred:\n{str(e)}")
         done(success=False)
 
@@ -280,20 +280,20 @@ def check_rom_health(folder, rom_health, chd_converter, root, callbacks, after_f
                               results['cart_has_header'] + results['cart_unknown'] +
                               results['cart_failed'])
 
-            log("\n" + "=" * 60 + "\n📊 Summary:\n" + "=" * 60)
+            log("\n" + "=" * 60 + "\nSummary:\n" + "=" * 60)
 
             if results['chd_verified'] + results['chd_failed'] > 0:
-                log(f"CHD Files: ✅ {results['chd_verified']} verified | ❌ {results['chd_failed']} failed")
+                log(f"CHD Files:  [✓] {results['chd_verified']} verified  |  [x] {results['chd_failed']} failed")
             if results['cue_verified'] + results['cue_failed'] > 0:
-                log(f"CUE/BIN: ✅ {results['cue_verified']} verified | ❌ {results['cue_failed']} failed")
+                log(f"CUE/BIN:    [✓] {results['cue_verified']} verified  |  [x] {results['cue_failed']} failed")
             if (results['cart_verified'] + results['cart_has_header'] +
                     results.get('cart_hacks', 0) + results['cart_unknown'] + results['cart_failed']) > 0:
                 log(
-                    f"Game Files: ✅ {results['cart_verified']} verified | "
-                    f"⚠️ {results['cart_has_header']} have headers | "
-                    f"🎨 {results.get('cart_hacks', 0)} ROM hacks | "
-                    f"❓ {results['cart_unknown']} unknown | "
-                    f"❌ {results['cart_failed']} failed"
+                    f"Game Files: [✓] {results['cart_verified']} verified  |  "
+                    f"[!] {results['cart_has_header']} have headers  |  "
+                    f"[!] {results.get('cart_hacks', 0)} ROM hacks  |  "
+                    f"[?] {results['cart_unknown']} unknown  |  "
+                    f"[x] {results['cart_failed']} failed"
                 )
             log("=" * 60)
 
@@ -313,7 +313,7 @@ def check_rom_health(folder, rom_health, chd_converter, root, callbacks, after_f
 
         except Exception as e:
             import traceback
-            log(f"\n❌ Error: {str(e)}")
+            log(f"\n[x] Error: {str(e)}")
             log(traceback.format_exc())
             done(success=False)
         finally:
@@ -335,7 +335,7 @@ def validate_rom_names(folder, name_validator, root, callbacks, after_fn):
 
     def run():
         try:
-            log(f"🔍 ROM Name Validator\nFolder: {folder}\n{'=' * 60}")
+            log(f"ROM Name Validator\nFolder: {folder}\n{'=' * 60}")
             results = name_validator.validate_folder(
                 folder,
                 log_callback=log,
@@ -348,18 +348,18 @@ def validate_rom_names(folder, name_validator, root, callbacks, after_fn):
                 ret()
                 return
 
-            log("\n" + "=" * 60 + "\n📊 Summary:\n" + "=" * 60)
+            log("\n" + "=" * 60 + "\nSummary:\n" + "=" * 60)
 
             if not results:
-                log("✅ All ROM names are correct!")
+                log("[✓] All ROM names are correct!")
                 done(success=True, converted=0, skipped=0, failed=0)
             else:
-                log(f"📝 Found {len(results)} ROM(s) that need renaming")
+                log(f"Found {len(results)} ROM(s) that need renaming")
                 after_fn(100, lambda: callbacks['show_rename_dialog'](results))
 
         except Exception as e:
             import traceback
-            log(f"\n❌ Error: {str(e)}")
+            log(f"\n[x] Error: {str(e)}")
             log(traceback.format_exc())
             done(success=False, converted=0, skipped=0, failed=1)
 

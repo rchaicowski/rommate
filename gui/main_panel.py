@@ -94,14 +94,14 @@ class MainPanel:
         disc_frame.pack(pady=20, fill="x")
 
         tk.Label(
-            disc_frame, text="📀 Disc-Based ROMs", font=("Arial", 12, "bold"),
+            disc_frame, text="Disc-Based ROMs", font=("Arial", 12, "bold"),
             bg=c['bg_frame'], fg=c['text_light']
         ).pack(anchor="w", padx=25, pady=(15, 10))
 
         for text, value in [
-            ("💾 Convert to CHD (compress disc images)", "chd"),
-            ("📁 Create M3U Playlists (for multi-disc games)", "m3u"),
-            ("🔄 Convert to CHD + Create M3U Playlists", "both"),
+            ("Convert to CHD (compress disc images)", "chd"),
+            ("Create M3U Playlists (for multi-disc games)", "m3u"),
+            ("Convert to CHD + Create M3U Playlists", "both"),
         ]:
             tk.Radiobutton(
                 disc_frame, text=text, variable=self.operation_mode, value=value,
@@ -124,13 +124,13 @@ class MainPanel:
         tools_frame.pack(pady=20, fill="x")
 
         tk.Label(
-            tools_frame, text="🎮 ROM Tools (All ROM Types)",
+            tools_frame, text="ROM Tools (All ROM Types)",
             font=("Arial", 12, "bold"), bg=c['bg_frame'], fg=c['text_light']
         ).pack(anchor="w", padx=25, pady=(15, 10))
 
         for text, value in [
-            ("🔍 Check ROM Health", "health"),
-            ("✏️  Validate & Fix ROM Names", "validate"),
+            ("Check ROM Health", "health"),
+            ("Validate & Fix ROM Names", "validate"),
         ]:
             tk.Radiobutton(
                 tools_frame, text=text, variable=self.operation_mode, value=value,
@@ -177,7 +177,7 @@ class MainPanel:
     # ------------------------------------------------------------------ #
 
     def _add_placeholder(self):
-        placeholder = "⬇️  Drop folder here"
+        placeholder = "↓  Drop folder here"
         self.folder_entry.config(justify='center')
         if not self.folder_path.get():
             self.folder_entry.insert(0, placeholder)

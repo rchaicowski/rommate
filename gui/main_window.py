@@ -307,7 +307,7 @@ class RomMateGUI:
                     self.is_processing = False
                     self.show_main_panel()
                     return
-            self.proc_panel.log(f"🔍 ROM Health Check\n\nFolder: {folder}\n{'=' * 60}")
+            self.proc_panel.log(f"ROM Health Check\n\nFolder: {folder}\n{'=' * 60}")
             self.proc_panel.start_spinner()
             check_rom_health(
                 folder, self.rom_health, self.chd_converter,
@@ -340,7 +340,7 @@ class RomMateGUI:
         title_frame = tk.Frame(dialog, bg=c['accent_blue'], height=60)
         title_frame.pack(fill="x")
         title_frame.pack_propagate(False)
-        tk.Label(title_frame, text=f"📝 Review ROM Names ({len(results)} files need renaming)",
+        tk.Label(title_frame, text=f"Review ROM Names ({len(results)} files need renaming)",
                  font=("Arial", 14, "bold"), bg=c['accent_blue'], fg="white").pack(expand=True)
 
         content = tk.Frame(dialog, bg=c['bg_dark'], padx=20, pady=20)
@@ -388,10 +388,10 @@ class RomMateGUI:
                     else:       failed  += 1
             dialog.destroy()
             if failed == 0:
-                messagebox.showinfo("Rename Complete", f"✅ Successfully renamed {renamed} file(s)!")
+                messagebox.showinfo("Rename Complete", f"Successfully renamed {renamed} file(s)!")
             else:
                 messagebox.showwarning("Partial Success",
-                    f"✅ Renamed: {renamed}\n❌ Failed: {failed}\n\nSome files could not be renamed.")
+                    f"Renamed: {renamed}  |  Failed: {failed}\n\nSome files could not be renamed.")
             self.reset_and_return()
 
         for text, cmd in [("Select All",  lambda: [v.set(True)  for v, _ in rename_vars]),
@@ -429,7 +429,7 @@ class RomMateGUI:
         title_frame = tk.Frame(dialog, bg=c['accent_orange'], height=60)
         title_frame.pack(fill="x")
         title_frame.pack_propagate(False)
-        tk.Label(title_frame, text="⚠️ External Copier Headers Detected",
+        tk.Label(title_frame, text="[!] External Copier Headers Detected",
                  font=("Arial", 14, "bold"), bg=c['accent_orange'], fg="white").pack(expand=True)
 
         content = tk.Frame(dialog, bg=c['bg_dark'], padx=20, pady=20)
@@ -463,7 +463,7 @@ class RomMateGUI:
                  font=("Arial", 9), bg=c['bg_info_box'], fg=c['text_info'], justify="left").pack()
 
         backup_var = tk.BooleanVar(value=True)
-        tk.Checkbutton(content, text="☑ Create backup before fixing (.backup extension)",
+        tk.Checkbutton(content, text="Create backup before fixing (.backup extension)",
                        variable=backup_var, font=("Arial", 10), bg=c['bg_dark'], fg=c['text_light'],
                        selectcolor=c['bg_frame'], activebackground=c['bg_dark'],
                        bd=0, highlightthickness=0).pack(anchor="w", pady=(0, 15))
@@ -504,39 +504,39 @@ class RomMateGUI:
                     else: still_bad.append((rom['filename'], r.get('message', 'Unknown')))
 
                 if still_bad:
-                    msg = (f"⚠️ Some ROMs still don't verify:\n\n"
-                           f"✅ Verified: {len(verified)}\n❌ Still bad: {len(still_bad)}\n\nFailed:\n")
+                    msg = (f"Some ROMs still don't verify:\n\n"
+                           f"Verified: {len(verified)}\nStill bad: {len(still_bad)}\n\nFailed:\n")
                     msg += "".join(f"• {fn}: {st}\n" for fn, st in still_bad)
-                    msg += f"\n💾 Backups kept in: {backup_folder}"
+                    msg += f"\nBackups kept in: {backup_folder}"
                     messagebox.showwarning("Partial Success", msg)
                 else:
                     if backup_var.get():
                         if messagebox.askyesno(
                             "Headers Removed Successfully!",
-                            f"✅ Removed headers from {len(verified)} ROM(s)!\n"
-                            f"✅ All ROMs verified!\n\nBackups in:\n{backup_folder}\n\n"
+                            f"Removed headers from {len(verified)} ROM(s)!\n"
+                            f"All ROMs verified!\n\nBackups in:\n{backup_folder}\n\n"
                             f"Delete backup folder?", icon='question'
                         ):
                             try:
                                 shutil.rmtree(backup_folder)
-                                messagebox.showinfo("Backups Deleted", "✅ Backup folder deleted!")
+                                messagebox.showinfo("Backups Deleted", "Backup folder deleted!")
                             except Exception as e:
                                 messagebox.showerror("Error", f"Could not delete backups:\n{str(e)}")
                         else:
-                            messagebox.showinfo("Backups Kept", f"💾 Backups kept in:\n{backup_folder}")
+                            messagebox.showinfo("Backups Kept", f"Backups kept in:\n{backup_folder}")
                     else:
                         messagebox.showinfo("Success",
-                            f"✅ Removed headers from {len(verified)} ROM(s)!\n✅ All ROMs verified!")
+                            f"Removed headers from {len(verified)} ROM(s)! All ROMs verified!")
 
             if failed_roms:
                 messagebox.showerror("Errors",
-                    "❌ Some ROMs failed:\n\n" + "".join(f"• {fn}: {err}\n" for fn, err in failed_roms))
+                    "Some ROMs failed:\n\n" + "".join(f"• {fn}: {err}\n" for fn, err in failed_roms))
 
         tk.Button(btn_frame, text="Learn More",
                   command=lambda: messagebox.showinfo("External Copier Headers",
                       "External headers are NOT part of the original ROM.\n\n"
                       "Added by devices like:\n• Super Magicom\n• Game Doctor\n• Super Wild Card\n\n"
-                      "Removing them:\n✅ Matches No-Intro databases\n✅ Fixes checksums\n✅ Safe"),
+                      "Removing them:\nMatches No-Intro databases\nFixes checksums\nSafe to remove"),
                   font=("Arial", 10), bg=c['bg_frame'], fg=c['text_light'],
                   cursor="hand2", relief="flat", padx=15, pady=8).pack(side="left", padx=(0, 10))
 
@@ -544,7 +544,7 @@ class RomMateGUI:
                   font=("Arial", 10), bg=c['bg_frame'], fg=c['text_light'],
                   cursor="hand2", relief="flat", padx=15, pady=8).pack(side="left", padx=(0, 10))
 
-        tk.Button(btn_frame, text="✂️ Remove Headers", command=fix_headers,
+        tk.Button(btn_frame, text="Remove Headers", command=fix_headers,
                   font=("Arial", 10, "bold"), bg=c['accent_green'], fg="white",
                   cursor="hand2", relief="flat", padx=20, pady=8).pack(side="right")
 

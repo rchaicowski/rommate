@@ -58,7 +58,7 @@ def show_format_choice_dialog(parent):
     # Title
     tk.Label(
         choice_dialog,
-        text="⚠️ Multiple Disc Formats Found",
+        text="[!] Multiple Disc Formats Found",
         font=("Arial", 16, "bold"),
         bg=Theme.BG_DARK,
         fg=Theme.ACCENT_ORANGE
@@ -80,7 +80,7 @@ def show_format_choice_dialog(parent):
     
     tk.Button(
         btn_frame,
-        text="💾 Use CHD Files\n(compressed)",
+        text="Use CHD Files\n(compressed)",
         command=select_chd,
         font=("Arial", 11, "bold"),
         bg=Theme.ACCENT_BLUE,
@@ -94,7 +94,7 @@ def show_format_choice_dialog(parent):
     
     tk.Button(
         btn_frame,
-        text="📀 Use Original Files\n(CUE/BIN/etc)",
+        text="Use Original Files\n(CUE/BIN/etc)",
         command=select_original,
         font=("Arial", 11, "bold"),
         bg=Theme.ACCENT_GREEN,
@@ -135,7 +135,7 @@ def show_info_dialog(parent):
     from tkinter import scrolledtext
     
     info_text = """
-📁 CREATE M3U PLAYLISTS
+-- CREATE M3U PLAYLISTS --
 
 Use this when you have multi-disc games (games with Disc 1, Disc 2, etc.)
 
@@ -159,7 +159,7 @@ It creates: Final Fantasy VII.m3u
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-💾 CONVERT TO CHD
+-- CONVERT TO CHD --
 
 Use this to compress your disc images and save space
 
@@ -178,7 +178,7 @@ Example:
   Game.cue (1 KB) + Game.bin (700 MB)
   → Game.chd (300-400 MB)
 
-⚠️ Note: Always keep backups before converting!
+[!] Note: Always keep backups before converting!
     """
     
     info_window = tk.Toplevel(parent)
