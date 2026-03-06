@@ -55,6 +55,16 @@ class RomMateGUI:
         self.root.geometry("670x870")
         self.root.resizable(True, True)
 
+        # Center window on screen without flash
+        self.root.withdraw()
+        self.root.update_idletasks()
+        screen_w = self.root.winfo_screenwidth()
+        screen_h = self.root.winfo_screenheight()
+        x = (screen_w // 2) - (670 // 2)
+        y = (screen_h // 2) - (870 // 2)
+        self.root.geometry(f"670x870+{x}+{y}")
+        self.root.deiconify()
+
         self.config = Config()
 
         saved_theme = self.config.get('theme', 'dark')
