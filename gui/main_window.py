@@ -52,7 +52,7 @@ class RomMateGUI:
     def __init__(self, root):
         self.root = root
         self.root.title("RomMate")
-        self.root.geometry("670x870")
+        self.root.geometry("670x890")
         self.root.resizable(True, True)
 
         # Center window on screen without flash
@@ -62,7 +62,7 @@ class RomMateGUI:
         screen_h = self.root.winfo_screenheight()
         x = (screen_w // 2) - (670 // 2)
         y = (screen_h // 2) - (870 // 2)
-        self.root.geometry(f"670x870+{x}+{y}")
+        self.root.geometry(f"670x890+{x}+{y}")
         self.root.deiconify()
 
         self.config = Config()
