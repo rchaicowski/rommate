@@ -61,16 +61,16 @@ class MainPanel:
             self.frame,
             text="Your ROM companion - Convert, compress, and organize disc images",
             font=("Arial", 11), bg=c['bg_dark'], fg=c['text_gray']
-        ).pack(pady=(0, 30))
+        ).pack(pady=(0, 15))
 
         # Folder selection
         folder_frame = tk.Frame(self.frame, bg=c['bg_dark'])
         folder_frame.pack(pady=10, fill="x")
 
         tk.Label(
-            folder_frame, text="Game Folder:", font=("Arial", 11, "bold"),
+            folder_frame, text="Game Folder:", font=("Arial", 12, "bold"),
             bg=c['bg_dark'], fg=c['text_light']
-        ).pack(side="left", padx=(0, 15))
+        ).pack(side="left", padx=(0, 5))
 
         self.folder_entry = tk.Entry(
             folder_frame, textvariable=self.folder_path, width=50,
@@ -79,7 +79,7 @@ class MainPanel:
             highlightthickness=2, highlightbackground=c['bg_dark'],
             highlightcolor=c['accent_blue']
         )
-        self.folder_entry.pack(side="left", padx=10, fill="x", expand=True, ipady=6)
+        self.folder_entry.pack(side="left", padx=(0, 10), fill="x", expand=True, ipady=6)
         self._add_placeholder()
 
         tk.Button(
@@ -91,7 +91,7 @@ class MainPanel:
 
         # Disc-Based ROMs section
         disc_frame = tk.Frame(self.frame, bg=c['bg_frame'], relief="groove", bd=2)
-        disc_frame.pack(pady=20, fill="x")
+        disc_frame.pack(pady=8, fill="x")
 
         tk.Label(
             disc_frame, text="Disc-Based ROMs", font=("Arial", 12, "bold"),
@@ -121,7 +121,7 @@ class MainPanel:
 
         # ROM Tools section
         tools_frame = tk.Frame(self.frame, bg=c['bg_frame'], relief="groove", bd=2)
-        tools_frame.pack(pady=20, fill="x")
+        tools_frame.pack(pady=8, fill="x")
 
         tk.Label(
             tools_frame, text="ROM Tools (All ROM Types)",
@@ -141,7 +141,7 @@ class MainPanel:
 
         # Info section
         info_frame = tk.Frame(self.frame, bg=c['bg_frame'], relief="groove", bd=2, height=185)
-        info_frame.pack(pady=20, fill="x")
+        info_frame.pack(pady=8, fill="x")
         info_frame.pack_propagate(False)
 
         tk.Label(
@@ -158,7 +158,7 @@ class MainPanel:
             font=("Arial", 14, "bold"), bg=c['accent_blue'], fg="white",
             cursor="hand2", height=2, padx=50, relief="flat", width=15
         )
-        self.process_btn.pack(pady=30)
+        self.process_btn.pack(pady=15)
 
         self._build_info_sections()
 

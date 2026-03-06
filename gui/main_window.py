@@ -52,7 +52,7 @@ class RomMateGUI:
     def __init__(self, root):
         self.root = root
         self.root.title("RomMate")
-        self.root.geometry("700x1000")
+        self.root.geometry("670x870")
         self.root.resizable(True, True)
 
         self.config = Config()
