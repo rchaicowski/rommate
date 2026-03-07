@@ -1,17 +1,6 @@
-"""
-RomMate - ROM companion tool
-Copyright (C) 2026 Rodrigo
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-"""
+# RomMate - ROM companion tool
+# Copyright (C) 2026 Rodrigo
+# GNU General Public License v3.0 - see LICENSE file for details
 
 """CHD conversion functionality for RomMate"""
 
@@ -74,7 +63,7 @@ class CHDConverter:
                 return "sudo zypper install mame-tools"
             else:
                 return "sudo apt install mame-tools"  # Default to apt
-        except:
+        except Exception:
             return "sudo apt install mame-tools"
     
     def prompt_install_chdman(self):
@@ -353,7 +342,7 @@ class CHDConverter:
                         os.remove(chd_path)
                         if log_callback:
                             log_callback(f"   Deleted incomplete: {os.path.basename(chd_path)}")
-                    except:
+                    except Exception:
                         pass
                 if log_callback:
                     log_callback("[!] Conversion cancelled by user")

@@ -1,21 +1,9 @@
-"""
-RomMate - ROM companion tool
-Copyright (C) 2026 Rodrigo
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-"""
+# RomMate - ROM companion tool
+# Copyright (C) 2026 Rodrigo
+# GNU General Public License v3.0 - see LICENSE file for details
 
 """Cartridge ROM validation and health checking"""
 
-from fileinput import filename
 import os
 import hashlib
 import zlib
@@ -602,7 +590,6 @@ class CartridgeChecker:
                     else:
                         size_match = False
                     
-                    # Check if region matches
                     # Check if region matches (including compound regions)
                     db_name_lower = db_name.lower()
                     region_match = False
@@ -686,12 +673,6 @@ class CartridgeChecker:
                         'confidence': f'{int(best_original_similarity * 100)}%'
                     }
             
-            # DEBUG - check if best_match was set
-            if 'super mario sunshine' in filename.lower():
-                print(f"DEBUG FINAL: best_match = {best_match}")
-                print(f"  best_similarity = {best_similarity:.2f}")
-                print(f"  best_original = {best_original_similarity:.2f}")
-
             # No good match found for disc image
             return {
                 'status': 'unknown',

@@ -1,12 +1,6 @@
-"""
-RomMate - ROM companion tool
-Copyright (C) 2026 Rodrigo
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-"""
+# RomMate - ROM companion tool
+# Copyright (C) 2026 Rodrigo
+# GNU General Public License v3.0 - see LICENSE file for details
 
 """ROM name validation and correction"""
 
@@ -53,7 +47,7 @@ class NameValidator:
                                         bin_file = parts[1]
                                         bin_path = os.path.join(cue_dir, bin_file)
                                         cue_bin_files.add(os.path.normpath(bin_path))
-                    except:
+                    except Exception:
                         pass
                 
                 # Handle GDI files
@@ -68,7 +62,7 @@ class NameValidator:
                                     bin_file = parts[4]
                                     bin_path = os.path.join(gdi_dir, bin_file)
                                     cue_bin_files.add(os.path.normpath(bin_path))
-                    except:
+                    except Exception:
                         pass
         
         # Find all ROM files
