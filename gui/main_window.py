@@ -68,8 +68,8 @@ class RomMateGUI:
         self.config = Config()
 
         saved_theme = self.config.get('theme', 'dark')
-        import gui.theme as theme_module
-        theme_module.set_theme(saved_theme)
+        from gui.theme import set_theme
+        set_theme(saved_theme)
 
         self._init_state()
         self._apply_theme_colors()
@@ -186,8 +186,8 @@ class RomMateGUI:
         saved_folder = self.folder_path.get()
         saved_mode   = self.operation_mode.get()
 
-        import gui.theme as theme_module
-        theme_module.set_theme(theme_name)
+        from gui.theme import set_theme
+        set_theme(theme_name)
 
         for widget in self.root.winfo_children():
             widget.destroy()
@@ -244,7 +244,7 @@ class RomMateGUI:
             self.main_panel.update_folder_display(target)
             self.config.set('last_folder', target)
         except Exception as e:
-            print(f"Error handling drop: {e}")
+            pass  # Drop handling failed silently
 
     # ------------------------------------------------------------------ #
     #  Callbacks dict for operations                                       #

@@ -21,7 +21,7 @@ class SettingsPanel:
         self.config = config
         self.callbacks = callbacks
         
-         # Re-import Theme to get current theme
+        # Re-import Theme to get current theme
         from gui.theme import Theme
 
         # Theme colors
