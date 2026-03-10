@@ -90,7 +90,7 @@ class MainPanel:
         ).pack(side="left")
 
         # Disc-Based ROMs section
-        disc_frame = tk.Frame(self.frame, bg=c['bg_frame'], relief="groove", bd=2)
+        disc_frame = tk.Frame(self.frame, bg=c['bg_frame'], relief="solid", bd=1)
         disc_frame.pack(pady=8, fill="x")
 
         tk.Label(
@@ -120,7 +120,7 @@ class MainPanel:
         ).pack(anchor="w", padx=25, pady=(0, 15))
 
         # ROM Tools section
-        tools_frame = tk.Frame(self.frame, bg=c['bg_frame'], relief="groove", bd=2)
+        tools_frame = tk.Frame(self.frame, bg=c['bg_frame'], relief="solid", bd=1)
         tools_frame.pack(pady=8, fill="x")
 
         tk.Label(
@@ -140,7 +140,7 @@ class MainPanel:
             ).pack(anchor="w", padx=25, pady=8)
 
         # Info section
-        info_frame = tk.Frame(self.frame, bg=c['bg_frame'], relief="groove", bd=2, height=190)
+        info_frame = tk.Frame(self.frame, bg=c['bg_frame'], relief="solid", bd=1, height=190)
         info_frame.pack(pady=8, fill="x")
         info_frame.pack_propagate(False)
 
