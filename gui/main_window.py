@@ -52,7 +52,7 @@ class RomMateGUI:
     def __init__(self, root):
         self.root = root
         self.root.title("RomMate")
-        self.root.geometry("670x920")
+        self.root.geometry("670x930")
         self.root.resizable(True, True)
 
         # Center window on screen without flash
@@ -61,15 +61,15 @@ class RomMateGUI:
         screen_w = self.root.winfo_screenwidth()
         screen_h = self.root.winfo_screenheight()
         x = (screen_w // 2) - (670 // 2)
-        y = (screen_h // 2) - (920 // 2)
-        self.root.geometry(f"670x920+{x}+{y}")
+        y = (screen_h // 2) - (930 // 2)
+        self.root.geometry(f"670x930+{x}+{y}")
         self.root.deiconify()
 
         self.config = Config()
 
         saved_theme = self.config.get('theme', 'dark')
-        from gui.theme import set_theme
-        set_theme(saved_theme)
+        import gui.theme as theme_module
+        theme_module.set_theme(saved_theme)
 
         self._init_state()
         self._apply_theme_colors()
@@ -186,8 +186,8 @@ class RomMateGUI:
         saved_folder = self.folder_path.get()
         saved_mode   = self.operation_mode.get()
 
-        from gui.theme import set_theme
-        set_theme(theme_name)
+        import gui.theme as theme_module
+        theme_module.set_theme(theme_name)
 
         for widget in self.root.winfo_children():
             widget.destroy()
@@ -244,7 +244,7 @@ class RomMateGUI:
             self.main_panel.update_folder_display(target)
             self.config.set('last_folder', target)
         except Exception as e:
-            pass  # Drop handling failed silently
+            print(f"Error handling drop: {e}")
 
     # ------------------------------------------------------------------ #
     #  Callbacks dict for operations                                       #
