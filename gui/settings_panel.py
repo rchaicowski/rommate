@@ -524,6 +524,21 @@ class SettingsPanel:
             padx=20,
             pady=8
         ).pack(anchor="w")
+
+        tk.Frame(content, height=1, bg=self.text_gray).pack(fill="x", pady=(15, 10))
+
+        tk.Button(
+            content,
+            text="♥ Support this project on Ko-fi",
+            command=lambda: __import__('webbrowser').open("https://ko-fi.com/rchaicowski"),
+            font=("Arial", 10),
+            bg="#FF5E5B",
+            fg="white",
+            cursor="hand2",
+            relief="flat",
+            padx=20,
+            pady=8
+        ).pack(anchor="w")
     
     def on_volume_change(self, value):
         """Handle volume slider change"""

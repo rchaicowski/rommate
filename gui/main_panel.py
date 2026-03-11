@@ -160,6 +160,15 @@ class MainPanel:
         )
         self.process_btn.pack(pady=15)
 
+        # Ko-fi donation link
+        tk.Button(
+            self.frame, text="If RomMate helped you, consider supporting me on Ko-fi ♥",
+            command=lambda: __import__('webbrowser').open("https://ko-fi.com/rchaicowski"),
+            font=("Arial", 14), bg=c['bg_dark'], fg="#AD3432",
+            cursor="hand2", relief="flat", bd=0, highlightthickness=0,
+            activebackground=c['bg_dark'], activeforeground="#ff8784"
+        ).pack(pady=(0, 8))
+
         self._build_info_sections()
 
     # ------------------------------------------------------------------ #

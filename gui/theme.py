@@ -39,7 +39,7 @@ class LightTheme:
     """Light theme (Famicom inspired) colors for RomMate"""
     
     # Background colors (Famicom beige/cream with gold accents)
-    BG_DARK = "#d4a574"           # Gold/tan (main background)
+    BG_DARK = "#ddba78"           # Gold/tan (main background)
     BG_FRAME = "#f5f3e8"          # Cream/beige (sections)
     BG_PROCESSING = "#fafafa"     # Light processing panel
     BG_INFO_BOX = "#fff8e1"       # Light yellow info box
