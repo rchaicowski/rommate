@@ -174,7 +174,7 @@ class CHDConverter:
             if file_size > 100 * 1024 * 1024:
                 # Large file - run without capturing output
                 if log_callback and is_dvd:
-                    log_callback(f"   [!] Note: PS2/DVD conversion may take 15-30 minutes")
+                    log_callback(f"   [!] Note: PS2/DVD conversion may take longer than other formats")
                     log_callback(f"   Please wait... (app may appear frozen)")
                 
                 process = subprocess.Popen(cmd)
