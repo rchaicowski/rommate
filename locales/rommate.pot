@@ -1,0 +1,429 @@
+# RomMate Translation Template
+# Copyright (C) 2026 Rodrigo
+# GNU General Public License v3.0
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: RomMate 1.0.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-03-12\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: main_panel_i18n.py
+msgid "Your ROM companion - Convert, compress, and organize disc images"
+msgstr ""
+
+#: main_panel_i18n.py
+msgid "Game Folder:"
+msgstr ""
+
+#: main_panel_i18n.py
+msgid "Browse"
+msgstr ""
+
+#: main_panel_i18n.py
+msgid "Disc-Based ROMs"
+msgstr ""
+
+#: main_panel_i18n.py
+msgid "Convert to CHD (compress disc images)"
+msgstr ""
+
+#: main_panel_i18n.py
+msgid "Create M3U Playlists (for multi-disc games)"
+msgstr ""
+
+#: main_panel_i18n.py
+msgid "Convert to CHD + Create M3U Playlists"
+msgstr ""
+
+#: main_panel_i18n.py
+msgid "ℹ️  Help - When to use each?"
+msgstr ""
+
+#: main_panel_i18n.py
+msgid "ROM Tools (All ROM Types)"
+msgstr ""
+
+#: main_panel_i18n.py
+msgid "Check ROM Health"
+msgstr ""
+
+#: main_panel_i18n.py
+msgid "Validate & Fix ROM Names"
+msgstr ""
+
+#: main_panel_i18n.py
+msgid "ℹ️  Info"
+msgstr ""
+
+#: main_panel_i18n.py
+msgid "▶ Start Operation"
+msgstr ""
+
+#: main_panel_i18n.py
+msgid "If RomMate helped you, consider supporting me on Ko-fi ♥"
+msgstr ""
+
+#: main_panel_i18n.py
+msgid "↓  Drop folder here"
+msgstr ""
+
+#: main_panel_i18n.py
+msgid "Select Game Folder"
+msgstr ""
+
+#: main_panel_i18n.py
+msgid "Scans for: CUE, GDI, CDI, ISO, CHD files"
+msgstr ""
+
+#: main_panel_i18n.py
+msgid "Check ROM files and identify games:"
+msgstr ""
+
+#: main_panel_i18n.py
+msgid "Checks and fixes ROM filenames:"
+msgstr ""
+
+#: main_panel_i18n.py
+msgid "▶ Check ROM Health"
+msgstr ""
+
+#: main_panel_i18n.py
+msgid "▶ Validate ROM Names"
+msgstr ""
+
+#: main_panel_i18n.py
+msgid "▶ Convert to CHD"
+msgstr ""
+
+#: main_panel_i18n.py
+msgid "▶ Create M3U Files"
+msgstr ""
+
+#: main_panel_i18n.py
+msgid "▶ Convert & Create M3U"
+msgstr ""
+
+#: main_panel_i18n.py
+msgid "webbrowser"
+msgstr ""
+
+#: main_window_i18n.py
+msgid "No Folder"
+msgstr ""
+
+#: main_window_i18n.py
+msgid "Error"
+msgstr ""
+
+#: main_window_i18n.py
+msgid "chdman Not Found"
+msgstr ""
+
+#: main_window_i18n.py
+msgid "chdman is required for CHD verification.\n\n"
+msgstr ""
+
+#: main_window_i18n.py
+msgid "Rename this file"
+msgstr ""
+
+#: main_window_i18n.py
+msgid "Rename Complete"
+msgstr ""
+
+#: main_window_i18n.py
+msgid "Partial Success"
+msgstr ""
+
+#: main_window_i18n.py
+msgid "Cancel"
+msgstr ""
+
+#: main_window_i18n.py
+msgid "✓ Rename Selected"
+msgstr ""
+
+#: main_window_i18n.py
+msgid "[!] External Copier Headers Detected"
+msgstr ""
+
+#: main_window_i18n.py
+msgid "Create backup before fixing (.backup extension)"
+msgstr ""
+
+#: main_window_i18n.py
+msgid "No Selection"
+msgstr ""
+
+#: main_window_i18n.py
+msgid "Headers Removed Successfully!"
+msgstr ""
+
+#: main_window_i18n.py
+msgid "Backups Deleted"
+msgstr ""
+
+#: main_window_i18n.py
+msgid "Backups Kept"
+msgstr ""
+
+#: main_window_i18n.py
+msgid "Success"
+msgstr ""
+
+#: main_window_i18n.py
+msgid "Errors"
+msgstr ""
+
+#: main_window_i18n.py
+msgid "Learn More"
+msgstr ""
+
+#: main_window_i18n.py
+msgid "External Copier Headers"
+msgstr ""
+
+#: main_window_i18n.py
+msgid "Skip"
+msgstr ""
+
+#: main_window_i18n.py
+msgid "Remove Headers"
+msgstr ""
+
+#: processing_panel_i18n.py
+msgid "Processing..."
+msgstr ""
+
+#: processing_panel_i18n.py
+msgid "Starting operation"
+msgstr ""
+
+#: processing_panel_i18n.py
+msgid "0 / 0 files"
+msgstr ""
+
+#: processing_panel_i18n.py
+msgid "Details:"
+msgstr ""
+
+#: processing_panel_i18n.py
+msgid "✖ Cancel"
+msgstr ""
+
+#: processing_panel_i18n.py
+msgid "✓ Done - Return to Main"
+msgstr ""
+
+#: processing_panel_i18n.py
+msgid "↺ Process Another Folder"
+msgstr ""
+
+#: processing_panel_i18n.py
+msgid "Starting"
+msgstr ""
+
+#: processing_panel_i18n.py
+msgid "Initializing"
+msgstr ""
+
+#: processing_panel_i18n.py
+msgid "Cancel Processing"
+msgstr ""
+
+#: processing_panel_i18n.py
+msgid "Are you sure you want to cancel?\n\nAny incomplete CHD files will be deleted."
+msgstr ""
+
+#: processing_panel_i18n.py
+msgid "[✓] All ROMs Verified Successfully!"
+msgstr ""
+
+#: processing_panel_i18n.py
+msgid "All CHD files passed verification"
+msgstr ""
+
+#: processing_panel_i18n.py
+msgid "[!] Health Check Complete with Issues"
+msgstr ""
+
+#: processing_panel_i18n.py
+msgid "Some files failed verification - check details above"
+msgstr ""
+
+#: processing_panel_i18n.py
+msgid "[x] Health Check Failed"
+msgstr ""
+
+#: processing_panel_i18n.py
+msgid "No files verified successfully"
+msgstr ""
+
+#: processing_panel_i18n.py
+msgid "[✓] Completed Successfully!"
+msgstr ""
+
+#: processing_panel_i18n.py
+msgid "All operations finished"
+msgstr ""
+
+#: processing_panel_i18n.py
+msgid "[!] Completed with Errors"
+msgstr ""
+
+#: processing_panel_i18n.py
+msgid "Some operations failed - check details below"
+msgstr ""
+
+#: settings_panel_i18n.py
+msgid "⚙️ Settings"
+msgstr ""
+
+#: settings_panel_i18n.py
+msgid "Sound"
+msgstr ""
+
+#: settings_panel_i18n.py
+msgid "Enable sounds"
+msgstr ""
+
+#: settings_panel_i18n.py
+msgid "Volume:"
+msgstr ""
+
+#: settings_panel_i18n.py
+msgid "Folders"
+msgstr ""
+
+#: settings_panel_i18n.py
+msgid "Remember last folder used"
+msgstr ""
+
+#: settings_panel_i18n.py
+msgid "Always use default folder:"
+msgstr ""
+
+#: settings_panel_i18n.py
+msgid "Conversion"
+msgstr ""
+
+#: settings_panel_i18n.py
+msgid "Delete original files after successful CHD conversion"
+msgstr ""
+
+#: settings_panel_i18n.py
+msgid "(CHD files are compressed and save 40-60% space)"
+msgstr ""
+
+#: settings_panel_i18n.py
+msgid "Theme"
+msgstr ""
+
+#: settings_panel_i18n.py
+msgid "🌙 Dark"
+msgstr ""
+
+#: settings_panel_i18n.py
+msgid "☀️ Light"
+msgstr ""
+
+#: settings_panel_i18n.py
+msgid "Language"
+msgstr ""
+
+#: settings_panel_i18n.py
+msgid "ℹ️ About"
+msgstr ""
+
+#: settings_panel_i18n.py
+msgid "RomMate v1.0.0"
+msgstr ""
+
+#: settings_panel_i18n.py
+msgid "License: GNU General Public License v3.0 (GPLv3)"
+msgstr ""
+
+#: settings_panel_i18n.py
+msgid "Copyright © 2026 Rodrigo. This software is free and open source."
+msgstr ""
+
+#: settings_panel_i18n.py
+msgid "Credits: MAME/chdman, No-Intro, Redump"
+msgstr ""
+
+#: settings_panel_i18n.py
+msgid "♥ Support this project on Ko-fi"
+msgstr ""
+
+#: settings_panel_i18n.py
+msgid "Select Default ROM Folder"
+msgstr ""
+
+#: dialogs_i18n.py
+msgid "Choose Format"
+msgstr ""
+
+#: dialogs_i18n.py
+msgid "[!] Multiple Disc Formats Found"
+msgstr ""
+
+#: dialogs_i18n.py
+msgid "Both original disc files and CHD files were found.\nWhich format do you want to use for M3U playlists?"
+msgstr ""
+
+#: dialogs_i18n.py
+msgid "Use CHD Files\n(compressed)"
+msgstr ""
+
+#: dialogs_i18n.py
+msgid "Use Original Files\n(CUE/BIN/etc)"
+msgstr ""
+
+#: dialogs_i18n.py
+msgid "Help - When to use each option"
+msgstr ""
+
+#: dialogs_i18n.py
+msgid "Close"
+msgstr ""
+
+#: operations_i18n.py
+msgid "chdman is required for CHD conversion.\n\nIt should be bundled in the tools/ folder."
+msgstr ""
+
+#: operations_i18n.py
+msgid "No Files"
+msgstr ""
+
+#: operations_i18n.py
+msgid "No convertible disc images found."
+msgstr ""
+
+#: operations_i18n.py
+msgid "Conversion Complete"
+msgstr ""
+
+#: operations_i18n.py
+msgid "CHD conversion finished!\n\nConverted: {converted}\nSkipped: {skipped}\nFailed: {failed}"
+msgstr ""
+
+#: operations_i18n.py
+msgid "No Games Found"
+msgstr ""
+
+#: operations_i18n.py
+msgid "No multi-disc games were found."
+msgstr ""
+
+#: operations_i18n.py
+msgid "M3U Creation Complete"
+msgstr ""
+

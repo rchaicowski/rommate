@@ -19,7 +19,8 @@ class Config:
             'last_folder': str(Path.home()),
             'sound_enabled': True,
             'sound_volume': 1.0,
-            'delete_after_conversion': False
+            'delete_after_conversion': False,
+            'language': 'en'
         }
         
         self.settings = self.load()

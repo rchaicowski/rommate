@@ -1,0 +1,461 @@
+# RomMate - Français translation
+msgid ""
+msgstr ""
+"Project-Id-Version: RomMate 1.0.0\n"
+"Language: fr\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "Your ROM companion - Convert, compress, and organize disc images"
+msgstr "Votre compagnon ROM - Convertissez, compressez et organisez vos images disque"
+
+msgid "Game Folder:"
+msgstr "Dossier de Jeux :"
+
+msgid "Browse"
+msgstr "Parcourir"
+
+msgid "Disc-Based ROMs"
+msgstr "ROMs sur Disque"
+
+msgid "Convert to CHD (compress disc images)"
+msgstr "Convertir en CHD (compresser les images disque)"
+
+msgid "Create M3U Playlists (for multi-disc games)"
+msgstr "Créer des Playlists M3U (pour jeux multi-disques)"
+
+msgid "Convert to CHD + Create M3U Playlists"
+msgstr "Convertir en CHD + Créer des Playlists M3U"
+
+msgid "ℹ️  Help - When to use each?"
+msgstr "ℹ️  Aide - Quand utiliser chaque option ?"
+
+msgid "ROM Tools (All ROM Types)"
+msgstr "Outils ROM (Tous les Types)"
+
+msgid "Check ROM Health"
+msgstr "Vérifier l'état des ROMs"
+
+msgid "Validate & Fix ROM Names"
+msgstr "Valider et corriger les noms de ROMs"
+
+msgid "ℹ️  Info"
+msgstr "ℹ️  Informations"
+
+msgid "▶ Start Operation"
+msgstr "▶ Démarrer l'opération"
+
+msgid "If RomMate helped you, consider supporting me on Ko-fi ♥"
+msgstr "Si RomMate vous a aidé, pensez à me soutenir sur Ko-fi ♥"
+
+msgid "↓  Drop folder here"
+msgstr "↓  Déposez le dossier ici"
+
+msgid "Select Game Folder"
+msgstr "Sélectionner le dossier de jeux"
+
+msgid "Scans for: CUE, GDI, CDI, ISO, CHD files"
+msgstr "Recherche : fichiers CUE, GDI, CDI, ISO, CHD"
+
+msgid "Check ROM files and identify games:"
+msgstr "Vérifier les fichiers ROM et identifier les jeux :"
+
+msgid "Checks and fixes ROM filenames:"
+msgstr "Vérifie et corrige les noms de fichiers ROM :"
+
+msgid "▶ Check ROM Health"
+msgstr "▶ Vérifier l'état"
+
+msgid "▶ Validate ROM Names"
+msgstr "▶ Valider les noms"
+
+msgid "▶ Convert to CHD"
+msgstr "▶ Convertir en CHD"
+
+msgid "▶ Create M3U Files"
+msgstr "▶ Créer des fichiers M3U"
+
+msgid "▶ Convert & Create M3U"
+msgstr "▶ Convertir et créer M3U"
+
+msgid "No Folder"
+msgstr "Aucun dossier"
+
+msgid "Error"
+msgstr "Erreur"
+
+msgid "chdman Not Found"
+msgstr "chdman introuvable"
+
+msgid "chdman is required for CHD verification.\n\n"
+msgstr "chdman est requis pour la vérification CHD.\n\n"
+
+msgid "Rename this file"
+msgstr "Renommer ce fichier"
+
+msgid "Rename Complete"
+msgstr "Renommage terminé"
+
+msgid "Partial Success"
+msgstr "Succès partiel"
+
+msgid "Cancel"
+msgstr "Annuler"
+
+msgid "✓ Rename Selected"
+msgstr "✓ Renommer la sélection"
+
+msgid "[!] External Copier Headers Detected"
+msgstr "[!] En-têtes de copieur détectés"
+
+msgid "Create backup before fixing (.backup extension)"
+msgstr "Créer une sauvegarde avant correction (extension .backup)"
+
+msgid "No Selection"
+msgstr "Aucune sélection"
+
+msgid "Headers Removed Successfully!"
+msgstr "En-têtes supprimés avec succès !"
+
+msgid "Backups Deleted"
+msgstr "Sauvegardes supprimées"
+
+msgid "Backups Kept"
+msgstr "Sauvegardes conservées"
+
+msgid "Success"
+msgstr "Succès"
+
+msgid "Errors"
+msgstr "Erreurs"
+
+msgid "Learn More"
+msgstr "En savoir plus"
+
+msgid "External Copier Headers"
+msgstr "En-têtes de copieur"
+
+msgid "Skip"
+msgstr "Ignorer"
+
+msgid "Remove Headers"
+msgstr "Supprimer les en-têtes"
+
+msgid "Processing..."
+msgstr "Traitement en cours..."
+
+msgid "Starting operation"
+msgstr "Démarrage de l'opération"
+
+msgid "0 / 0 files"
+msgstr "0 / 0 fichiers"
+
+msgid "Details:"
+msgstr "Détails :"
+
+msgid "✖ Cancel"
+msgstr "✖ Annuler"
+
+msgid "✓ Done - Return to Main"
+msgstr "✓ Terminé - Retour au menu principal"
+
+msgid "↺ Process Another Folder"
+msgstr "↺ Traiter un autre dossier"
+
+msgid "Starting"
+msgstr "Démarrage"
+
+msgid "Initializing"
+msgstr "Initialisation"
+
+msgid "Cancel Processing"
+msgstr "Annuler le traitement"
+
+msgid "Are you sure you want to cancel?\n\nAny incomplete CHD files will be deleted."
+msgstr "Êtes-vous sûr de vouloir annuler ?\n\nLes fichiers CHD incomplets seront supprimés."
+
+msgid "[✓] All ROMs Verified Successfully!"
+msgstr "[✓] Toutes les ROMs vérifiées avec succès !"
+
+msgid "All CHD files passed verification"
+msgstr "Tous les fichiers CHD ont passé la vérification"
+
+msgid "[!] Health Check Complete with Issues"
+msgstr "[!] Vérification terminée avec des problèmes"
+
+msgid "Some files failed verification - check details above"
+msgstr "Certains fichiers ont échoué la vérification - voir les détails ci-dessus"
+
+msgid "[x] Health Check Failed"
+msgstr "[x] Échec de la vérification"
+
+msgid "No files verified successfully"
+msgstr "Aucun fichier vérifié avec succès"
+
+msgid "[✓] Completed Successfully!"
+msgstr "[✓] Terminé avec succès !"
+
+msgid "All operations finished"
+msgstr "Toutes les opérations terminées"
+
+msgid "[!] Completed with Errors"
+msgstr "[!] Terminé avec des erreurs"
+
+msgid "Some operations failed - check details below"
+msgstr "Certaines opérations ont échoué - voir les détails ci-dessous"
+
+msgid "⚙️ Settings"
+msgstr "⚙️ Paramètres"
+
+msgid "Sound"
+msgstr "Son"
+
+msgid "Enable sounds"
+msgstr "Activer les sons"
+
+msgid "Volume:"
+msgstr "Volume :"
+
+msgid "Folders"
+msgstr "Dossiers"
+
+msgid "Remember last folder used"
+msgstr "Mémoriser le dernier dossier utilisé"
+
+msgid "Always use default folder:"
+msgstr "Toujours utiliser le dossier par défaut :"
+
+msgid "Conversion"
+msgstr "Conversion"
+
+msgid "Delete original files after successful CHD conversion"
+msgstr "Supprimer les fichiers originaux après conversion CHD réussie"
+
+msgid "(CHD files are compressed and save 40-60% space)"
+msgstr "(Les fichiers CHD sont compressés et économisent 40 à 60 % d'espace)"
+
+msgid "Theme"
+msgstr "Thème"
+
+msgid "🌙 Dark"
+msgstr "🌙 Sombre"
+
+msgid "☀️ Light"
+msgstr "☀️ Clair"
+
+msgid "Language"
+msgstr "Langue"
+
+msgid "ℹ️ About"
+msgstr "ℹ️ À propos"
+
+msgid "RomMate v1.0.0"
+msgstr "RomMate v1.0.0"
+
+msgid "License: GNU General Public License v3.0 (GPLv3)"
+msgstr "Licence : GNU General Public License v3.0 (GPLv3)"
+
+msgid "Copyright © 2026 Rodrigo. This software is free and open source."
+msgstr "Copyright © 2026 Rodrigo. Ce logiciel est libre et open source."
+
+msgid "Credits: MAME/chdman, No-Intro, Redump"
+msgstr "Crédits : MAME/chdman, No-Intro, Redump"
+
+msgid "♥ Support this project on Ko-fi"
+msgstr "♥ Soutenez ce projet sur Ko-fi"
+
+msgid "Select Default ROM Folder"
+msgstr "Sélectionner le dossier ROM par défaut"
+
+msgid "Choose Format"
+msgstr "Choisir le format"
+
+msgid "[!] Multiple Disc Formats Found"
+msgstr "[!] Plusieurs formats de disque trouvés"
+
+msgid "Both original disc files and CHD files were found.\nWhich format do you want to use for M3U playlists?"
+msgstr "Des fichiers disque originaux et des fichiers CHD ont été trouvés.\nQuel format voulez-vous utiliser pour les playlists M3U ?"
+
+msgid "Use CHD Files\n(compressed)"
+msgstr "Utiliser les fichiers CHD\n(compressés)"
+
+msgid "Use Original Files\n(CUE/BIN/etc)"
+msgstr "Utiliser les fichiers originaux\n(CUE/BIN/etc)"
+
+msgid "Help - When to use each option"
+msgstr "Aide - Quand utiliser chaque option"
+
+msgid "Close"
+msgstr "Fermer"
+
+msgid "chdman is required for CHD conversion.\n\nIt should be bundled in the tools/ folder."
+msgstr "chdman est requis pour la conversion CHD.\n\nIl doit se trouver dans le dossier tools/."
+
+msgid "No Files"
+msgstr "Aucun fichier"
+
+msgid "No convertible disc images found."
+msgstr "Aucune image disque convertible trouvée."
+
+msgid "Conversion Complete"
+msgstr "Conversion terminée"
+
+msgid "CHD conversion finished!\n\nConverted: {converted}\nSkipped: {skipped}\nFailed: {failed}"
+msgstr ""
+
+msgid "No Games Found"
+msgstr "Aucun jeu trouvé"
+
+msgid "No multi-disc games were found."
+msgstr "Aucun jeu multi-disques trouvé."
+
+msgid "M3U Creation Complete"
+msgstr "Création M3U terminée"
+
+msgid ""
+"\n"
+" CONVERT TO CHD\n"
+"━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
+"\n"
+"Compresses your disc images to save space.\n"
+"\n"
+"What it does:\n"
+"  • Converts CUE/BIN, GDI, CDI and ISO files to CHD format\n"
+"  • Reduces file size by 40-60%\n"
+"  • Preserves all game data perfectly\n"
+"\n"
+"Best for:\n"
+"  • Saving storage space\n"
+"  • RetroArch and most modern emulators\n"
+"\n"
+"Example:\n"
+"  Game.cue + Game.bin (700 MB)  →  Game.chd (~350 MB)\n"
+"\n"
+"[!] Always keep backups before converting!\n"
+"\n"
+"[~] Most games run perfectly in CHD format, but a small\n"
+"    number of titles may have compatibility issues.\n"
+"    If you experience problems, try the original format.\n"
+"\n"
+"\n"
+" CREATE M3U PLAYLISTS\n"
+"━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
+"\n"
+"Use this for multi-disc games (Disc 1, Disc 2, etc.)\n"
+"\n"
+"What it does:\n"
+"  • Creates .m3u playlist files grouping all discs per game\n"
+"  • Lets you switch discs inside your emulator during gameplay\n"
+"  • Works with CUE, GDI, CDI, ISO and CHD files\n"
+"\n"
+"Best for:\n"
+"  • PS1, PS2, Dreamcast, Saturn and Sega CD multi-disc games\n"
+"\n"
+"Example:\n"
+"  Final Fantasy VII (Disc 1).chd\n"
+"  Final Fantasy VII (Disc 2).chd\n"
+"  Final Fantasy VII (Disc 3).chd\n"
+"  \n"
+"  →  Final Fantasy VII.m3u\n"
+"    \n"
+msgstr ""
+"\n"
+" CONVERTIR EN CHD\n"
+"━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
+"\n"
+"Compresse vos images disque pour économiser de l'espace.\n"
+"\n"
+"Ce que ça fait :\n"
+"  • Convertit les fichiers CUE/BIN, GDI, CDI et ISO au format CHD\n"
+"  • Réduit la taille des fichiers de 40-60%\n"
+"  • Préserve parfaitement toutes les données du jeu\n"
+"\n"
+"Idéal pour :\n"
+"  • Économiser de l'espace de stockage\n"
+"  • RetroArch et la plupart des émulateurs modernes\n"
+"\n"
+"Exemple :\n"
+"  Game.cue + Game.bin (700 Mo)  →  Game.chd (~350 Mo)\n"
+"\n"
+"[!] Faites toujours une sauvegarde avant de convertir !\n"
+"\n"
+"[~] La plupart des jeux fonctionnent parfaitement au format CHD,\n"
+"    mais certains titres peuvent avoir des problèmes de compatibilité.\n"
+"    En cas de problème, essayez le format original.\n"
+"\n"
+"\n"
+" CRÉER DES LISTES M3U\n"
+"━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
+"\n"
+"Utilisez ceci pour les jeux multi-disques (Disque 1, Disque 2, etc.)\n"
+"\n"
+"Ce que ça fait :\n"
+"  • Crée des fichiers de liste .m3u regroupant tous les disques par jeu\n"
+"  • Permet de changer de disque dans l'émulateur pendant le jeu\n"
+"  • Fonctionne avec les fichiers CUE, GDI, CDI, ISO et CHD\n"
+"\n"
+"Idéal pour :\n"
+"  • Jeux multi-disques PS1, PS2, Dreamcast, Saturn et Sega CD\n"
+"\n"
+"Exemple :\n"
+"  Final Fantasy VII (Disque 1).chd\n"
+"  Final Fantasy VII (Disque 2).chd\n"
+"  Final Fantasy VII (Disque 3).chd\n"
+"  \n"
+"  →  Final Fantasy VII.m3u\n"
+"    \n"
+
+msgid "Converts: CUE, GDI, CDI, ISO → CHD format"
+msgstr "Convertit : CUE, GDI, CDI, ISO → format CHD"
+
+msgid "Supported: PS1, PS2, Dreamcast, Saturn, PSP"
+msgstr "Supporté : PS1, PS2, Dreamcast, Saturn, PSP"
+
+msgid "Not supported: GameCube (use GCZ), Wii (use RVZ/WBFS)"
+msgstr "Non supporté : GameCube (utiliser GCZ), Wii (utiliser RVZ/WBFS)"
+
+msgid "• CHD files are compressed and save 40-60% space"
+msgstr "• Les fichiers CHD sont compressés et économisent 40-60% d'espace"
+
+msgid "• Supported by RetroArch and most modern emulators"
+msgstr "• Supporté par RetroArch et la plupart des émulateurs modernes"
+
+msgid "ℹ️ Note: All disc files must be in the same folder.\n"
+"    Works with PSX, PS2, Dreamcast, Saturn, Sega CD, and more!\n"
+"    If both CUE and CHD files exist, you'll be asked which to use."
+msgstr "ℹ️ Note : Tous les fichiers disque doivent être dans le même dossier.\n"
+"    Fonctionne avec PSX, PS2, Dreamcast, Saturn, Sega CD et plus !\n"
+"    Si des fichiers CUE et CHD existent, il vous sera demandé lequel utiliser."
+
+msgid "Step 1: Convert all disc images to CHD"
+msgstr "Étape 1 : Convertir toutes les images disque en CHD"
+
+msgid "  Converts: CUE, GDI, CDI, ISO → CHD"
+msgstr "  Convertit : CUE, GDI, CDI, ISO → CHD"
+
+msgid "Step 2: Create M3U playlists for multi-disc games"
+msgstr "Étape 2 : Créer des listes M3U pour les jeux multi-disques"
+
+msgid "  Groups CHD files into playlists"
+msgstr "  Regroupe les fichiers CHD en listes de lecture"
+
+msgid "• CHD Files: Full integrity verification ✓"
+msgstr "• Fichiers CHD : Vérification complète de l'intégrité ✓"
+
+msgid "• Cartridge ROMs: Checksum verification ✓"
+msgstr "• ROMs cartouche : Vérification de la somme de contrôle ✓"
+
+msgid "• ISO/CDI/GDI: Identification by name & size (Cannot verify disc image checksums)"
+msgstr "• ISO/CDI/GDI : Identification par nom et taille (Impossible de vérifier les sommes des images disque)"
+
+msgid "• Compare against No-Intro & Redump databases"
+msgstr "• Compare avec les bases de données No-Intro et Redump"
+
+msgid "• Compares against No-Intro/Redump databases"
+msgstr "• Compare avec les bases de données No-Intro/Redump"
+
+msgid "• Suggests correct naming conventions"
+msgstr "• Suggère les conventions de nommage correctes"
+
+msgid "• Detects region and version information"
+msgstr "• Détecte les informations de région et de version"

@@ -13,6 +13,7 @@ from tkinter import messagebox
 
 from core.file_utils import find_multidisc_games, create_m3u_file
 from gui.dialogs import show_format_choice_dialog
+from utils.i18n import _
 
 
 def _check_chdman(converter, callbacks):
@@ -34,8 +35,8 @@ def _check_chdman(converter, callbacks):
             log("\nchdman is required for CHD conversion.")
             log("It should be in the tools/ folder.")
             messagebox.showerror(
-                "chdman Not Found",
-                "chdman is required for CHD conversion.\n\nIt should be bundled in the tools/ folder."
+                _("chdman Not Found"),
+                _("chdman is required for CHD conversion.\n\nIt should be bundled in the tools/ folder.")
             )
         done(success=False)
         return False
@@ -101,7 +102,7 @@ def convert_to_chd(folder, delete_after, converter, callbacks):
         if converted == 0 and skipped == 0 and failed == 0:
             log("\n[x] No convertible files found")
             log("Supported formats: CUE, GDI, CDI, ISO")
-            messagebox.showinfo("No Files", "No convertible disc images found.")
+            messagebox.showinfo(_("No Files"), _("No convertible disc images found."))
             done(success=False)
             return
 
@@ -115,13 +116,13 @@ def convert_to_chd(folder, delete_after, converter, callbacks):
 
         done(success=failed == 0, converted=converted, skipped=skipped, failed=failed)
         messagebox.showinfo(
-            "Conversion Complete",
+            _("Conversion Complete"),
             f"CHD conversion finished!\n\nConverted: {converted}\nSkipped: {skipped}\nFailed: {failed}"
         )
 
     except Exception as e:
         log(f"\n[x] Error: {str(e)}")
-        messagebox.showerror("Error", f"An error occurred:\n{str(e)}")
+        messagebox.showerror(_("Error"), f"An error occurred:\n{str(e)}")
         done(success=False)
 
 
@@ -156,7 +157,7 @@ def create_m3u_files(folder, m3u_creator, root, callbacks):
             log("\nMake sure files follow naming conventions like:")
             log("  • Game Name (Disc 1).cue")
             log("  • Game Name (Disc 2).chd")
-            messagebox.showinfo("No Games Found", "No multi-disc games were found.")
+            messagebox.showinfo(_("No Games Found"), _("No multi-disc games were found."))
             done(success=False)
         else:
             log(f"\n{'=' * 60}")
@@ -164,13 +165,13 @@ def create_m3u_files(folder, m3u_creator, root, callbacks):
             log(f"{'=' * 60}\nALL OPERATIONS COMPLETE\n{'=' * 60}")
             done(success=True, converted=created, skipped=skipped)
             messagebox.showinfo(
-                "M3U Creation Complete",
+                _("M3U Creation Complete"),
                 f"M3U playlist creation finished!\n\nCreated: {created}\nSkipped: {skipped}"
             )
 
     except Exception as e:
         log(f"\n[x] Error: {str(e)}")
-        messagebox.showerror("Error", f"An error occurred:\n{str(e)}")
+        messagebox.showerror(_("Error"), f"An error occurred:\n{str(e)}")
         done(success=False)
 
 
@@ -244,7 +245,7 @@ def convert_and_create_m3u(folder, delete_after, converter, callbacks):
 
     except Exception as e:
         log(f"\n[x] Error: {str(e)}")
-        messagebox.showerror("Error", f"An error occurred:\n{str(e)}")
+        messagebox.showerror(_("Error"), f"An error occurred:\n{str(e)}")
         done(success=False)
 
 

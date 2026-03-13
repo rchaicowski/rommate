@@ -5,6 +5,7 @@ Handles the processing UI: spinner, log, status updates, cancel and completion.
 
 import tkinter as tk
 from tkinter import scrolledtext, messagebox
+from utils.i18n import _
 
 
 class ProcessingPanel:
@@ -47,13 +48,13 @@ class ProcessingPanel:
         header.pack(fill="x", pady=20, padx=30)
 
         self.status_title = tk.Label(
-            header, text="Processing...", font=("Arial", 20, "bold"),
+            header, text=_("Processing..."), font=("Arial", 20, "bold"),
             bg=c['bg_frame'], fg=c['text_light']
         )
         self.status_title.pack()
 
         self.status_subtitle = tk.Label(
-            header, text="Starting operation", font=("Arial", 12),
+            header, text=_("Starting operation"), font=("Arial", 12),
             bg=c['bg_frame'], fg=c['text_gray']
         )
         self.status_subtitle.pack(pady=(5, 0))
@@ -65,7 +66,7 @@ class ProcessingPanel:
         self.current_file_label.pack(pady=(10, 20))
 
         self.file_counter_label = tk.Label(
-            self.frame, text="0 / 0 files", font=("Arial", 13, "bold"),
+            self.frame, text=_("0 / 0 files"), font=("Arial", 13, "bold"),
             bg=c['bg_frame'], fg=c['text_light']
         )
         self.file_counter_label.pack(pady=(0, 20))
@@ -73,7 +74,7 @@ class ProcessingPanel:
         tk.Frame(self.frame, height=2, bg=c['text_gray']).pack(fill="x", padx=30, pady=10)
 
         tk.Label(
-            self.frame, text="Details:", font=("Arial", 11, "bold"),
+            self.frame, text=_("Details:"), font=("Arial", 11, "bold"),
             bg=c['bg_frame'], fg=c['text_light']
         ).pack(anchor="w", padx=30, pady=(10, 5))
 
@@ -92,7 +93,7 @@ class ProcessingPanel:
         self.cancel_frame.pack(pady=10)
 
         tk.Button(
-            self.cancel_frame, text="✖ Cancel", command=self.cancel_processing,
+            self.cancel_frame, text=_("✖ Cancel"), command=self.cancel_processing,
             font=("Arial", 11, "bold"), bg=c['accent_red'], fg="white",
             cursor="hand2", padx=25, pady=10, relief="flat",
             activebackground=c['active_red']
@@ -104,7 +105,7 @@ class ProcessingPanel:
         btn_frame.pack()
 
         tk.Button(
-            btn_frame, text="✓ Done - Return to Main",
+            btn_frame, text=_("✓ Done - Return to Main"),
             command=self._on_return,
             font=("Arial", 12, "bold"), bg=c['accent_green'], fg="white",
             cursor="hand2", padx=30, pady=12, relief="flat",
@@ -112,7 +113,7 @@ class ProcessingPanel:
         ).pack(side="left", padx=10)
 
         tk.Button(
-            btn_frame, text="↺ Process Another Folder",
+            btn_frame, text=_("↺ Process Another Folder"),
             command=self._on_return,
             font=("Arial", 11), bg=c['accent_blue'], fg="white",
             cursor="hand2", padx=20, pady=12, relief="flat",
@@ -135,9 +136,9 @@ class ProcessingPanel:
         # Reset background for all widgets back to normal
         self._set_bg_recursive(self.frame, self.c['bg_frame'])
 
-        self.status_title.config(text="Starting", fg=self.c['text_light'])
-        self.status_subtitle.config(text="Initializing")
-        self.file_counter_label.config(text="0 / 0 files")
+        self.status_title.config(text=_("Starting"), fg=self.c['text_light'])
+        self.status_subtitle.config(text=_("Initializing"))
+        self.file_counter_label.config(text=_("0 / 0 files"))
         self.current_file_label.config(text="")
 
         self.processing_log.config(state="normal")
@@ -244,8 +245,8 @@ class ProcessingPanel:
         if not self.get_is_processing():
             return
         if messagebox.askyesno(
-            "Cancel Processing",
-            "Are you sure you want to cancel?\n\nAny incomplete CHD files will be deleted.",
+            _("Cancel Processing"),
+            _("Are you sure you want to cancel?\n\nAny incomplete CHD files will be deleted."),
             icon='warning'
         ):
             self.set_cancel(True)
@@ -266,25 +267,25 @@ class ProcessingPanel:
 
         if mode == "health":
             if success and failed == 0:
-                self.status_title.config(text="[✓] All ROMs Verified Successfully!", fg=c['accent_green'])
-                self.status_subtitle.config(text="All CHD files passed verification")
+                self.status_title.config(text=_("[✓] All ROMs Verified Successfully!"), fg=c['accent_green'])
+                self.status_subtitle.config(text=_("All CHD files passed verification"))
                 self._set_bg_recursive(self.frame, c['state_success'])
             elif converted > 0:
-                self.status_title.config(text="[!] Health Check Complete with Issues", fg=c['accent_orange'])
-                self.status_subtitle.config(text="Some files failed verification - check details above")
+                self.status_title.config(text=_("[!] Health Check Complete with Issues"), fg=c['accent_orange'])
+                self.status_subtitle.config(text=_("Some files failed verification - check details above"))
                 self._set_bg_recursive(self.frame, c['state_warning'])
             else:
-                self.status_title.config(text="[x] Health Check Failed", fg=c['accent_red'])
-                self.status_subtitle.config(text="No files verified successfully")
+                self.status_title.config(text=_("[x] Health Check Failed"), fg=c['accent_red'])
+                self.status_subtitle.config(text=_("No files verified successfully"))
                 self._set_bg_recursive(self.frame, c['state_error'])
         else:
             if success:
-                self.status_title.config(text="[✓] Completed Successfully!", fg=c['accent_green'])
-                self.status_subtitle.config(text="All operations finished")
+                self.status_title.config(text=_("[✓] Completed Successfully!"), fg=c['accent_green'])
+                self.status_subtitle.config(text=_("All operations finished"))
                 self._set_bg_recursive(self.frame, c['state_success'])
             else:
-                self.status_title.config(text="[!] Completed with Errors", fg=c['accent_red'])
-                self.status_subtitle.config(text="Some operations failed - check details below")
+                self.status_title.config(text=_("[!] Completed with Errors"), fg=c['accent_red'])
+                self.status_subtitle.config(text=_("Some operations failed - check details below"))
                 self._set_bg_recursive(self.frame, c['state_error'])
 
         self.completion_frame.pack(pady=20)

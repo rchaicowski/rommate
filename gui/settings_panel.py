@@ -1,9 +1,10 @@
 """Settings panel for RomMate"""
 
 import tkinter as tk
-from tkinter import filedialog
+from tkinter import filedialog, messagebox
 from gui.theme import Theme
 import customtkinter as ctk
+from utils.i18n import _
 
 
 class SettingsPanel:
@@ -46,7 +47,7 @@ class SettingsPanel:
         # Center the title
         title_label = tk.Label(
             header_frame,
-            text="⚙️ Settings",
+            text=_("⚙️ Settings"),
             font=("Arial", 24, "bold"),
             bg=self.bg_dark,
             fg=self.text_light
@@ -132,7 +133,7 @@ class SettingsPanel:
         # Header
         tk.Label(
             section,
-            text="Sound",
+            text=_("Sound"),
             font=("Arial", 14, "bold"),
             bg=self.bg_frame,
             fg=self.text_light
@@ -148,7 +149,7 @@ class SettingsPanel:
         
         tk.Checkbutton(
             content,
-            text="Enable sounds",
+            text=_("Enable sounds"),
             variable=self.sound_var,
             font=("Arial", 11),
             bg=self.bg_frame,
@@ -169,7 +170,7 @@ class SettingsPanel:
         
         tk.Label(
             volume_frame,
-            text="Volume:",
+            text=_("Volume:"),
             font=("Arial", 11),
             bg=self.bg_frame,
             fg=self.text_light
@@ -212,7 +213,7 @@ class SettingsPanel:
         # Header
         tk.Label(
             section,
-            text="Folders",
+            text=_("Folders"),
             font=("Arial", 14, "bold"),
             bg=self.bg_frame,
             fg=self.text_light
@@ -233,7 +234,7 @@ class SettingsPanel:
         
         tk.Radiobutton(
             remember_frame,
-            text="Remember last folder used",
+            text=_("Remember last folder used"),
             variable=self.folder_mode,
             value='remember_last',
             font=("Arial", 11),
@@ -265,7 +266,7 @@ class SettingsPanel:
         
         tk.Radiobutton(
             default_frame,
-            text="Always use default folder:",
+            text=_("Always use default folder:"),
             variable=self.folder_mode,
             value='use_default',
             font=("Arial", 11),
@@ -305,7 +306,7 @@ class SettingsPanel:
         
         self.browse_btn = tk.Button(
             path_frame,
-            text="Browse",
+            text=_("Browse"),
             command=self.set_default_folder,
             font=("Arial", 10),
             bg=self.accent_blue,
@@ -328,7 +329,7 @@ class SettingsPanel:
         # Header
         tk.Label(
             section,
-            text="Conversion",
+            text=_("Conversion"),
             font=("Arial", 14, "bold"),
             bg=self.bg_frame,
             fg=self.text_light
@@ -343,7 +344,7 @@ class SettingsPanel:
         
         tk.Checkbutton(
             content,
-            text="Delete original files after successful CHD conversion",
+            text=_("Delete original files after successful CHD conversion"),
             variable=self.delete_var,
             font=("Arial", 11),
             bg=self.bg_frame,
@@ -360,7 +361,7 @@ class SettingsPanel:
         
         tk.Label(
             content,
-            text="(CHD files are compressed and save 40-60% space)",
+            text=_("(CHD files are compressed and save 40-60% space)"),
             font=("Arial", 9),
             bg=self.bg_frame,
             fg=self.text_gray
@@ -380,7 +381,7 @@ class SettingsPanel:
 
         tk.Label(
             section,
-            text="Theme",
+            text=_("Theme"),
             font=("Arial", 14, "bold"),
             bg=self.bg_frame,
             fg=self.text_light
@@ -392,7 +393,7 @@ class SettingsPanel:
 
         tk.Label(
             toggle_frame,
-            text="🌙 Dark",
+            text=_("🌙 Dark"),
             font=("Arial", 11),
             bg=self.bg_frame,
             fg=self.text_light
@@ -418,7 +419,7 @@ class SettingsPanel:
 
         tk.Label(
             toggle_frame,
-            text="☀️ Light",
+            text=_("☀️ Light"),
             font=("Arial", 11),
             bg=self.bg_frame,
             fg=self.text_light
@@ -428,27 +429,93 @@ class SettingsPanel:
         """Create language settings section"""
         section = tk.Frame(parent, bg=self.bg_frame, relief="solid", bd=1)
         section.pack(fill="x", pady=(0, 20))
-        
+
         # Header
         tk.Label(
             section,
-            text="Language",
+            text=_("Language"),
             font=("Arial", 14, "bold"),
             bg=self.bg_frame,
             fg=self.text_light
         ).pack(anchor="w", padx=20, pady=(15, 10))
-        
+
         # Content
         content = tk.Frame(section, bg=self.bg_frame)
         content.pack(fill="x", padx=20, pady=(0, 15))
-        
-        tk.Label(
-            content,
-            text="Language: English (More languages coming soon)",
+
+        languages = [
+            ("English",              "en"),
+            ("Português (Brasil)",   "pt_BR"),
+            ("Português (Portugal)", "pt_PT"),
+            ("Español",              "es"),
+            ("Français",             "fr"),
+            ("Deutsch",              "de"),
+            ("Italiano",             "it"),
+        ]
+
+        current_lang = self.config.get("language", "en")
+
+        # Find display name for current language
+        current_display = next(
+            (name for name, code in languages if code == current_lang),
+            "English"
+        )
+
+        self._lang_var = tk.StringVar(value=current_display)
+
+        lang_menu = tk.OptionMenu(content, self._lang_var,
+                                  *[name for name, _ in languages])
+        lang_menu.config(
             font=("Arial", 11),
             bg=self.bg_frame,
+            fg=self.text_light,
+            activebackground=self.bg_frame,
+            activeforeground=self.text_light,
+            highlightthickness=0,
+            relief="solid",
+            bd=1
+        )
+        lang_menu["menu"].config(
+            font=("Arial", 11),
+            bg=self.bg_frame,
+            fg=self.text_light,
+            activebackground=self.accent_blue,
+            activeforeground="#ffffff"
+        )
+        lang_menu.pack(anchor="w", pady=5)
+
+        tk.Label(
+            content,
+            text=_("Restart RomMate to apply language changes."),
+            font=("Arial", 10),
+            bg=self.bg_frame,
             fg=self.text_gray
-        ).pack(anchor="w", pady=5)
+        ).pack(anchor="w", pady=(2, 0))
+
+        def apply_language():
+            selected_name = self._lang_var.get()
+            selected_code = next(
+                (code for name, code in languages if name == selected_name),
+                "en"
+            )
+            self.config.set("language", selected_code)
+            messagebox.showinfo(
+                _("Language Changed"),
+                _("Please restart RomMate to apply the new language.")
+            )
+
+        tk.Button(
+            content,
+            text=_("Apply"),
+            command=apply_language,
+            font=("Arial", 10),
+            bg=self.accent_blue,
+            fg="white",
+            cursor="hand2",
+            padx=15,
+            pady=4,
+            relief="flat"
+        ).pack(anchor="w", pady=(8, 0))
     
     def create_about_section(self, parent):
         """Create about section"""
@@ -458,7 +525,7 @@ class SettingsPanel:
         # Header
         tk.Label(
             section,
-            text="ℹ️ About",
+            text=_("ℹ️ About"),
             font=("Arial", 14, "bold"),
             bg=self.bg_frame,
             fg=self.text_light
@@ -470,7 +537,7 @@ class SettingsPanel:
         
         tk.Label(
             content,
-            text="RomMate v1.0.0",
+            text=_("RomMate v1.0.0"),
             font=("Arial", 12, "bold"),
             bg=self.bg_frame,
             fg=self.text_light
@@ -478,7 +545,7 @@ class SettingsPanel:
         
         tk.Label(
             content,
-            text="Your ROM companion - Convert, compress, and organize disc images",
+            text=_("Your ROM companion - Convert, compress, and organize disc images"),
             font=("Arial", 10),
             bg=self.bg_frame,
             fg=self.text_gray,
@@ -489,7 +556,7 @@ class SettingsPanel:
         # License info
         tk.Label(
             content,
-            text="License: GNU General Public License v3.0 (GPLv3)",
+            text=_("License: GNU General Public License v3.0 (GPLv3)"),
             font=("Arial", 9, "bold"),
             fg=self.accent_blue,
             bg=self.bg_frame
@@ -497,7 +564,7 @@ class SettingsPanel:
         
         tk.Label(
             content,
-            text="Copyright © 2026 Rodrigo. This software is free and open source.",
+            text=_("Copyright © 2026 Rodrigo. This software is free and open source."),
             font=("Arial", 8),
             fg=self.text_gray,
             bg=self.bg_frame
@@ -506,7 +573,7 @@ class SettingsPanel:
         # Credits
         tk.Label(
             content,
-            text="Credits: MAME/chdman, No-Intro, Redump",
+            text=_("Credits: MAME/chdman, No-Intro, Redump"),
             font=("Arial", 8),
             fg=self.text_gray,
             bg=self.bg_frame
@@ -514,7 +581,7 @@ class SettingsPanel:
         
         tk.Button(
             content,
-            text="♥ Support this project on Ko-fi",
+            text=_("♥ Support this project on Ko-fi"),
             command=lambda: __import__('webbrowser').open("https://ko-fi.com/rchaicowski"),
             font=("Arial", 10),
             bg="#FF5E5B",
@@ -536,7 +603,7 @@ class SettingsPanel:
     
     def set_default_folder(self):
         """Set default ROM folder"""
-        folder = filedialog.askdirectory(title="Select Default ROM Folder")
+        folder = filedialog.askdirectory(title=_("Select Default ROM Folder"))
         if folder:
             self.default_folder_var.set(folder)
             self.config.set('default_folder', folder)

@@ -2,6 +2,7 @@
 
 import tkinter as tk
 from gui.theme import Theme
+from utils.i18n import _
 
 
 def show_format_choice_dialog(parent):
@@ -14,7 +15,7 @@ def show_format_choice_dialog(parent):
         str: "chd", "original", or None if cancelled
     """
     choice_dialog = tk.Toplevel(parent)
-    choice_dialog.title("Choose Format")
+    choice_dialog.title(_("Choose Format"))
     choice_dialog.geometry("500x250")
     choice_dialog.configure(bg=Theme.BG_DARK)
     choice_dialog.transient(parent)
@@ -58,7 +59,7 @@ def show_format_choice_dialog(parent):
     # Title
     tk.Label(
         choice_dialog,
-        text="[!] Multiple Disc Formats Found",
+        text=_("[!] Multiple Disc Formats Found"),
         font=("Arial", 16, "bold"),
         bg=Theme.BG_DARK,
         fg=Theme.ACCENT_ORANGE
@@ -67,7 +68,7 @@ def show_format_choice_dialog(parent):
     # Message
     tk.Label(
         choice_dialog,
-        text="Both original disc files and CHD files were found.\nWhich format do you want to use for M3U playlists?",
+        text=_("Both original disc files and CHD files were found.\nWhich format do you want to use for M3U playlists?"),
         font=("Arial", 11),
         bg=Theme.BG_DARK,
         fg=Theme.TEXT_LIGHT,
@@ -80,7 +81,7 @@ def show_format_choice_dialog(parent):
     
     tk.Button(
         btn_frame,
-        text="Use CHD Files\n(compressed)",
+        text=_("Use CHD Files\n(compressed)"),
         command=select_chd,
         font=("Arial", 11, "bold"),
         bg=Theme.ACCENT_BLUE,
@@ -94,7 +95,7 @@ def show_format_choice_dialog(parent):
     
     tk.Button(
         btn_frame,
-        text="Use Original Files\n(CUE/BIN/etc)",
+        text=_("Use Original Files\n(CUE/BIN/etc)"),
         command=select_original,
         font=("Arial", 11, "bold"),
         bg=Theme.ACCENT_GREEN,
@@ -109,7 +110,7 @@ def show_format_choice_dialog(parent):
     # Cancel button
     tk.Button(
         choice_dialog,
-        text="Cancel",
+        text=_("Cancel"),
         command=cancel,
         font=("Arial", 10),
         bg=Theme.BG_FRAME,
@@ -134,7 +135,7 @@ def show_info_dialog(parent):
     """
     from tkinter import scrolledtext
     
-    info_text = """
+    info_text = _("""
  CONVERT TO CHD
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
@@ -178,10 +179,10 @@ Example:
   Final Fantasy VII (Disc 3).chd
   
   →  Final Fantasy VII.m3u
-    """
+    """)
     
     info_window = tk.Toplevel(parent)
-    info_window.title("Help - When to use each option")
+    info_window.title(_("Help - When to use each option"))
     info_window.geometry("600x650")
     info_window.configure(bg=Theme.BG_DARK)
     
@@ -202,7 +203,7 @@ Example:
     
     close_btn = tk.Button(
         info_window,
-        text="Close",
+        text=_("Close"),
         command=info_window.destroy,
         font=("Arial", 10),
         bg=Theme.ACCENT_GREEN,
