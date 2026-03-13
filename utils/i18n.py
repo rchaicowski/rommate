@@ -33,12 +33,6 @@ def setup_i18n(language='en'):
 
     locales_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'locales')
 
-    print(f"[i18n] language={language}")
-    print(f"[i18n] locales_dir={locales_dir}")
-    print(f"[i18n] exists={os.path.exists(locales_dir)}")
-    mo = os.path.join(locales_dir, language, 'LC_MESSAGES', 'rommate.mo')
-    print(f"[i18n] .mo exists={os.path.exists(mo)}")
-
     try:
         _translator = gettext.translation(
             'rommate',
@@ -46,9 +40,7 @@ def setup_i18n(language='en'):
             languages=[language]
         )
         _translator.install()
-        print(f"[i18n] translation loaded OK, test: {_translator.gettext('Close')}")
-    except FileNotFoundError as e:
-        print(f"[i18n] FileNotFoundError: {e}")
+    except FileNotFoundError:
         _translator = gettext.NullTranslations()
         _translator.install()
 

@@ -79,8 +79,6 @@ class RomMateGUI:
         self._init_state()
         self._apply_theme_colors()
         self.root.configure(bg=self.colors['bg_dark'])
-        from utils.i18n import _
-        print(f'[debug] just before _build_ui: _(Close)={_("Close")}')
         self._build_ui()
 
         if DND_AVAILABLE:
