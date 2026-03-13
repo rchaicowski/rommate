@@ -69,7 +69,23 @@ class RomMateGUI:
         self.config = Config()
 
         # Setup translations before building UI
-        from utils.i18n import setup_i18n
+        from utils.i18n import setup_i18n, SUPPORTED_LANGUAGES
+
+        # If user has never set a language, detect from OS
+        if 'language' not in self.config.settings:
+            import locale
+            os_locale = locale.getdefaultlocale()[0] or 'en'  # e.g. 'pt_BR', 'en_US'
+            # Try exact match first (pt_BR), then language prefix (pt)
+            if os_locale in SUPPORTED_LANGUAGES:
+                detected = os_locale
+            else:
+                prefix = os_locale[:2]
+                detected = next(
+                    (code for code in SUPPORTED_LANGUAGES if code.startswith(prefix)),
+                    'en'
+                )
+            self.config.set('language', detected)
+
         setup_i18n(self.config.get('language', 'en'))
 
         saved_theme = self.config.get('theme', 'dark')
