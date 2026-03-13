@@ -71,7 +71,7 @@ class MainPanel:
         tk.Label(
             folder_frame, text=_("Game Folder:"), font=("Arial", 12, "bold"),
             bg=c['bg_dark'], fg=c['text_light']
-        ).pack(side="left", padx=(0, 5))
+        ).grid(row=0, column=0, padx=(0, 5))
 
         self.folder_entry = tk.Entry(
             folder_frame, textvariable=self.folder_path, width=50,
@@ -80,15 +80,18 @@ class MainPanel:
             highlightthickness=2, highlightbackground=c['bg_dark'],
             highlightcolor=c['accent_blue']
         )
-        self.folder_entry.pack(side="left", padx=(0, 10), fill="x", expand=True, ipady=6)
+        self.folder_entry.grid(row=0, column=1, padx=(0, 10), sticky="ew", ipady=6)
         self._add_placeholder()
 
         tk.Button(
             folder_frame, text=_("Browse"), command=self.browse_folder,
             font=("Arial", 10, "bold"), bg=c['accent_green'], fg="white",
-            cursor="hand2", padx=20, pady=8, relief="flat",
-            activebackground=c['active_green'], activeforeground="white", bd=0
-        ).pack(side="left")
+            cursor="hand2", pady=8, relief="flat",
+            activebackground=c['active_green'], activeforeground="white", bd=0,
+            width=8
+        ).grid(row=0, column=2)
+
+        folder_frame.columnconfigure(1, weight=1)
 
         # Disc-Based ROMs section
         disc_frame = tk.Frame(self.frame, bg=c['bg_frame'], relief="solid", bd=1)
