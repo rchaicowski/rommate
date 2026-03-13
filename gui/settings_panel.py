@@ -492,30 +492,20 @@ class SettingsPanel:
             fg=self.text_gray
         ).pack(anchor="w", pady=(2, 0))
 
-        def apply_language():
+        def on_lang_change(*args):
             selected_name = self._lang_var.get()
             selected_code = next(
                 (code for name, code in languages if name == selected_name),
                 "en"
             )
-            self.config.set("language", selected_code)
-            messagebox.showinfo(
-                _("Language Changed"),
-                _("Please restart RomMate to apply the new language.")
-            )
+            if selected_code != self.config.get("language", "en"):
+                self.config.set("language", selected_code)
+                messagebox.showinfo(
+                    _("Language Changed"),
+                    _("Please restart RomMate to apply the new language.")
+                )
 
-        tk.Button(
-            content,
-            text=_("Apply"),
-            command=apply_language,
-            font=("Arial", 10),
-            bg=self.accent_blue,
-            fg="white",
-            cursor="hand2",
-            padx=15,
-            pady=4,
-            relief="flat"
-        ).pack(anchor="w", pady=(8, 0))
+        self._lang_var.trace_add("write", on_lang_change)
     
     def create_about_section(self, parent):
         """Create about section"""
