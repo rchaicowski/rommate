@@ -86,8 +86,8 @@ class MainPanel:
         tk.Button(
             folder_frame, text=_("Browse"), command=self.browse_folder,
             font=("Arial", 10, "bold"), bg=c['accent_green'], fg="white",
-            cursor="hand2", pady=8, relief="flat",
-            activebackground=c['active_green'], activeforeground="white", bd=0,
+            cursor="hand2", pady=8, relief="flat", bd=0,
+            activebackground="white", activeforeground="black",
             width=8
         ).grid(row=0, column=2)
 
