@@ -1,0 +1,573 @@
+# RomMate translations
+msgid ""
+msgstr "Content-Type: text/plain; charset=UTF-8\n"
+
+msgid "Your ROM companion - Convert, compress, and organize disc images"
+msgstr "ROMコンパニオン - ディスクイメージの変換・圧縮・整理"
+
+msgid "Game Folder:"
+msgstr "ゲームフォルダ："
+
+msgid "Browse"
+msgstr "参照"
+
+msgid "Disc-Based ROMs"
+msgstr "ディスクベースROM"
+
+msgid "Convert to CHD (compress disc images)"
+msgstr "CHDに変換（ディスクイメージを圧縮）"
+
+msgid "Create M3U Playlists (for multi-disc games)"
+msgstr "M3Uプレイリストを作成（マルチディスクゲーム用）"
+
+msgid "Convert to CHD + Create M3U Playlists"
+msgstr "CHDに変換 + M3Uプレイリストを作成"
+
+msgid "ℹ️  Help - When to use each?"
+msgstr "ℹ️  ヘルプ - 各オプションの使い方"
+
+msgid "ROM Tools (All ROM Types)"
+msgstr "ROMツール（全ROMタイプ対応）"
+
+msgid "Check ROM Health"
+msgstr "ROMの整合性チェック"
+
+msgid "Validate & Fix ROM Names"
+msgstr "ROM名の検証と修正"
+
+msgid "ℹ️  Info"
+msgstr "ℹ️  情報"
+
+msgid "▶ Start Operation"
+msgstr "▶ 操作を開始"
+
+msgid "If RomMate helped you, consider supporting me on Ko-fi ♥"
+msgstr "RomMateが役に立ったら、Ko-fiでサポートしてください ♥"
+
+msgid "↓  Drop folder here"
+msgstr "↓  フォルダをここにドロップ"
+
+msgid "Select Game Folder"
+msgstr "ゲームフォルダを選択"
+
+msgid "▶ Check ROM Health"
+msgstr "▶ ROM整合性チェック"
+
+msgid "▶ Validate ROM Names"
+msgstr "▶ ROM名を検証"
+
+msgid "▶ Convert to CHD"
+msgstr "▶ CHDに変換"
+
+msgid "▶ Create M3U Files"
+msgstr "▶ M3Uファイルを作成"
+
+msgid "▶ Convert & Create M3U"
+msgstr "▶ 変換してM3Uを作成"
+
+msgid "Converts: CUE, GDI, CDI, ISO → CHD format"
+msgstr "変換対象：CUE、GDI、CDI、ISO → CHD形式"
+
+msgid "Supported: PS1, PS2, Dreamcast, Saturn, PSP"
+msgstr "対応機種：PS1、PS2、ドリームキャスト、サターン、PSP"
+
+msgid "Not supported: GameCube (use GCZ), Wii (use RVZ/WBFS)"
+msgstr "非対応：ゲームキューブ（GCZ使用）、Wii（RVZ/WBFS使用）"
+
+msgid "• CHD files are compressed and save 40-60% space"
+msgstr "• CHDファイルは圧縮され、40〜60%の容量を節約"
+
+msgid "• Supported by RetroArch and most modern emulators"
+msgstr "• RetroArchおよびほとんどの現代エミュレータに対応"
+
+msgid "Scans for: CUE, GDI, CDI, ISO, CHD files"
+msgstr "スキャン対象：CUE、GDI、CDI、ISO、CHDファイル"
+
+msgid "ℹ️ Note: All disc files must be in the same folder.\n"
+"    Works with PSX, PS2, Dreamcast, Saturn, Sega CD, and more!\n"
+"    If both CUE and CHD files exist, you'll be asked which to use."
+msgstr "ℹ️ 注意：全ディスクファイルを同じフォルダに置いてください。\n"
+"    PSX、PS2、ドリームキャスト、サターン、セガCDなどに対応！\n"
+"    CUEとCHDの両方がある場合は、どちらを使うか確認されます。"
+
+msgid "Step 1: Convert all disc images to CHD"
+msgstr "ステップ1：全ディスクイメージをCHDに変換"
+
+msgid "  Converts: CUE, GDI, CDI, ISO → CHD"
+msgstr "  変換対象：CUE、GDI、CDI、ISO → CHD"
+
+msgid "Step 2: Create M3U playlists for multi-disc games"
+msgstr "ステップ2：マルチディスクゲーム用M3Uプレイリストを作成"
+
+msgid "  Groups CHD files into playlists"
+msgstr "  CHDファイルをプレイリストにまとめる"
+
+msgid "Check ROM files and identify games:"
+msgstr "ROMファイルをチェックしてゲームを識別："
+
+msgid "• CHD Files: Full integrity verification ✓"
+msgstr "• CHDファイル：完全な整合性検証 ✓"
+
+msgid "• Cartridge ROMs: Checksum verification ✓"
+msgstr "• カートリッジROM：チェックサム検証 ✓"
+
+msgid "• ISO/CDI/GDI: Identification by name & size (Cannot verify disc image checksums)"
+msgstr "• ISO/CDI/GDI：名前とサイズによる識別（ディスクイメージのチェックサム検証不可）"
+
+msgid "• Compare against No-Intro & Redump databases"
+msgstr "• No-IntroおよびRedumpデータベースと照合"
+
+msgid "Checks and fixes ROM filenames:"
+msgstr "ROMファイル名のチェックと修正："
+
+msgid "• Compares against No-Intro/Redump databases"
+msgstr "• No-Intro/Redumpデータベースと照合"
+
+msgid "• Suggests correct naming conventions"
+msgstr "• 正しい命名規則を提案"
+
+msgid "• Detects region and version information"
+msgstr "• 地域とバージョン情報を検出"
+
+msgid "Choose Format"
+msgstr "形式を選択"
+
+msgid "[!] Multiple Disc Formats Found"
+msgstr "[!] 複数のディスク形式が見つかりました"
+
+msgid "Both original disc files and CHD files were found.\n"
+"Which format do you want to use for M3U playlists?"
+msgstr "元のディスクファイルとCHDファイルの両方が見つかりました。\n"
+"M3Uプレイリストにどちらの形式を使用しますか？"
+
+msgid "Use CHD Files\n"
+"(compressed)"
+msgstr "CHDファイルを使用\n"
+"（圧縮済み）"
+
+msgid "Use Original Files\n"
+"(CUE/BIN/etc)"
+msgstr "元のファイルを使用\n"
+"（CUE/BINなど）"
+
+msgid "Cancel"
+msgstr "キャンセル"
+
+msgid "Help - When to use each option"
+msgstr "ヘルプ - 各オプションの使い方"
+
+msgid "Close"
+msgstr "閉じる"
+
+msgid "Language"
+msgstr "言語"
+
+msgid "Restart RomMate to apply language changes."
+msgstr "言語変更を適用するにはRomMateを再起動してください。"
+
+msgid "Language Changed"
+msgstr "言語が変更されました"
+
+msgid "Please restart RomMate to apply the new language."
+msgstr "新しい言語を適用するにはRomMateを再起動してください。"
+
+msgid "chdman Not Found"
+msgstr "chdmanが見つかりません"
+
+msgid "chdman is required for CHD conversion.\n"
+"\n"
+"It should be bundled in the tools/ folder."
+msgstr "CHD変換にはchdmanが必要です。\n"
+"\n"
+"tools/フォルダに含まれているはずです。"
+
+msgid "No Files"
+msgstr "ファイルなし"
+
+msgid "No convertible disc images found."
+msgstr "変換可能なディスクイメージが見つかりませんでした。"
+
+msgid "Conversion Complete"
+msgstr "変換完了"
+
+msgid "No Games Found"
+msgstr "ゲームが見つかりません"
+
+msgid "No multi-disc games were found."
+msgstr "マルチディスクゲームが見つかりませんでした。"
+
+msgid "M3U Creation Complete"
+msgstr "M3U作成完了"
+
+msgid "Error"
+msgstr "エラー"
+
+msgid "\n"
+" CONVERT TO CHD\n"
+"━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
+"\n"
+"Compresses your disc images to save space.\n"
+"\n"
+"What it does:\n"
+"  • Converts CUE/BIN, GDI, CDI and ISO files to CHD format\n"
+"  • Reduces file size by 40-60%\n"
+"  • Preserves all game data perfectly\n"
+"\n"
+"Best for:\n"
+"  • Saving storage space\n"
+"  • RetroArch and most modern emulators\n"
+"\n"
+"Example:\n"
+"  Game.cue + Game.bin (700 MB)  →  Game.chd (~350 MB)\n"
+"\n"
+"[!] Always keep backups before converting!\n"
+"\n"
+"[~] Most games run perfectly in CHD format, but a small\n"
+"    number of titles may have compatibility issues.\n"
+"    If you experience problems, try the original format.\n"
+"\n"
+"\n"
+" CREATE M3U PLAYLISTS\n"
+"━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
+"\n"
+"Use this for multi-disc games (Disc 1, Disc 2, etc.)\n"
+"\n"
+"What it does:\n"
+"  • Creates .m3u playlist files grouping all discs per game\n"
+"  • Lets you switch discs inside your emulator during gameplay\n"
+"  • Works with CUE, GDI, CDI, ISO and CHD files\n"
+"\n"
+"Best for:\n"
+"  • PS1, PS2, Dreamcast, Saturn and Sega CD multi-disc games\n"
+"\n"
+"Example:\n"
+"  Final Fantasy VII (Disc 1).chd\n"
+"  Final Fantasy VII (Disc 2).chd\n"
+"  Final Fantasy VII (Disc 3).chd\n"
+"  \n"
+"  →  Final Fantasy VII.m3u\n"
+"    "
+msgstr "\n"
+" CHDに変換\n"
+"━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
+"\n"
+"ディスクイメージを圧縮して容量を節約します。\n"
+"\n"
+"機能：\n"
+"  • CUE/BIN、GDI、CDI、ISOファイルをCHD形式に変換\n"
+"  • ファイルサイズを40〜60%削減\n"
+"  • ゲームデータを完全に保持\n"
+"\n"
+"最適な用途：\n"
+"  • ストレージ容量の節約\n"
+"  • RetroArchおよびほとんどの現代エミュレータ\n"
+"\n"
+"例：\n"
+"  Game.cue + Game.bin (700 MB)  →  Game.chd (~350 MB)\n"
+"\n"
+"[!] 変換前に必ずバックアップを取ってください！\n"
+"\n"
+"[~] ほとんどのゲームはCHD形式で正常に動作しますが、\n"
+"    一部のタイトルで互換性の問題が発生する場合があります。\n"
+"    問題が発生した場合は、元の形式をお試しください。\n"
+"\n"
+"\n"
+" M3Uプレイリストを作成\n"
+"━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
+"\n"
+"マルチディスクゲーム（ディスク1、ディスク2など）に使用します。\n"
+"\n"
+"機能：\n"
+"  • ゲームごとに全ディスクをまとめた.m3uプレイリストを作成\n"
+"  • エミュレータ内でゲーム中にディスクを切り替え可能\n"
+"  • CUE、GDI、CDI、ISO、CHDファイルに対応\n"
+"\n"
+"最適な用途：\n"
+"  • PS1、PS2、ドリームキャスト、サターン、セガCDのマルチディスクゲーム\n"
+"\n"
+"例：\n"
+"  Final Fantasy VII (Disc 1).chd\n"
+"  Final Fantasy VII (Disc 2).chd\n"
+"  Final Fantasy VII (Disc 3).chd\n"
+"  \n"
+"  →  Final Fantasy VII.m3u\n"
+"    "
+
+
+msgid "(CHD files are compressed and save 40-60% space)"
+msgstr "（CHDファイルは圧縮され、40〜60%の容量を節約）"
+
+msgid "0 / 0 files"
+msgstr "0 / 0 ファイル"
+
+msgid "All CHD files passed verification"
+msgstr "全CHDファイルの検証が完了しました"
+
+msgid "All operations finished"
+msgstr "全操作が完了しました"
+
+msgid "Always use default folder:"
+msgstr "常にデフォルトフォルダを使用："
+
+msgid "Are you sure you want to cancel?\n"
+"\n"
+"Any incomplete CHD files will be deleted."
+msgstr "キャンセルしますか？\n"
+"\n"
+"未完成のCHDファイルは削除されます。"
+
+msgid "Backups Deleted"
+msgstr "バックアップを削除しました"
+
+msgid "Backups Kept"
+msgstr "バックアップを保持しました"
+
+msgid "CHD conversion finished!\n"
+"\n"
+"Converted: {converted}\n"
+"Skipped: {skipped}\n"
+"Failed: {failed}"
+msgstr "CHD変換が完了しました！\n"
+"\n"
+"変換済み：{converted}\n"
+"スキップ：{skipped}\n"
+"失敗：{failed}"
+
+msgid "Cancel Processing"
+msgstr "処理をキャンセル"
+
+msgid "Copyright © 2026 Rodrigo. This software is free and open source."
+msgstr "Copyright © 2026 Rodrigo. このソフトウェアはフリーかつオープンソースです。"
+
+msgid "Create backup before fixing (.backup extension)"
+msgstr "修正前にバックアップを作成する（.backup拡張子）"
+
+msgid "Credits: MAME/chdman, No-Intro, Redump"
+msgstr "クレジット：MAME/chdman、No-Intro、Redump"
+
+msgid "Delete original files after successful CHD conversion"
+msgstr "CHD変換成功後に元のファイルを削除する"
+
+msgid "Details:"
+msgstr "詳細："
+
+msgid "Enable sounds"
+msgstr "サウンドを有効にする"
+
+msgid "Errors"
+msgstr "エラー"
+
+msgid "External Copier Headers"
+msgstr "外部コピーヘッダー"
+
+msgid "Folders"
+msgstr "フォルダ"
+
+msgid "Headers Removed Successfully!"
+msgstr "ヘッダーの削除に成功しました！"
+
+msgid "Initializing"
+msgstr "初期化中"
+
+msgid "Learn More"
+msgstr "詳細を見る"
+
+msgid "License: GNU General Public License v3.0 (GPLv3)"
+msgstr "ライセンス：GNU General Public License v3.0 (GPLv3)"
+
+msgid "No Folder"
+msgstr "フォルダなし"
+
+msgid "No Selection"
+msgstr "選択なし"
+
+msgid "No files verified successfully"
+msgstr "正常に検証されたファイルはありません"
+
+msgid "Partial Success"
+msgstr "部分的に成功"
+
+msgid "Processing..."
+msgstr "処理中..."
+
+msgid "Remember last folder used"
+msgstr "最後に使用したフォルダを記憶する"
+
+msgid "Remove Headers"
+msgstr "ヘッダーを削除"
+
+msgid "Rename Complete"
+msgstr "名前変更完了"
+
+msgid "Rename this file"
+msgstr "このファイルの名前を変更する"
+
+msgid "RomMate v1.0.0"
+msgstr "RomMate v1.0.0"
+
+msgid "Select Default ROM Folder"
+msgstr "デフォルトROMフォルダを選択"
+
+msgid "Some files failed verification - check details above"
+msgstr "一部のファイルの検証に失敗しました - 上記の詳細を確認してください"
+
+msgid "Some operations failed - check details below"
+msgstr "一部の操作が失敗しました - 下記の詳細を確認してください"
+
+msgid "Sound"
+msgstr "サウンド"
+
+msgid "Starting"
+msgstr "開始中"
+
+msgid "Starting operation"
+msgstr "操作を開始しています"
+
+msgid "Theme"
+msgstr "テーマ"
+
+msgid "Volume:"
+msgstr "音量："
+
+msgid "[!] Completed with Errors"
+msgstr "[!] エラーありで完了"
+
+msgid "[!] External Copier Headers Detected"
+msgstr "[!] 外部コピーヘッダーが検出されました"
+
+msgid "[!] Health Check Complete with Issues"
+msgstr "[!] 問題ありでヘルスチェック完了"
+
+msgid "[x] Health Check Failed"
+msgstr "[x] ヘルスチェック失敗"
+
+msgid "[✓] All ROMs Verified Successfully!"
+msgstr "[✓] 全ROMの検証に成功しました！"
+
+msgid "[✓] Completed Successfully!"
+msgstr "[✓] 正常に完了しました！"
+
+msgid "chdman is required for CHD verification.\n"
+"\n"
+""
+msgstr "CHD検証にはchdmanが必要です。\n"
+"\n"
+""
+
+msgid "ℹ️ About"
+msgstr "ℹ️ アプリについて"
+
+msgid "↺ Process Another Folder"
+msgstr "↺ 別のフォルダを処理"
+
+msgid "☀️ Light"
+msgstr "☀️ ライト"
+
+msgid "♥ Support this project on Ko-fi"
+msgstr "♥ Ko-fiでこのプロジェクトをサポート"
+
+msgid "⚙️ Settings"
+msgstr "⚙️ 設定"
+
+msgid "✓ Done - Return to Main"
+msgstr "✓ 完了 - メインに戻る"
+
+msgid "✓ Rename Selected"
+msgstr "✓ 選択した名前を変更"
+
+msgid "✖ Cancel"
+msgstr "✖ キャンセル"
+
+msgid "🌙 Dark"
+msgstr "🌙 ダーク"
+
+msgid "\n"
+" CONVERT TO CHD\n"
+"━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
+"\n"
+"Compresses your disc images to save space.\n"
+"\n"
+"What it does:\n"
+"  • Converts CUE/BIN, GDI, CDI and ISO files to CHD format\n"
+"  • Reduces file size by 40-60%\n"
+"  • Preserves all game data perfectly\n"
+"\n"
+"Best for:\n"
+"  • Saving storage space\n"
+"  • RetroArch and most modern emulators\n"
+"\n"
+"Example:\n"
+"  Game.cue + Game.bin (700 MB)  →  Game.chd (~350 MB)\n"
+"\n"
+"[!] Always keep backups before converting!\n"
+"\n"
+"[~] Most games run perfectly in CHD format, but a small\n"
+"    number of titles may have compatibility issues.\n"
+"    If you experience problems, try the original format.\n"
+"\n"
+"\n"
+" CREATE M3U PLAYLISTS\n"
+"━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
+"\n"
+"Use this for multi-disc games (Disc 1, Disc 2, etc.)\n"
+"\n"
+"What it does:\n"
+"  • Creates .m3u playlist files grouping all discs per game\n"
+"  • Lets you switch discs inside your emulator during gameplay\n"
+"  • Works with CUE, GDI, CDI, ISO and CHD files\n"
+"\n"
+"Best for:\n"
+"  • PS1, PS2, Dreamcast, Saturn and Sega CD multi-disc games\n"
+"\n"
+"Example:\n"
+"  Final Fantasy VII (Disc 1).chd\n"
+"  Final Fantasy VII (Disc 2).chd\n"
+"  Final Fantasy VII (Disc 3).chd\n"
+"  \n"
+"  →  Final Fantasy VII.m3u\n"
+"    "
+msgstr "\n"
+" CHDに変換\n"
+"━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
+"\n"
+"ディスクイメージを圧縮して容量を節約します。\n"
+"\n"
+"機能：\n"
+"  • CUE/BIN、GDI、CDI、ISOファイルをCHD形式に変換\n"
+"  • ファイルサイズを40〜60%削減\n"
+"  • ゲームデータを完全に保持\n"
+"\n"
+"最適な用途：\n"
+"  • ストレージ容量の節約\n"
+"  • RetroArchおよびほとんどの現代エミュレータ\n"
+"\n"
+"例：\n"
+"  Game.cue + Game.bin (700 MB)  →  Game.chd (~350 MB)\n"
+"\n"
+"[!] 変換前に必ずバックアップを取ってください！\n"
+"\n"
+"[~] ほとんどのゲームはCHD形式で正常に動作しますが、\n"
+"    一部のタイトルで互換性の問題が発生する場合があります。\n"
+"    問題が発生した場合は、元の形式をお試しください。\n"
+"\n"
+"\n"
+" M3Uプレイリストを作成\n"
+"━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
+"\n"
+"マルチディスクゲーム（ディスク1、ディスク2など）に使用します。\n"
+"\n"
+"機能：\n"
+"  • ゲームごとに全ディスクをまとめた.m3uプレイリストを作成\n"
+"  • エミュレータ内でゲーム中にディスクを切り替え可能\n"
+"  • CUE、GDI、CDI、ISO、CHDファイルに対応\n"
+"\n"
+"最適な用途：\n"
+"  • PS1、PS2、ドリームキャスト、サターン、セガCDのマルチディスクゲーム\n"
+"\n"
+"例：\n"
+"  Final Fantasy VII (Disc 1).chd\n"
+"  Final Fantasy VII (Disc 2).chd\n"
+"  Final Fantasy VII (Disc 3).chd\n"
+"  \n"
+"  →  Final Fantasy VII.m3u\n"
+"    "

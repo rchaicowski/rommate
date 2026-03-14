@@ -451,6 +451,8 @@ class SettingsPanel:
             ("Français",             "fr"),
             ("Deutsch",              "de"),
             ("Italiano",             "it"),
+            ("日本語",               "ja"),
+            ("中文（简体）",          "zh_CN"),
         ]
 
         current_lang = self.config.get("language", "en")

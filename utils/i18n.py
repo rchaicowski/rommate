@@ -19,7 +19,27 @@ SUPPORTED_LANGUAGES = {
     'fr': 'Français',
     'de': 'Deutsch',
     'it': 'Italiano',
+    'ja': '日本語',
+    'zh_CN': '中文（简体）',
 }
+
+CJK_LANGUAGES = {'ja', 'zh_CN'}
+
+def get_cjk_font(size=11, style=''):
+    """Return a CJK-compatible font tuple for the current OS."""
+    import platform
+    system = platform.system()
+    if system == 'Windows':
+        family = 'MS Gothic' if _current_language == 'ja' else 'Microsoft YaHei'
+    elif system == 'Darwin':
+        family = 'Hiragino Sans' if _current_language == 'ja' else 'PingFang SC'
+    else:
+        family = 'Noto Sans CJK JP' if _current_language == 'ja' else 'Noto Sans CJK SC'
+    return (family, size, style) if style else (family, size)
+
+def needs_cjk_font():
+    """Return True if the current language needs a CJK font."""
+    return _current_language in CJK_LANGUAGES
 
 def setup_i18n(language='en'):
     """Initialize the translation system.
