@@ -58,11 +58,17 @@ class RomMateGUI:
 
         # Set app icon
         try:
-            import os
-            icon_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'icon.png')
-            if os.path.exists(icon_path):
-                icon = tk.PhotoImage(file=icon_path)
-                self.root.iconphoto(True, icon)
+            import os, platform
+            base = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'))
+            if platform.system() == 'Windows':
+                ico_path = os.path.join(base, 'icon.ico')
+                if os.path.exists(ico_path):
+                    self.root.after(100, lambda: self.root.iconbitmap(ico_path))
+            else:
+                png_path = os.path.join(base, 'icon.png')
+                if os.path.exists(png_path):
+                    icon = tk.PhotoImage(file=png_path)
+                    self.root.iconphoto(True, icon)
         except Exception:
             pass
 
