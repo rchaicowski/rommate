@@ -56,6 +56,16 @@ class RomMateGUI:
         self.root.geometry("670x930")
         self.root.resizable(True, True)
 
+        # Set app icon
+        try:
+            import os
+            icon_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'icon.png')
+            if os.path.exists(icon_path):
+                icon = tk.PhotoImage(file=icon_path)
+                self.root.iconphoto(True, icon)
+        except Exception:
+            pass
+
         # Center window on screen without flash
         self.root.withdraw()
         self.root.update_idletasks()
