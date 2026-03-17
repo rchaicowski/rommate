@@ -1,13 +1,13 @@
-# 🎮 RomMate
+# RomMate
 
 **Your ROM companion** - Convert, compress, verify, and organize disc images and cartridge ROMs.
 
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
-[![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
+[![Ko-fi](https://img.shields.io/badge/Support-Ko--fi-FF5E5B?logo=ko-fi)](https://ko-fi.com/rchaicowski)
 
 ---
 
-## 🌟 Features
+## Features
 
 ### Disc-Based Systems
 - **CHD Conversion** - Convert CUE, GDI, CDI, ISO to compressed CHD format (40-60% space savings)
@@ -38,53 +38,44 @@
 
 ---
 
-## 📸 Screenshots
+## Installation
 
-*(Screenshots here when ready)*
+### Windows
+1. Download `RomMate.exe` from the [Releases](https://github.com/rchaicowski/rommate/releases) page
+2. Double-click and run — no installation needed
 
----
-
-## 🚀 Installation
-
-### Prerequisites
-
-**Linux:**
+### Linux
+1. Download `RomMate` from the [Releases](https://github.com/rchaicowski/rommate/releases) page
+2. Make it executable and run:
 ```bash
-sudo apt install python3 python3-tk chdman
+chmod +x RomMate
+./RomMate
 ```
 
-**Windows:**
+### Run from source (developers)
 ```bash
-# Install Python 3.8+ from python.org
-# Download chdman from MAME website
-```
+# Prerequisites
+sudo apt install python3 python3-tk  # Linux only
+pip install tkinterdnd2 customtkinter
 
-### Install RomMate
-```bash
-git clone https://github.com/yourusername/rommate.git
+git clone https://github.com/rchaicowski/rommate.git
 cd rommate
 python3 rommate.py
 ```
 
 ---
 
-## 🎯 Usage
+## Usage
 
 ### Quick Start
 
 1. **Launch RomMate**
-```bash
-   python3 rommate.py
-```
-
-2. **Select a folder** containing your ROMs/disc images
-
-3. **Choose operation:**
+2. **Select a folder** containing your ROMs or disc images
+3. **Choose an operation:**
    - Convert to CHD
    - Create M3U playlists
    - Check ROM health
-   - Validate ROM names *(coming soon)*
-
+   - Validate & fix ROM names
 4. **Click Start** and let RomMate do the work!
 
 ### Settings
@@ -93,11 +84,11 @@ Access settings via the ⚙️ gear icon:
 - Sound preferences
 - Folder behavior (remember last / default)
 - Conversion options
-- Language *(coming soon)*
+- Language (9 languages supported)
 
 ---
 
-## 🗂️ Project Structure
+## Project Structure
 ```
 rommate/
 ├── core/
@@ -112,18 +103,22 @@ rommate/
 │   └── settings_panel.py       # Settings interface
 ├── utils/
 │   ├── config.py               # Configuration management
+│   ├── i18n.py                 # Internationalization
 │   ├── sounds.py               # Sound playback
 │   ├── theme.py                # UI theming
 │   └── file_utils.py           # File operations
 ├── databases/
 │   ├── no-intro/               # Cartridge ROM databases
 │   └── redump/                 # Disc ROM databases
-└── sounds/                     # Sound effects
+├── locales/                    # Translations (EN, PT, ES, FR, DE, IT, JA, ZH)
+├── icon.png                        # App icon (Linux)
+├── icon.ico                        # App icon (Windows)
+└── sounds/                         # Sound effects
 ```
 
 ---
 
-## 🤝 Contributing
+## Contributing
 
 Contributions are welcome! Please:
 
@@ -135,7 +130,7 @@ Contributions are welcome! Please:
 
 ---
 
-## 📜 License
+## License
 
 This project is licensed under the **GNU General Public License v3.0** (GPLv3).
 
@@ -149,12 +144,13 @@ See [LICENSE](LICENSE) file for full text.
 
 ---
 
-## 🙏 Credits & Attribution
+## Credits & Attribution
 
 ### Tools & Libraries
 - **[MAME chdman](https://www.mamedev.org/)** - CHD compression and verification
 - **Python tkinter** - GUI framework
 - **tkinterdnd2** - Drag and drop support
+- **customtkinter** - Modern UI widgets (toggle switch)
 - **pycaw** - Windows audio control
 
 ### Databases
@@ -168,17 +164,16 @@ See [LICENSE](LICENSE) file for full text.
 
 ---
 
-## 🐛 Bug Reports & Feature Requests
+## Bug Reports & Feature Requests
 
 Found a bug or have a feature idea?
 
 - Open an issue on GitHub
-- Include your OS, Python version, and steps to reproduce
-- Screenshots are helpful!
+- Include your OS, app version, and steps to reproduce
 
 ---
 
-## 📚 Documentation
+## Documentation
 
 ### ROM Verification Confidence Levels
 
@@ -194,27 +189,7 @@ Found a bug or have a feature idea?
 
 ---
 
-## 🗺️ Roadmap
-
-### Current Features
-- [x] CHD conversion
-- [x] M3U playlist creation
-- [x] ROM health checking
-- [x] Multi-level verification
-- [x] ROM hack detection
-- [x] Cross-platform support
-
-### Planned Features
-- [ ] ROM name validator/fixer
-- [ ] Header removal tool
-- [ ] Batch renaming
-- [ ] Multi-language support
-- [ ] Advanced filters
-- [ ] Export reports (CSV, HTML)
-
----
-
-## ⚡ Performance
+## Performance
 
 - **CHD Conversion:** ~2-5 minutes per disc (PS1)
 - **ROM Verification:** ~100 ROMs/second
@@ -222,16 +197,11 @@ Found a bug or have a feature idea?
 
 ---
 
-## 📞 Support
+## Support
 
-- **Issues:** [GitHub Issues](https://github.com/yourusername/rommate/issues)
-- **Discussions:** [GitHub Discussions](https://github.com/yourusername/rommate/discussions)
-
----
-
-## 📄 Changelog
-
-See [CHANGELOG.md](CHANGELOG.md) for version history.
+- **Issues:** [GitHub Issues](https://github.com/rchaicowski/rommate/issues)
+- **Discussions:** [GitHub Discussions](https://github.com/rchaicowski/rommate/discussions)
+- **Ko-fi:** [Support the project](https://ko-fi.com/rchaicowski)
 
 ---
 
