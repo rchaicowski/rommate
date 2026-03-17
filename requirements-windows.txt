@@ -1,0 +1,4 @@
+customtkinter
+tkinterdnd2
+pycaw
+comtypes
