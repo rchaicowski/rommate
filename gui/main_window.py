@@ -288,16 +288,21 @@ class RomMateGUI:
     # ------------------------------------------------------------------ #
 
     def _build_callbacks(self):
+        # Wrap all UI-touching callbacks with root.after(0, ...)
+        # so they are always called from the main thread, not background threads.
+        def ui(fn):
+            return lambda *a, **kw: self.root.after(0, lambda: fn(*a, **kw))
+
         return {
-            'log':                self.proc_panel.log,
-            'progress':           self.proc_panel.update_status,
-            'animate':            self.proc_panel.animate_dots,
+            'log':                ui(self.proc_panel.log),
+            'progress':           ui(self.proc_panel.update_status),
+            'animate':            ui(self.proc_panel.animate_dots),
             'cancel':             lambda: self.cancel_requested,
-            'complete':           self.proc_panel.show_completion,
-            'return':             self.reset_and_return,
-            'set_processing':     lambda v: setattr(self, 'is_processing', v),
-            'offer_header_fix':   self.offer_header_fix,
-            'show_rename_dialog': self.show_rename_dialog,
+            'complete':           ui(self.proc_panel.show_completion),
+            'return':             ui(self.reset_and_return),
+            'set_processing':     ui(lambda v: setattr(self, 'is_processing', v)),
+            'offer_header_fix':   ui(self.offer_header_fix),
+            'show_rename_dialog': ui(self.show_rename_dialog),
         }
 
     # ------------------------------------------------------------------ #
