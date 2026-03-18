@@ -189,14 +189,6 @@ Found a bug or have a feature idea?
 
 ---
 
-## Performance
-
-- **CHD Conversion:** ~2-5 minutes per disc (PS1)
-- **ROM Verification:** ~100 ROMs/second
-- **Database Loading:** < 1 second (all 26 systems)
-
----
-
 ## Support
 
 - **Issues:** [GitHub Issues](https://github.com/rchaicowski/rommate/issues)
