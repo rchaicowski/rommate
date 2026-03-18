@@ -133,6 +133,67 @@ class CHDConverter:
         
         return False
     
+
+    def _get_bin_files_from_cue(self, cue_path):
+        """Parse a CUE file and return list of referenced BIN file paths."""
+        bin_files = []
+        cue_dir = os.path.dirname(cue_path)
+        try:
+            with open(cue_path, 'r', encoding='utf-8', errors='ignore') as f:
+                for line in f:
+                    line = line.strip()
+                    if line.upper().startswith('FILE'):
+                        parts = line.split('"')
+                        if len(parts) >= 2:
+                            bin_path = os.path.join(cue_dir, parts[1])
+                            if os.path.exists(bin_path):
+                                bin_files.append(bin_path)
+        except Exception:
+            pass
+        return bin_files
+
+    def _safe_delete_originals(self, source_path, source_ext, chd_path, log_callback=None):
+        """Safely delete original files only after verifying CHD is valid."""
+        # 1. CHD must exist
+        if not os.path.exists(chd_path):
+            if log_callback:
+                log_callback("   [!] CHD not found, keeping originals")
+            return
+
+        # 2. CHD must not be empty
+        chd_size = os.path.getsize(chd_path)
+        if chd_size == 0:
+            if log_callback:
+                log_callback("   [!] CHD is empty, keeping originals")
+            return
+
+        # 3. CHD must be at least 5% of source size (catches truncated output)
+        try:
+            source_size = os.path.getsize(source_path)
+            if source_size > 0 and chd_size < source_size * 0.30:
+                if log_callback:
+                    log_callback("   [!] CHD seems too small, keeping originals")
+                return
+        except Exception:
+            pass
+
+        # Safe to delete — collect files to remove before deleting anything
+        files_to_delete = [source_path]
+        if source_ext == '.cue':
+            files_to_delete.extend(self._get_bin_files_from_cue(source_path))
+
+        for f in files_to_delete:
+            try:
+                if os.path.exists(f):
+                    os.remove(f)
+            except Exception as e:
+                if log_callback:
+                    log_callback(f"   [!] Could not delete {os.path.basename(f)}: {e}")
+                return
+
+        if log_callback:
+            log_callback("   Deleted original files")
+
     def convert_file(self, source_file, delete_after=False, 
                 log_callback=None, animation_callback=None):
         """Convert a single file to CHD
@@ -198,17 +259,8 @@ class CHDConverter:
                 if process.returncode == 0:
                     # Success - delete originals if requested
                     if delete_after:
-                        try:
-                            os.remove(source_path)
-                            if source_ext == '.cue':
-                                bin_file = source_path.rsplit('.', 1)[0] + '.bin'
-                                if os.path.exists(bin_file):
-                                    os.remove(bin_file)
-                            if log_callback:
-                                log_callback(f"   Deleted original files")
-                        except Exception as e:
-                            if log_callback:
-                                log_callback(f"   [!] Could not delete originals: {e}")
+                        self._safe_delete_originals(
+                            source_path, source_ext, chd_path, log_callback)
                     
                     return True, chd_path
                 else:
@@ -243,17 +295,8 @@ class CHDConverter:
                 if process.returncode == 0:
                     # Success - delete originals if requested
                     if delete_after:
-                        try:
-                            os.remove(source_path)
-                            if source_ext == '.cue':
-                                bin_file = source_path.rsplit('.', 1)[0] + '.bin'
-                                if os.path.exists(bin_file):
-                                    os.remove(bin_file)
-                            if log_callback:
-                                log_callback(f"   Deleted original files")
-                        except Exception as e:
-                            if log_callback:
-                                log_callback(f"   [!] Could not delete originals: {e}")
+                        self._safe_delete_originals(
+                            source_path, source_ext, chd_path, log_callback)
                     
                     return True, chd_path
                 else:
