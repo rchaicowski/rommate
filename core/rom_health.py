@@ -19,6 +19,7 @@ class ROMHealthChecker:
         """Initialize ROM health checker"""
         self.chdman_path = None
         self.cartridge_checker = CartridgeChecker()
+        self._current_process = None  # Track running subprocess for cancellation
     
     def find_chdman(self):
         """Find chdman executable"""
@@ -52,11 +53,12 @@ class ROMHealthChecker:
         
         return False
     
-    def verify_chd(self, chd_file):
+    def verify_chd(self, chd_file, cancel_check=None):
         """Verify a single CHD file
         
         Args:
             chd_file (str): Path to CHD file
+            cancel_check (function): Optional cancel check — kills process immediately if True
             
         Returns:
             tuple: (success: bool, message: str)
@@ -66,30 +68,40 @@ class ROMHealthChecker:
                 return False, "chdman not found"
         
         try:
-            # Run chdman verify
-            result = subprocess.run(
+            self._current_process = subprocess.Popen(
                 [self.chdman_path, 'verify', '-i', chd_file],
-                capture_output=True,
-                text=True,
-                timeout=300  # 5 minute timeout
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True
             )
-            
-            # Check output for success
-            output = result.stdout + result.stderr
-            
+
+            # Poll every 100ms so cancel is near-instant
+            import time
+            while self._current_process.poll() is None:
+                if cancel_check and cancel_check():
+                    self._current_process.kill()
+                    self._current_process.wait()
+                    self._current_process = None
+                    return False, "Cancelled"
+                time.sleep(0.1)
+
+            stdout, stderr = self._current_process.stdout.read(), self._current_process.stderr.read()
+            returncode = self._current_process.returncode
+            self._current_process = None
+
+            output = stdout + stderr
+
             if 'verification successful' in output.lower():
                 return True, "Verified (Integrity Check Passed)"
             elif 'verification failed' in output.lower():
                 return False, "Verification failed - file may be corrupted"
-            elif result.returncode != 0:
+            elif returncode != 0:
                 return False, f"Error: {output.strip()}"
             else:
-                # Fallback - if no error and returncode is 0, assume success
                 return True, "Verified (Integrity Check Passed)"
-                
-        except subprocess.TimeoutExpired:
-            return False, "Verification timeout (file too large or corrupted)"
+
         except Exception as e:
+            self._current_process = None
             return False, f"Error: {str(e)}"
     
     def parse_cue_file(self, cue_file):
@@ -228,8 +240,16 @@ class ROMHealthChecker:
             if log_callback:
                 log_callback(f">> {filename}")
             
+            # Check cancel before starting verify (kill any running process)
+            if cancel_check and cancel_check():
+                if self._current_process:
+                    self._current_process.kill()
+                    self._current_process.wait()
+                    self._current_process = None
+                break
+
             # Verify the CHD
-            success, message = self.verify_chd(chd_file)
+            success, message = self.verify_chd(chd_file, cancel_check)
             
             if success:
                 verified += 1

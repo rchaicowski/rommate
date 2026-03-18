@@ -45,7 +45,7 @@ class ProcessingPanel:
 
         # Status header
         header = tk.Frame(self.frame, bg=c['bg_frame'])
-        header.pack(fill="x", pady=20, padx=30)
+        header.pack(fill="x", pady=(15, 5), padx=30)
 
         self.status_title = tk.Label(
             header, text=_("Processing..."), font=("Arial", 20, "bold"),
@@ -63,23 +63,23 @@ class ProcessingPanel:
             self.frame, text="", font=("Consolas", 11),
             bg=c['bg_frame'], fg=c['accent_blue'], wraplength=700
         )
-        self.current_file_label.pack(pady=(10, 20))
+        self.current_file_label.pack(pady=(5, 5))
 
         self.file_counter_label = tk.Label(
             self.frame, text=_("0 / 0 files"), font=("Arial", 13, "bold"),
             bg=c['bg_frame'], fg=c['text_light']
         )
-        self.file_counter_label.pack(pady=(0, 20))
+        self.file_counter_label.pack(pady=(0, 8))
 
-        tk.Frame(self.frame, height=2, bg=c['text_gray']).pack(fill="x", padx=30, pady=10)
+        tk.Frame(self.frame, height=2, bg=c['text_gray']).pack(fill="x", padx=30, pady=(5, 5))
 
         tk.Label(
             self.frame, text=_("Details:"), font=("Arial", 11, "bold"),
             bg=c['bg_frame'], fg=c['text_light']
-        ).pack(anchor="w", padx=30, pady=(10, 5))
+        ).pack(anchor="w", padx=30, pady=(5, 3))
 
         log_border = tk.Frame(self.frame, bg=c['text_gray'], relief="solid", bd=1)
-        log_border.pack(fill="both", expand=True, padx=30, pady=(0, 20))
+        log_border.pack(fill="both", expand=True, padx=30, pady=(0, 10))
 
         self.processing_log = scrolledtext.ScrolledText(
             log_border, width=80, height=12, font=("Consolas", 9),
@@ -90,7 +90,7 @@ class ProcessingPanel:
 
         # Cancel button frame
         self.cancel_frame = tk.Frame(self.frame, bg=c['bg_frame'])
-        self.cancel_frame.pack(pady=10)
+        self.cancel_frame.pack(pady=(5, 15))
 
         tk.Button(
             self.cancel_frame, text=_("✖ Cancel"), command=self.cancel_processing,
@@ -145,7 +145,7 @@ class ProcessingPanel:
         self.processing_log.delete(1.0, tk.END)
         self.processing_log.config(state="disabled")
 
-        self.cancel_frame.pack(pady=10)
+        self.cancel_frame.pack(pady=(5, 15))
         self.completion_frame.pack_forget()
         self.start_spinner()
 
