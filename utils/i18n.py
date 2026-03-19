@@ -51,7 +51,12 @@ def setup_i18n(language='en'):
 
     _current_language = language
 
-    locales_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'locales')
+    import sys
+    if getattr(sys, 'frozen', False):
+        base_dir = sys._MEIPASS
+    else:
+        base_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..')
+    locales_dir = os.path.join(base_dir, 'locales')
 
     try:
         _translator = gettext.translation(

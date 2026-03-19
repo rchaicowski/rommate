@@ -24,9 +24,10 @@ class ROMHealthChecker:
     def find_chdman(self):
         """Find chdman executable"""
         # Check for bundled chdman in tools/ directory FIRST
-        bundled_path = os.path.join(
-            os.path.dirname(__file__), '..', 'tools',
-            'chdman.exe' if platform.system() == 'Windows' else 'chdman')
+        import sys
+        base_dir = sys._MEIPASS if getattr(sys, 'frozen', False) else os.path.join(os.path.dirname(__file__), '..')
+        bundled_path = os.path.join(base_dir, 'tools',
+                                    'chdman.exe' if platform.system() == 'Windows' else 'chdman')
     
         if os.path.exists(bundled_path):
             self.chdman_path = bundled_path

@@ -31,7 +31,13 @@ class SoundPlayer:
                 print(f"Windows volume control not available: {e}")
         
         # Sound files are in the sounds/ directory at project root
-        sounds_dir = os.path.join(os.path.dirname(__file__), '..', 'sounds')
+        # When running as PyInstaller bundle, use sys._MEIPASS
+        import sys
+        if getattr(sys, 'frozen', False):
+            base_dir = sys._MEIPASS
+        else:
+            base_dir = os.path.join(os.path.dirname(__file__), '..')
+        sounds_dir = os.path.join(base_dir, 'sounds')
         self.success_sound_path = os.path.join(sounds_dir, 'success.wav')
         self.fail_sound_path = os.path.join(sounds_dir, 'fail.wav')
         

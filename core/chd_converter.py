@@ -27,7 +27,9 @@ class CHDConverter:
             str: Path to chdman or None if not found
         """
         # Check if bundled with app
-        bundled_path = os.path.join(os.path.dirname(__file__), '..', 'tools', 
+        import sys
+        base_dir = sys._MEIPASS if getattr(sys, 'frozen', False) else os.path.join(os.path.dirname(__file__), '..')
+        bundled_path = os.path.join(base_dir, 'tools',
                                     'chdman.exe' if platform.system() == 'Windows' else 'chdman')
         if os.path.exists(bundled_path):
             return bundled_path
