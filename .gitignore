@@ -21,4 +21,7 @@ ENV/
 .DS_Store
 Thumbs.db
 
-# Don't ignore tools folder - we want to commit it!
+# PyInstaller
+dist/
+build/
+*.spec.bak
