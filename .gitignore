@@ -25,3 +25,6 @@ Thumbs.db
 dist/
 build/
 *.spec.bak
+
+# AppImage
+AppDir/
