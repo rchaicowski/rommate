@@ -53,7 +53,7 @@ class RomMateGUI:
     def __init__(self, root):
         self.root = root
         self.root.title("RomMate")
-        self.root.geometry("670x930")
+        self.root.geometry("670x890")
         self.root.resizable(True, True)
 
         # Set app icon
@@ -78,8 +78,8 @@ class RomMateGUI:
         screen_w = self.root.winfo_screenwidth()
         screen_h = self.root.winfo_screenheight()
         x = (screen_w // 2) - (670 // 2)
-        y = (screen_h // 2) - (930 // 2)
-        self.root.geometry(f"670x930+{x}+{y}")
+        y = (screen_h // 2) - (890 // 2)
+        self.root.geometry(f"670x890+{x}+{y}")
         self.root.deiconify()
 
         self.config = Config()

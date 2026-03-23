@@ -43,7 +43,7 @@ class MainPanel:
 
         # Title row
         title_outer = tk.Frame(self.frame, bg=c['bg_dark'])
-        title_outer.pack(fill="x", pady=(10, 5))
+        title_outer.pack(fill="x", pady=(12, 5))
 
         tk.Button(
             title_outer, text="⚙️", command=self.on_settings,
@@ -62,11 +62,11 @@ class MainPanel:
             self.frame,
             text=_("Your ROM companion - Convert, compress, and organize disc images"),
             font=("Arial", 11), bg=c['bg_dark'], fg=c['text_gray']
-        ).pack(pady=(0, 15))
+        ).pack(pady=(0, 12))
 
         # Folder selection
         folder_frame = tk.Frame(self.frame, bg=c['bg_dark'])
-        folder_frame.pack(pady=10, fill="x")
+        folder_frame.pack(pady=8, fill="x")
 
         tk.Label(
             folder_frame, text=_("Game Folder:"), font=("Arial", 12, "bold"),
@@ -95,7 +95,7 @@ class MainPanel:
 
         # Disc-Based ROMs section
         disc_frame = tk.Frame(self.frame, bg=c['bg_frame'], relief="solid", bd=1)
-        disc_frame.pack(pady=8, fill="x")
+        disc_frame.pack(pady=(8, 5), fill="x")
 
         tk.Label(
             disc_frame, text=_("Disc-Based ROMs"), font=("Arial", 12, "bold"),
@@ -104,6 +104,7 @@ class MainPanel:
 
         for text, value in [
             (_("Convert to CHD (compress disc images)"), "chd"),
+            (_("Extract CHD to original format"), "extract"),
             (_("Create M3U Playlists (for multi-disc games)"), "m3u"),
             (_("Convert to CHD + Create M3U Playlists"), "both"),
         ]:
@@ -112,9 +113,9 @@ class MainPanel:
                 font=("Arial", 11), command=self.update_info_section,
                 bg=c['bg_frame'], fg=c['text_light'], selectcolor=c['bg_dark'],
                 activebackground=c['bg_frame'], bd=0, highlightthickness=0
-            ).pack(anchor="w", padx=25, pady=8)
+            ).pack(anchor="w", padx=25, pady=5)
 
-        tk.Frame(disc_frame, height=1, bg=c['text_gray']).pack(fill="x", padx=25, pady=15)
+        tk.Frame(disc_frame, height=1, bg=c['text_gray']).pack(fill="x", padx=25, pady=8)
 
         tk.Button(
             disc_frame, text=_("ℹ️  Help - When to use each?"),
@@ -125,7 +126,7 @@ class MainPanel:
 
         # ROM Tools section
         tools_frame = tk.Frame(self.frame, bg=c['bg_frame'], relief="solid", bd=1)
-        tools_frame.pack(pady=8, fill="x")
+        tools_frame.pack(pady=5, fill="x")
 
         tk.Label(
             tools_frame, text=_("ROM Tools (All ROM Types)"),
@@ -145,7 +146,7 @@ class MainPanel:
 
         # Info section
         info_frame = tk.Frame(self.frame, bg=c['bg_frame'], relief="solid", bd=1, height=190)
-        info_frame.pack(pady=8, fill="x")
+        info_frame.pack(pady=5, fill="x")
         info_frame.pack_propagate(False)
 
         tk.Label(
@@ -162,7 +163,7 @@ class MainPanel:
             font=("Arial", 14, "bold"), bg=c['accent_blue'], fg="white",
             cursor="hand2", height=2, padx=50, relief="flat", width=15
         )
-        self.process_btn.pack(pady=15)
+        self.process_btn.pack(pady=12)
 
         # Ko-fi donation link
         tk.Button(
@@ -180,7 +181,7 @@ class MainPanel:
     # ------------------------------------------------------------------ #
 
     def show(self):
-        self.frame.pack(fill="both", expand=True, padx=30, pady=20)
+        self.frame.pack(fill="both", expand=True, padx=30, pady=10)
 
     def hide(self):
         self.frame.pack_forget()
@@ -289,10 +290,19 @@ class MainPanel:
             tk.Label(self.validate_info, text=text, font=("Arial", 9),
                      fg=c['text_gray'], bg=c['bg_frame']).pack(anchor="w", pady=(0, 3))
 
+        self.extract_info = tk.Frame(self.info_content, bg=c['bg_frame'])
+        for text, font, fg in [
+            (_("Extracts CHD files back to their original format"), ("Arial", 10), c['text_gray']),
+            (_("Output: CUE/BIN for PS1, GDI for Dreamcast, ISO for DVD"), ("Arial", 9), c['text_gray']),
+            (_("• Useful if a game has compatibility issues with CHD"), ("Arial", 9), c['text_gray']),
+            (_("• Original files will be recreated in the same folder"), ("Arial", 9), c['text_gray']),
+        ]:
+            tk.Label(self.extract_info, text=text, font=font, fg=fg, bg=c['bg_frame']).pack(anchor="w", pady=(0, 5))
+
         self.update_info_section()
 
     def update_info_section(self):
-        for frame in [self.chd_info, self.m3u_info, self.both_info,
+        for frame in [self.chd_info, self.extract_info, self.m3u_info, self.both_info,
                       self.health_info, self.validate_info]:
             frame.pack_forget()
 
@@ -300,6 +310,7 @@ class MainPanel:
             "health":   (_("▶ Check ROM Health"),    self.health_info),
             "validate": (_("▶ Validate ROM Names"),  self.validate_info),
             "chd":      (_("▶ Convert to CHD"),       self.chd_info),
+            "extract":  (_("▶ Extract CHD to Original"), self.extract_info),
             "m3u":      (_("▶ Create M3U Files"),     self.m3u_info),
             "both":     (_("▶ Convert & Create M3U"), self.both_info),
         }
