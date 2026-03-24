@@ -127,6 +127,66 @@ def convert_to_chd(folder, delete_after, converter, callbacks):
 
 
 # ------------------------------------------------------------------ #
+#  CHD Extraction                                                      #
+# ------------------------------------------------------------------ #
+
+def extract_chd(folder, converter, callbacks):
+    """Extract CHD files back to their original format."""
+    log      = callbacks['log']
+    progress = callbacks['progress']
+    animate  = callbacks['animate']
+    cancel   = callbacks['cancel']
+    done     = callbacks['complete']
+    ret      = callbacks['return']
+
+    try:
+        progress("CHD Extraction", "Checking for chdman tool...", 0, 1)
+
+        if not _check_chdman(converter, callbacks):
+            return
+
+        progress("CHD Extraction", "Scanning for CHD files...")
+
+        extracted, skipped, failed = converter.extract_folder(
+            folder,
+            log_callback=log,
+            progress_callback=lambda cur, tot, fn: progress(
+                "Extracting CHD", f"Processing file {cur} of {tot}", cur, tot, fn),
+            animation_callback=animate,
+            cancel_check=cancel
+        )
+
+        if cancel():
+            ret()
+            return
+
+        if extracted == 0 and skipped == 0 and failed == 0:
+            log("\n[x] No CHD files found")
+            messagebox.showinfo(_("No Files"), _("No CHD files found in the selected folder."))
+            done(success=False)
+            return
+
+        log("\n" + "=" * 60)
+        log(f"Extracted: {extracted}  |  Skipped: {skipped}  |  Failed: {failed}")
+        log("=" * 60)
+
+        if cancel():
+            ret()
+            return
+
+        done(success=failed == 0, converted=extracted, skipped=skipped, failed=failed)
+        messagebox.showinfo(
+            _("Extraction Complete"),
+            f"CHD extraction finished!\n\nExtracted: {extracted}\nSkipped: {skipped}\nFailed: {failed}"
+        )
+
+    except Exception as e:
+        log(f"\n[x] Error: {str(e)}")
+        messagebox.showerror(_("Error"), f"An error occurred:\n{str(e)}")
+        done(success=False)
+
+
+# ------------------------------------------------------------------ #
 #  M3U Creation                                                        #
 # ------------------------------------------------------------------ #
 

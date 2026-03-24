@@ -35,6 +35,7 @@ from gui.processing_panel import ProcessingPanel
 from gui.dialogs import show_info_dialog
 from gui.operations import (
     convert_to_chd,
+    extract_chd,
     create_m3u_files,
     convert_and_create_m3u,
     check_rom_health,
@@ -329,6 +330,13 @@ class RomMateGUI:
             threading.Thread(
                 target=convert_to_chd,
                 args=(folder, self.delete_after_conversion.get(), self.chd_converter, callbacks),
+                daemon=True
+            ).start()
+
+        elif mode == "extract":
+            threading.Thread(
+                target=extract_chd,
+                args=(folder, self.chd_converter, callbacks),
                 daemon=True
             ).start()
 

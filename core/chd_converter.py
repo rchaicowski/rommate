@@ -311,6 +311,140 @@ class CHDConverter:
                 log_callback(f"   [x] Error: {str(e)}")
             return False, None
     
+    def extract_folder(self, folder, log_callback=None, progress_callback=None,
+                       animation_callback=None, cancel_check=None):
+        """Extract all CHD files in a folder back to their original format.
+
+        Returns:
+            tuple: (extracted, skipped, failed)
+        """
+        if not self.chdman_path:
+            self.chdman_path = self.find_chdman()
+            if not self.chdman_path:
+                return 0, 0, 0
+
+        from pathlib import Path
+        chd_files = list(Path(folder).glob("*.chd"))
+
+        if not chd_files:
+            if log_callback:
+                log_callback("[x] No CHD files found in folder")
+            return 0, 0, 0
+
+        total = len(chd_files)
+        if log_callback:
+            log_callback(f"Found {total} CHD file(s) to extract\n")
+
+        extracted = skipped = failed = 0
+
+        for index, chd_file in enumerate(chd_files, 1):
+            if cancel_check and cancel_check():
+                if log_callback:
+                    log_callback("[!] Extraction cancelled by user")
+                break
+
+            filename = chd_file.name
+            if progress_callback:
+                progress_callback(index, total, filename)
+
+            if log_callback:
+                log_callback(f">> {filename}")
+
+            success, out_path = self.extract_file(
+                chd_file,
+                log_callback=log_callback,
+                animation_callback=animation_callback
+            )
+
+            if cancel_check and cancel_check():
+                if out_path and os.path.exists(out_path):
+                    try:
+                        os.remove(out_path)
+                    except Exception:
+                        pass
+                if log_callback:
+                    log_callback("[!] Extraction cancelled by user")
+                break
+
+            if success:
+                if log_callback:
+                    log_callback(f"   [✓] Extracted successfully")
+                extracted += 1
+            else:
+                failed += 1
+
+        return extracted, skipped, failed
+
+    def extract_file(self, chd_file, log_callback=None, animation_callback=None):
+        """Extract a single CHD file to its original format.
+
+        Returns:
+            tuple: (success, output_path)
+        """
+        import time
+        chd_path = str(chd_file)
+        out_dir = str(chd_file.parent)
+        stem = chd_file.stem
+
+        # Try extractcd first (for CD-based games: PS1, Dreamcast, Saturn, etc.)
+        # Output will be a .cue + .bin set
+        cue_out = os.path.join(out_dir, stem + ".cue")
+        bin_out = os.path.join(out_dir, stem + ".bin")
+
+        # Skip if output already exists
+        if os.path.exists(cue_out):
+            if log_callback:
+                log_callback(f"   Skipped: {stem}.cue already exists")
+            return True, cue_out
+
+        cmd = [self.chdman_path, 'extractcd', '-i', chd_path, '-o', cue_out, '-ob', bin_out]
+
+        try:
+            process = subprocess.Popen(cmd)
+            if animation_callback:
+                dots = 0
+                while process.poll() is None:
+                    dots = (dots + 1) % 4
+                    animation_callback(f"   Extracting{'.' * dots}")
+                    time.sleep(0.5)
+            else:
+                process.wait()
+
+            if process.returncode == 0:
+                return True, cue_out
+
+            # extractcd failed — try extractdvd (for DVD ISOs: PS2, Xbox, etc.)
+            iso_out = os.path.join(out_dir, stem + ".iso")
+            if os.path.exists(cue_out):
+                try:
+                    os.remove(cue_out)
+                except Exception:
+                    pass
+
+            cmd_dvd = [self.chdman_path, 'extractdvd', '-i', chd_path, '-o', iso_out]
+            process2 = subprocess.Popen(cmd_dvd)
+            if animation_callback:
+                dots = 0
+                while process2.poll() is None:
+                    dots = (dots + 1) % 4
+                    animation_callback(f"   Extracting DVD{'.' * dots}")
+                    time.sleep(0.5)
+            else:
+                process2.wait()
+
+            if process2.returncode == 0:
+                return True, iso_out
+
+            if log_callback:
+                log_callback(f"   [x] Extraction failed")
+            return False, None
+
+        except Exception as e:
+            if log_callback:
+                log_callback(f"   [x] Error: {str(e)}")
+            return False, None
+
+
     def convert_folder(self, folder, delete_after=False, 
                       log_callback=None, progress_callback=None, animation_callback=None, cancel_check=None):
         """Convert all disc images in a folder to CHD
