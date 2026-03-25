@@ -405,7 +405,7 @@ class CHDConverter:
                 dots = 0
                 while process.poll() is None:
                     dots = (dots + 1) % 4
-                    animation_callback(f"   Extracting{'.' * dots}")
+                    animation_callback(f"   Processing (extracting){'.' * dots}")
                     time.sleep(0.5)
             else:
                 process.wait()
@@ -427,7 +427,7 @@ class CHDConverter:
                 dots = 0
                 while process2.poll() is None:
                     dots = (dots + 1) % 4
-                    animation_callback(f"   Extracting DVD{'.' * dots}")
+                    animation_callback(f"   Processing DVD (extracting){'.' * dots}")
                     time.sleep(0.5)
             else:
                 process2.wait()
