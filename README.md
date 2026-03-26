@@ -2,15 +2,13 @@
 
 **Your ROM companion** - Convert, compress, verify, and organize disc images and cartridge ROMs.
 
-[![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
-[![Ko-fi](https://img.shields.io/badge/Support-Ko--fi-FF5E5B?logo=ko-fi)](https://ko-fi.com/rchaicowski)
-
 ---
 
 ## Features
 
 ### Disc-Based Systems
 - **CHD Conversion** - Convert CUE, GDI, CDI, ISO to compressed CHD format (40-60% space savings)
+- **CHD Extraction** - Extract CHD files back to their original format (CUE/BIN, ISO)
 - **M3U Playlist Creation** - Automatically organize multi-disc games
 - **CHD Verification** - Verify CHD file integrity with chdman
 - **CUE/BIN Validation** - Check file structure and references
@@ -45,12 +43,8 @@
 2. Double-click and run — no installation needed
 
 ### Linux
-1. Download `RomMate` from the [Releases](https://github.com/rchaicowski/rommate/releases) page
-2. Make it executable and run:
-```bash
-chmod +x RomMate
-./RomMate
-```
+1. Download `RomMate-x86_64.AppImage` from the [Releases](https://github.com/rchaicowski/rommate/releases) page
+2. Double-click and run — no installation needed
 
 ### Run from source (developers)
 ```bash
@@ -73,6 +67,7 @@ python3 rommate.py
 2. **Select a folder** containing your ROMs or disc images
 3. **Choose an operation:**
    - Convert to CHD
+   - Extract CHD to original format
    - Create M3U playlists
    - Check ROM health
    - Validate & fix ROM names
