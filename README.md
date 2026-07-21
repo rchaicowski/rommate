@@ -42,6 +42,8 @@
 1. Download `RomMate.exe` from the [Releases](https://github.com/rchaicowski/rommate/releases) page
 2. Double-click and run — no installation needed
 
+> **Note:** Windows may show a "Windows protected your PC" SmartScreen warning, since RomMate isn't code-signed. This is expected for open-source apps without a paid certificate. Click **"More info" → "Run anyway"** to proceed. You can verify your download against the SHA256 checksum listed on the release page.
+
 ### Linux
 1. Download `RomMate-x86_64.AppImage` from the [Releases](https://github.com/rchaicowski/rommate/releases) page
 2. Double-click and run — no installation needed
