@@ -11,6 +11,7 @@ import shutil
 import time
 from pathlib import Path
 from tkinter import messagebox
+from utils.i18n import _
 
 
 class CHDConverter:
@@ -245,6 +246,15 @@ class CHDConverter:
         source_path = str(source_file)
         source_ext = source_file.suffix.lower()
         chd_path = str(source_file.with_suffix('.chd'))
+        
+        # chdman does not support DiscJuggler .cdi images. Modern versions
+        # (0.139+) will accept the file and report "success" but produce a
+        # broken/unbootable CHD (0 tracks, 0 length) instead of failing
+        # loudly, so we refuse it here rather than let it silently corrupt.
+        if source_ext == '.cdi':
+            if log_callback:
+                log_callback(_("   [x] Skipped: .cdi (DiscJuggler) format is not supported by chdman — convert to GDI first"))
+            return False, None
         
         # Skip if CHD already exists
         if os.path.exists(chd_path):

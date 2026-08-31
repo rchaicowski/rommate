@@ -236,9 +236,9 @@ class MainPanel:
 
         self.chd_info = tk.Frame(self.info_content, bg=c['bg_frame'])
         for text, font, fg in [
-            (_("Converts: CUE, GDI, CDI, ISO → CHD format"), ("Arial", 10), c['text_gray']),
+            (_("Converts: CUE, GDI, ISO → CHD format"), ("Arial", 10), c['text_gray']),
             (_("Supported: PS1, PS2, Dreamcast, Saturn, PSP"), ("Arial", 9), c['text_gray']),
-            (_("Not supported: GameCube (use GCZ), Wii (use RVZ/WBFS)"), ("Arial", 9, "italic"), c['accent_orange']),
+            (_("Not supported: GameCube (use GCZ), Wii (use RVZ/WBFS), Dreamcast CDI"), ("Arial", 9, "italic"), c['accent_orange']),
             (_("• CHD files are compressed and save 40-60% space"), ("Arial", 9), c['text_gray']),
             (_("• Supported by RetroArch and most modern emulators"), ("Arial", 9), c['text_gray']),
         ]:
@@ -259,7 +259,7 @@ class MainPanel:
         self.both_info = tk.Frame(self.info_content, bg=c['bg_frame'])
         for text, font in [
             (_("Step 1: Convert all disc images to CHD"), ("Arial", 10, "bold")),
-            (_("  Converts: CUE, GDI, CDI, ISO → CHD"),  ("Arial", 9)),
+            (_("  Converts: CUE, GDI, ISO → CHD"),  ("Arial", 9)),
             (_("Step 2: Create M3U playlists for multi-disc games"), ("Arial", 10, "bold")),
             (_("  Groups CHD files into playlists"), ("Arial", 9)),
         ]:
