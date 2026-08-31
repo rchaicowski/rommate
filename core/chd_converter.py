@@ -19,6 +19,23 @@ class CHDConverter:
     def __init__(self):
         """Initialize CHD converter"""
         self.chdman_path = None
+
+    @staticmethod
+    def _subprocess_kwargs():
+        """Extra kwargs for subprocess.Popen calls that run chdman directly.
+
+        On Windows, chdman.exe is a console app, so spawning it normally pops
+        up a visible console window behind/above the app for the duration of
+        the conversion. This suppresses that window. No-op on Linux/macOS.
+        """
+        kwargs = {}
+        if platform.system() == 'Windows':
+            startupinfo = subprocess.STARTUPINFO()
+            startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+            startupinfo.wShowWindow = subprocess.SW_HIDE
+            kwargs['startupinfo'] = startupinfo
+            kwargs['creationflags'] = subprocess.CREATE_NO_WINDOW
+        return kwargs
     
     def find_chdman(self):
         """Try to find chdman executable
@@ -60,7 +77,7 @@ class CHDConverter:
             elif 'fedora' in os_info or 'rhel' in os_info or 'centos' in os_info:
                 return "sudo dnf install mame"
             elif 'arch' in os_info or 'manjaro' in os_info:
-                return "sudo pacman -S mame-tools"
+                return "sudo pacman -S mame"
             elif 'opensuse' in os_info:
                 return "sudo zypper install mame-tools"
             else:
@@ -96,15 +113,30 @@ class CHDConverter:
                     ['gnome-terminal', '--'],
                     ['konsole', '-e'],
                     ['xfce4-terminal', '-e'],
+                    ['kitty', '-e'],
+                    ['alacritty', '-e'],
                     ['xterm', '-e'],
                 ]
                 
                 install_script = f'{install_cmd}; echo "\n✅ Installation complete! Press Enter to close."; read'
                 
+                # PyInstaller onefile sets LD_LIBRARY_PATH to its own bundled libs
+                # dir (e.g. /tmp/_MEIxxxxxx). Spawning an external GUI terminal
+                # (Konsole, GNOME Terminal, etc.) with that inherited makes it try
+                # to load its system libraries but pick up our older bundled
+                # libssl/libcrypto instead, causing a version mismatch and instant
+                # crash before any window appears. Restore the original library
+                # path (which PyInstaller saves off) for the child process only.
+                clean_env = os.environ.copy()
+                if 'LD_LIBRARY_PATH_ORIG' in clean_env:
+                    clean_env['LD_LIBRARY_PATH'] = clean_env['LD_LIBRARY_PATH_ORIG']
+                else:
+                    clean_env.pop('LD_LIBRARY_PATH', None)
+                
                 terminal_opened = False
                 for terminal in terminals:
                     try:
-                        subprocess.Popen(terminal + ['bash', '-c', install_script])
+                        subprocess.Popen(terminal + ['bash', '-c', install_script], env=clean_env)
                         terminal_opened = True
                         break
                     except FileNotFoundError:
@@ -240,7 +272,7 @@ class CHDConverter:
                     log_callback(f"   [!] Note: PS2/DVD conversion may take longer than other formats")
                     log_callback(f"   Please wait... (app may appear frozen)")
                 
-                process = subprocess.Popen(cmd)
+                process = subprocess.Popen(cmd, **self._subprocess_kwargs())
                 
                 # Animate dots while waiting
                 if animation_callback:
@@ -276,7 +308,8 @@ class CHDConverter:
                     cmd,
                     stdout=subprocess.PIPE,
                     stderr=subprocess.PIPE,
-                    text=True
+                    text=True,
+                    **self._subprocess_kwargs()
                 )
                 
                 # Animate dots while waiting
@@ -400,7 +433,7 @@ class CHDConverter:
         cmd = [self.chdman_path, 'extractcd', '-i', chd_path, '-o', cue_out, '-ob', bin_out]
 
         try:
-            process = subprocess.Popen(cmd)
+            process = subprocess.Popen(cmd, **self._subprocess_kwargs())
             if animation_callback:
                 dots = 0
                 while process.poll() is None:
@@ -422,7 +455,7 @@ class CHDConverter:
                     pass
 
             cmd_dvd = [self.chdman_path, 'extractdvd', '-i', chd_path, '-o', iso_out]
-            process2 = subprocess.Popen(cmd_dvd)
+            process2 = subprocess.Popen(cmd_dvd, **self._subprocess_kwargs())
             if animation_callback:
                 dots = 0
                 while process2.poll() is None:
