@@ -5,10 +5,10 @@
 """CHD conversion functionality for RomMate"""
 
 import os
+import re
 import subprocess
 import platform
 import shutil
-import time
 from pathlib import Path
 from tkinter import messagebox
 from utils.i18n import _
@@ -37,6 +37,61 @@ class CHDConverter:
             kwargs['startupinfo'] = startupinfo
             kwargs['creationflags'] = subprocess.CREATE_NO_WINDOW
         return kwargs
+
+    _PERCENT_RE = re.compile(r'(\d+\.?\d*)%\s*complete[.\s]*(\(ratio=[\d.]+%\))?', re.IGNORECASE)
+
+    def _run_chdman_progress(self, cmd, animation_callback=None, base_label="Processing"):
+        """Run a chdman command, streaming its own output so we can show its
+        real percentage in the UI instead of a generic dot animation.
+
+        chdman prints progress like "Compressing, 29.7% complete... (ratio=72.9%)"
+        using carriage returns to update the same line, the same way a normal
+        progress bar would in a terminal. Python's subprocess text-mode pipes
+        translate \\r the same as \\n, so iterating over stdout still yields
+        each update as its own "line".
+
+        Continuously reading stdout as it comes in (rather than waiting for
+        the process to finish first) also avoids the classic subprocess
+        deadlock where a child blocks trying to write to a pipe nobody is
+        draining — so this is safe to use for large files too.
+
+        Note: some C programs fully buffer their output instead of flushing
+        per line when stdout isn't an interactive terminal, which can make
+        updates arrive in bursts rather than smoothly. If that turns out to
+        be the case for chdman on a given platform, updates will just be
+        chunkier rather than missing entirely.
+
+        Returns:
+            tuple: (returncode, last_output_line)
+        """
+        process = subprocess.Popen(
+            cmd,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            text=True,
+            bufsize=1,
+            **self._subprocess_kwargs()
+        )
+
+        last_line = ""
+        try:
+            for raw_line in process.stdout:
+                line = raw_line.strip()
+                if not line:
+                    continue
+                last_line = line
+                if animation_callback:
+                    match = self._PERCENT_RE.search(line)
+                    if match:
+                        percent = match.group(1)
+                        ratio_part = f" {match.group(2)}" if match.group(2) else ""
+                        animation_callback(f"   {base_label}: {percent}% complete{ratio_part}")
+                    else:
+                        animation_callback(f"   {base_label}...")
+        finally:
+            process.wait()
+
+        return process.returncode, last_line
     
     def find_chdman(self):
         """Try to find chdman executable
@@ -277,76 +332,38 @@ class CHDConverter:
             
             # For large files (> 100 MB), don't capture output to avoid buffering issues
             if file_size > 100 * 1024 * 1024:
-                # Large file - run without capturing output
                 if log_callback and is_dvd:
                     log_callback(f"   [!] Note: PS2/DVD conversion may take longer than other formats")
                     log_callback(f"   Please wait... (app may appear frozen)")
                 
-                process = subprocess.Popen(cmd, **self._subprocess_kwargs())
+                label = "Processing (Large DVD - please wait)" if is_dvd else "Processing"
+                returncode, last_output = self._run_chdman_progress(
+                    cmd, animation_callback=animation_callback, base_label=label
+                )
                 
-                # Animate dots while waiting
-                if animation_callback:
-                    dots = 0
-                    while process.poll() is None:
-                        dots = (dots + 1) % 4
-                        dot_str = "." * dots
-                        if is_dvd:
-                            animation_callback(f"   Processing (Large DVD - please wait){dot_str}")
-                        else:
-                            animation_callback(f"   Processing{dot_str}")
-                        time.sleep(0.5)
-                else:
-                    # Just wait without animation
-                    process.wait()
-                
-                # Check if successful
-                if process.returncode == 0:
-                    # Success - delete originals if requested
+                if returncode == 0:
                     if delete_after:
                         self._safe_delete_originals(
                             source_path, source_ext, chd_path, log_callback)
-                    
                     return True, chd_path
                 else:
                     if log_callback:
-                        log_callback(f"   [x] Conversion failed (return code: {process.returncode})")
+                        log_callback(f"   [x] Conversion failed (return code: {returncode})")
                     return False, None
             
             else:
-                # Small file - can safely capture output for error messages
-                process = subprocess.Popen(
-                    cmd,
-                    stdout=subprocess.PIPE,
-                    stderr=subprocess.PIPE,
-                    text=True,
-                    **self._subprocess_kwargs()
+                returncode, last_output = self._run_chdman_progress(
+                    cmd, animation_callback=animation_callback, base_label="Processing"
                 )
                 
-                # Animate dots while waiting
-                if animation_callback:
-                    dots = 0
-                    while process.poll() is None:
-                        dots = (dots + 1) % 4
-                        dot_str = "." * dots
-                        animation_callback(f"   Processing{dot_str}")
-                        time.sleep(0.3)
-                else:
-                    # Just wait without animation
-                    process.wait()
-                
-                # Get final result
-                stdout, stderr = process.communicate()
-                
-                if process.returncode == 0:
-                    # Success - delete originals if requested
+                if returncode == 0:
                     if delete_after:
                         self._safe_delete_originals(
                             source_path, source_ext, chd_path, log_callback)
-                    
                     return True, chd_path
                 else:
                     if log_callback:
-                        log_callback(f"   [x] Failed: {stderr[:100]}")
+                        log_callback(f"   [x] Failed: {last_output[:100]}")
                     return False, None
         
         except Exception as e:
@@ -424,7 +441,6 @@ class CHDConverter:
         Returns:
             tuple: (success, output_path)
         """
-        import time
         chd_path = str(chd_file)
         out_dir = str(chd_file.parent)
         stem = chd_file.stem
@@ -443,17 +459,11 @@ class CHDConverter:
         cmd = [self.chdman_path, 'extractcd', '-i', chd_path, '-o', cue_out, '-ob', bin_out]
 
         try:
-            process = subprocess.Popen(cmd, **self._subprocess_kwargs())
-            if animation_callback:
-                dots = 0
-                while process.poll() is None:
-                    dots = (dots + 1) % 4
-                    animation_callback(f"   Processing (extracting){'.' * dots}")
-                    time.sleep(0.5)
-            else:
-                process.wait()
+            returncode, last_output = self._run_chdman_progress(
+                cmd, animation_callback=animation_callback, base_label="Processing (extracting)"
+            )
 
-            if process.returncode == 0:
+            if returncode == 0:
                 return True, cue_out
 
             # extractcd failed — try extractdvd (for DVD ISOs: PS2, Xbox, etc.)
@@ -465,21 +475,15 @@ class CHDConverter:
                     pass
 
             cmd_dvd = [self.chdman_path, 'extractdvd', '-i', chd_path, '-o', iso_out]
-            process2 = subprocess.Popen(cmd_dvd, **self._subprocess_kwargs())
-            if animation_callback:
-                dots = 0
-                while process2.poll() is None:
-                    dots = (dots + 1) % 4
-                    animation_callback(f"   Processing DVD (extracting){'.' * dots}")
-                    time.sleep(0.5)
-            else:
-                process2.wait()
+            returncode2, last_output2 = self._run_chdman_progress(
+                cmd_dvd, animation_callback=animation_callback, base_label="Processing DVD (extracting)"
+            )
 
-            if process2.returncode == 0:
+            if returncode2 == 0:
                 return True, iso_out
 
             if log_callback:
-                log_callback(f"   [x] Extraction failed")
+                log_callback(f"   [x] Extraction failed: {last_output2[:100]}")
             return False, None
 
         except Exception as e:
