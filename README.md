@@ -7,7 +7,7 @@
 ## Features
 
 ### Disc-Based Systems
-- **CHD Conversion** - Convert CUE, GDI, CDI, ISO to compressed CHD format (40-60% space savings)
+- **CHD Conversion** - Convert CUE, GDI, ISO to compressed CHD format (40-60% space savings)
 - **CHD Extraction** - Extract CHD files back to their original format (CUE/BIN, ISO)
 - **M3U Playlist Creation** - Automatically organize multi-disc games
 - **CHD Verification** - Verify CHD file integrity with chdman
