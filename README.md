@@ -48,13 +48,6 @@
 1. Download `RomMate-x86_64.AppImage` from the [Releases](https://github.com/rchaicowski/rommate/releases) page
 2. Double-click and run — no installation needed
 
-> **Note:** Some newer distros (Arch, CachyOS, Fedora, etc.) don't ship `libfuse2` by default, which AppImages need to run. If you see a `libfuse.so.2` error, install it first:
-> - Arch/CachyOS: `sudo pacman -S fuse2`
-> - Fedora: `sudo dnf install fuse-libs`
-> - Debian/Ubuntu: `sudo apt install libfuse2`
->
-> Alternatively, run without FUSE by extracting the AppImage: `./RomMate-x86_64.AppImage --appimage-extract && ./squashfs-root/AppRun`
-
 ### Run from source (developers)
 ```bash
 # Prerequisites
