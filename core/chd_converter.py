@@ -133,7 +133,7 @@ class CHDConverter:
             elif 'fedora' in os_info or 'rhel' in os_info or 'centos' in os_info:
                 return "sudo dnf install mame"
             elif 'arch' in os_info or 'manjaro' in os_info:
-                return "sudo pacman -S mame"
+                return "sudo pacman -S mame-tools"
             elif 'opensuse' in os_info:
                 return "sudo zypper install mame-tools"
             else:
