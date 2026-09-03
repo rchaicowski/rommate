@@ -29,3 +29,4 @@ release/
 
 # AppImage
 AppDir/
+*.AppImage
