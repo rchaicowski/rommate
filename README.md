@@ -1,6 +1,6 @@
 # RomMate
 
-**Your ROM companion** Convert, compress, verify, and organize disc images and cartridge ROMs.
+**Your ROM companion** - Convert, compress, verify, and organize disc images and cartridge ROMs.
 
 ---
 
