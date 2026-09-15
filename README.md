@@ -1,6 +1,6 @@
 # RomMate
 
-**Your ROM companion** - Convert, compress, verify, and organize disc images and cartridge ROMs.
+**Your ROM companion** Convert, compress, verify, and organize disc images and cartridge ROMs.
 
 ---
 
@@ -40,13 +40,13 @@
 
 ### Windows
 1. Download `RomMate.exe` from the [Releases](https://github.com/rchaicowski/rommate/releases) page
-2. Double-click and run — no installation needed
+2. Double-click and run, no installation needed
 
 > **Note:** Windows may show a "Windows protected your PC" SmartScreen warning, since RomMate isn't code-signed. This is expected for open-source apps without a paid certificate. Click **"More info" → "Run anyway"** to proceed. You can verify your download against the SHA256 checksum listed on the release page.
 
 ### Linux
 1. Download `RomMate-x86_64.AppImage` from the [Releases](https://github.com/rchaicowski/rommate/releases) page
-2. Double-click and run — no installation needed
+2. Double-click and run, no installation needed
 
 ### Run from source (developers)
 ```bash
@@ -77,7 +77,7 @@ python3 rommate.py
 
 ### Settings
 
-Access settings via the ⚙️ gear icon:
+Access settings via the gear icon:
 - Sound preferences
 - Folder behavior (remember last / default)
 - Conversion options
@@ -194,4 +194,4 @@ Found a bug or have a feature idea?
 
 ---
 
-**Made with ❤️ for the ROM preservation community**
+**Made with love for the ROM preservation community**
