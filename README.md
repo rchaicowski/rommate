@@ -40,13 +40,13 @@
 
 ### Windows
 1. Download `RomMate.exe` from the [Releases](https://github.com/rchaicowski/rommate/releases) page
-2. Double-click and run, no installation needed
+2. Double-click and run — no installation needed
 
 > **Note:** Windows may show a "Windows protected your PC" SmartScreen warning, since RomMate isn't code-signed. This is expected for open-source apps without a paid certificate. Click **"More info" → "Run anyway"** to proceed. You can verify your download against the SHA256 checksum listed on the release page.
 
 ### Linux
 1. Download `RomMate-x86_64.AppImage` from the [Releases](https://github.com/rchaicowski/rommate/releases) page
-2. Double-click and run, no installation needed
+2. Double-click and run — no installation needed
 
 ### Run from source (developers)
 ```bash
@@ -77,7 +77,7 @@ python3 rommate.py
 
 ### Settings
 
-Access settings via the gear icon:
+Access settings via the ⚙️ gear icon:
 - Sound preferences
 - Folder behavior (remember last / default)
 - Conversion options
@@ -161,6 +161,18 @@ See [LICENSE](LICENSE) file for full text.
 
 ---
 
+## Known Issues & Roadmap
+
+### Known Issues
+- **Validate & Fix ROM Names**: After renaming a ROM, the processing screen can keep running as if still working, and Cancel may show CHD-conversion-specific text instead of the correct message for this operation.
+
+### Planned
+- **Similar-name suggestions**: When a ROM can't be matched against the No-Intro/Redump databases, show a short list of similarly-named entries (including different regions) instead of just "Unknown," so you can check if one matches instead of being stuck.
+- **GameCube (GCZ) / Wii (RVZ, WBFS) conversion**: Under consideration — these use different tools than chdman (Dolphin's `dolphin-tool`), so this needs more thought before committing.
+- **Scraper & metadata tools**: Cover art scraping, mixed covers, and XML/DAT list support — a larger future addition, not scoped yet.
+
+---
+
 ## Bug Reports & Feature Requests
 
 Found a bug or have a feature idea?
@@ -194,4 +206,4 @@ Found a bug or have a feature idea?
 
 ---
 
-**Made with love for the ROM preservation community**
+**Made with ❤️ for the ROM preservation community**
