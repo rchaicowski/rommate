@@ -155,6 +155,14 @@ class ProcessingPanel:
     def reset_bg(self):
         self._set_bg_recursive(self.frame, self.c['bg_frame'])
 
+    def pause_for_dialog(self):
+        """Stop the spinner and hide the Cancel button without showing the
+        full completion banner — used when a follow-up dialog (e.g. the ROM
+        rename review) is about to take over, since the background work is
+        already done but the operation isn't fully wrapped up yet."""
+        self.stop_spinner()
+        self.cancel_frame.pack_forget()
+
     # ------------------------------------------------------------------ #
     #  Background helper                                                   #
     # ------------------------------------------------------------------ #
@@ -244,9 +252,24 @@ class ProcessingPanel:
     def cancel_processing(self):
         if not self.get_is_processing():
             return
+
+        mode = self.get_mode()
+        if mode in ("chd", "both"):
+            details = _("Any incomplete CHD files will be deleted.")
+        elif mode == "extract":
+            details = _("Any incomplete extracted files will be deleted.")
+        elif mode == "m3u":
+            details = _("No changes will be made to your files.")
+        elif mode == "validate":
+            details = _("No files will be renamed.")
+        elif mode == "health":
+            details = _("The health check will stop; no files will be changed.")
+        else:
+            details = _("No changes will be made.")
+
         if messagebox.askyesno(
             _("Cancel Processing"),
-            _("Are you sure you want to cancel?\n\nAny incomplete CHD files will be deleted."),
+            _("Are you sure you want to cancel?") + f"\n\n{details}",
             icon='warning'
         ):
             self.set_cancel(True)

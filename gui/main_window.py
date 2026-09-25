@@ -260,6 +260,7 @@ class RomMateGUI:
 
     def reset_and_return(self):
         self.is_processing = False
+        self.proc_panel.stop_spinner()
         self.proc_panel.reset_bg()
         self.show_main_panel()
 
@@ -300,6 +301,7 @@ class RomMateGUI:
             'animate':            ui(self.proc_panel.animate_dots),
             'cancel':             lambda: self.cancel_requested,
             'complete':           ui(self.proc_panel.show_completion),
+            'pause':              ui(self.proc_panel.pause_for_dialog),
             'return':             ui(self.reset_and_return),
             'set_processing':     ui(lambda v: setattr(self, 'is_processing', v)),
             'offer_header_fix':   ui(self.offer_header_fix),
@@ -391,6 +393,7 @@ class RomMateGUI:
         dialog.configure(bg=c['bg_dark'])
         dialog.transient(self.root)
         dialog.grab_set()
+        dialog.protocol("WM_DELETE_WINDOW", lambda: (dialog.destroy(), self.reset_and_return()))
         w, h = 900, 600
         x = (dialog.winfo_screenwidth()  // 2) - (w // 2)
         y = (dialog.winfo_screenheight() // 2) - (h // 2)

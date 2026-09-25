@@ -416,6 +416,7 @@ def validate_rom_names(folder, name_validator, root, callbacks, after_fn):
                 done(success=True, converted=0, skipped=0, failed=0)
             else:
                 log(f"Found {len(results)} ROM(s) that need renaming")
+                callbacks['pause']()
                 after_fn(100, lambda: callbacks['show_rename_dialog'](results))
 
         except Exception as e:
