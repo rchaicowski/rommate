@@ -169,7 +169,6 @@ See [LICENSE](LICENSE) file for full text.
 ### Planned
 - **Similar-name suggestions**: When a ROM can't be matched against the No-Intro/Redump databases, show a short list of similarly-named entries (including different regions) instead of just "Unknown," so you can check if one matches instead of being stuck.
 - **GameCube (GCZ) / Wii (RVZ, WBFS) conversion**: Under consideration — these use different tools than chdman (Dolphin's `dolphin-tool`), so this needs more thought before committing.
-- **Scraper & metadata tools**: Cover art scraping, mixed covers, and XML/DAT list support — a larger future addition, not scoped yet.
 
 ---
 
