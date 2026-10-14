@@ -446,16 +446,22 @@ class RomMateGUI:
             renamed = failed = 0
             for var, result in rename_vars:
                 if var.get():
-                    success, _, _ = self.name_validator.rename_rom(result['path'], result['suggested_name'])
+                    # NOTE: don't use `_` as a throwaway name here — it would
+                    # shadow the i18n _() function for this whole function.
+                    success, rename_msg, new_path = self.name_validator.rename_rom(
+                        result['path'], result['suggested_name'])
                     if success: renamed += 1
                     else:       failed  += 1
             dialog.destroy()
-            if failed == 0:
-                messagebox.showinfo(_("Rename Complete"), f"Successfully renamed {renamed} file(s)!")
-            else:
-                messagebox.showwarning(_("Partial Success"),
-                    f"Renamed: {renamed}  |  Failed: {failed}\n\nSome files could not be renamed.")
-            self.reset_and_return()
+            try:
+                if failed == 0:
+                    messagebox.showinfo(_("Rename Complete"), f"Successfully renamed {renamed} file(s)!")
+                else:
+                    messagebox.showwarning(_("Partial Success"),
+                        f"Renamed: {renamed}  |  Failed: {failed}\n\nSome files could not be renamed.")
+            finally:
+                # Always return to the main screen, whatever happens above
+                self.reset_and_return()
 
         for text, cmd in [("Select All",  lambda: [v.set(True)  for v, _ in rename_vars]),
                           ("Select None", lambda: [v.set(False) for v, _ in rename_vars])]:
