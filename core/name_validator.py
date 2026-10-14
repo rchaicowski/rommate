@@ -5,16 +5,154 @@
 """ROM name validation and correction"""
 
 import os
+import re
+import difflib
 from pathlib import Path
 from core.cartridge_checker import CartridgeChecker
+
+# Words ignored when comparing titles, so "The Legend of Zelda" matches
+# "Legend of Zelda, The".
+_IGNORED_WORDS = {'the', 'a', 'an'}
+
+# Roman numerals are compared as numbers, so "Dragon Quest III" is not confused
+# with "Dragon Quest I & II". A bare "X" is left alone (e.g. "Mega Man X").
+_ROMAN_NUMERALS = {
+    'i': '1', 'ii': '2', 'iii': '3', 'iv': '4', 'v': '5', 'vi': '6',
+    'vii': '7', 'viii': '8', 'ix': '9', 'xi': '11', 'xii': '12', 'xiii': '13',
+}
+
+
+def _title_tokens(name):
+    """Reduce a ROM or database name to comparable words.
+
+    Lowercase, without (tags) and [tags] (regions, revisions, translation
+    info), without punctuation, without "the/a/an", roman numerals as digits.
+    """
+    text = name.lower()
+    text = re.sub(r'\[.*?\]|\(.*?\)', ' ', text)
+    text = re.sub(r'[^\w\s]', ' ', text)
+    return [_ROMAN_NUMERALS.get(w, w) for w in text.split() if w not in _IGNORED_WORDS]
+
+
+def _region_rank(name):
+    """Sort order for regions in the suggestion list: USA, Europe, Japan, World, other."""
+    lowered = name.lower()
+    for rank, marker in enumerate(('(usa', '(europe', '(japan', '(world')):
+        if marker in lowered:
+            return rank
+    return 4
 
 
 class NameValidator:
     """Validate and suggest corrections for ROM filenames"""
     
+    # Tuning for the "similar names" suggestions
+    SUGGESTION_CUTOFF = 0.6        # minimum similarity (0-1) to be suggested
+    SUGGESTION_LIMIT = 8           # max names suggested per ROM
+    SUGGESTIONS_PER_TITLE = 3      # max variants (regions/revisions) of one game
+
     def __init__(self):
         """Initialize name validator"""
         self.cartridge_checker = CartridgeChecker()
+        self._title_index = {}     # system -> {normalized title: {...}}
+
+    def _get_title_index(self, system):
+        """Build (once per system) an index of database names grouped by title.
+
+        All regions/revisions of the same game share one normalized title, so
+        "Super Mario World (USA)", "(Europe)" and "(Japan)" are scored together.
+        """
+        if system in self._title_index:
+            return self._title_index[system]
+
+        database = self.cartridge_checker.load_database(system)
+        index = {}
+        for name in {entry['name'] for entry in database.values()}:
+            tokens = _title_tokens(name)
+            if not tokens:
+                continue
+            slot = index.setdefault(' '.join(tokens), {
+                'tokens': set(tokens),
+                'numbers': {t for t in tokens if t.isdigit()},
+                'names': [],
+            })
+            slot['names'].append(name)
+
+        self._title_index[system] = index
+        return index
+
+    def find_similar_names(self, filename, system, limit=None, cutoff=None):
+        """Find database names that look like a ROM filename.
+
+        Compares titles only (ignoring region/revision tags), so every region
+        of a similar game is offered. Different numbers (sequels, roman
+        numerals) lower the score.
+
+        Args:
+            filename (str): ROM filename (with or without extension)
+            system (str): System name used to pick the database
+            limit (int): Max names to return
+            cutoff (float): Minimum similarity, 0 to 1
+
+        Returns:
+            list: [{'name': database name, 'score': percent}], best first
+        """
+        limit = limit or self.SUGGESTION_LIMIT
+        cutoff = cutoff if cutoff is not None else self.SUGGESTION_CUTOFF
+
+        index = self._get_title_index(system)
+        query = _title_tokens(os.path.splitext(filename)[0])
+        if not index or not query:
+            return []
+
+        query_str = ' '.join(query)
+        query_set = set(query)
+        query_numbers = {t for t in query if t.isdigit()}
+
+        matcher = difflib.SequenceMatcher(None, autojunk=False)
+        matcher.set_seq2(query_str)
+
+        scored = []
+        for title, info in index.items():
+            overlap = len(query_set & info['tokens']) / min(len(query_set), len(info['tokens']))
+            matcher.set_seq1(title)
+            if overlap < 0.5 and matcher.quick_ratio() < 0.5:
+                continue
+
+            score = 0.6 * matcher.ratio() + 0.4 * overlap
+
+            if query_numbers:
+                if info['numbers'] and not (query_numbers & info['numbers']):
+                    score *= 0.6      # different number = different game
+                elif not info['numbers']:
+                    score *= 0.7      # file has a number, this title has none
+
+            if score >= cutoff:
+                scored.append((score, info['names']))
+
+        scored.sort(key=lambda item: -item[0])
+
+        suggestions = []
+        for score, names in scored:
+            # Plainest entries first (fewer tags), then USA, Europe, Japan...
+            names = sorted(names, key=lambda n: (len(re.findall(r'\(.*?\)', n)),
+                                                 _region_rank(n), n))
+            for name in names[:self.SUGGESTIONS_PER_TITLE]:
+                suggestions.append({'name': name, 'score': int(round(score * 100))})
+                if len(suggestions) >= limit:
+                    return suggestions
+        return suggestions
+
+    def _log_suggestions(self, suggestions, log_callback, header):
+        """Write the suggestion list to the log."""
+        if not log_callback:
+            return
+        if suggestions:
+            log_callback(header)
+            for suggestion in suggestions:
+                log_callback(f"      {suggestion['score']:>3}%  {suggestion['name']}")
+        else:
+            log_callback("   [?] No similar names found in the database")
     
     def validate_folder(self, folder, log_callback=None, progress_callback=None, cancel_check=None):
         """Validate ROM names in a folder
@@ -163,12 +301,28 @@ class NameValidator:
                     log_callback(f"   [✓] Name is correct")
                 return None
         else:
-            # ROM unknown or hack
-            if log_callback:
-                if rom_result['status'] == 'hack':
+            status = rom_result['status']
+            system = rom_result.get('system')
+            is_translation = (status == 'hack' and rom_result.get('hack_type') == 'translation')
+
+            # Other hacks/modified ROMs are skipped
+            if status == 'hack' and not is_translation:
+                if log_callback:
                     log_callback(f"   [!] ROM hack - skipping")
-                else:
-                    log_callback(f"   [?] Unknown ROM - cannot suggest name")
+                return None
+
+            # No exact match (or a translation): offer similar names instead
+            # of a dead end, e.g. a fan translation can be renamed to the
+            # original (Japanese) name.
+            if system and (status in ('unknown', 'name_match') or is_translation):
+                suggestions = self.find_similar_names(current_name, system)
+                header = ("   [!] Translation - possible original names:" if is_translation
+                          else "   [?] No exact match - possible names:")
+                self._log_suggestions(suggestions, log_callback, header)
+                return None
+
+            if log_callback:
+                log_callback(f"   [?] Unknown ROM - cannot suggest name")
             return None
     
     def rename_rom(self, rom_path, new_name):
