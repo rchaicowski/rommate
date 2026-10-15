@@ -415,7 +415,12 @@ def validate_rom_names(folder, name_validator, root, callbacks, after_fn):
                 log("[✓] All ROM names are correct!")
                 done(success=True, converted=0, skipped=0, failed=0)
             else:
-                log(f"Found {len(results)} ROM(s) that need renaming")
+                needs_choice = sum(1 for r in results if r.get('status') == 'needs_choice')
+                needs_rename = len(results) - needs_choice
+                if needs_rename:
+                    log(f"Found {needs_rename} ROM(s) that need renaming")
+                if needs_choice:
+                    log(f"Found {needs_choice} ROM(s) with possible names to choose from")
                 callbacks['pause']()
                 after_fn(100, lambda: callbacks['show_rename_dialog'](results))
 

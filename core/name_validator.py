@@ -319,7 +319,23 @@ class NameValidator:
                 header = ("   [!] Translation - possible original names:" if is_translation
                           else "   [?] No exact match - possible names:")
                 self._log_suggestions(suggestions, log_callback, header)
-                return None
+
+                if not suggestions:
+                    return None
+
+                # Let the user pick one of the names (or keep the current one)
+                extension = os.path.splitext(current_name)[1]
+                return {
+                    'path': rom_file,
+                    'current_name': current_name,
+                    'status': 'needs_choice',
+                    'system': system,
+                    'is_translation': is_translation,
+                    'suggestions': [
+                        {'name': item['name'] + extension, 'score': item['score']}
+                        for item in suggestions
+                    ],
+                }
 
             if log_callback:
                 log_callback(f"   [?] Unknown ROM - cannot suggest name")
