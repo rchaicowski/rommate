@@ -403,7 +403,15 @@ class RomMateGUI:
         title_frame = tk.Frame(dialog, bg=c['accent_blue'], height=60)
         title_frame.pack(fill="x")
         title_frame.pack_propagate(False)
-        tk.Label(title_frame, text=f"Review ROM Names ({len(results)} files need renaming)",
+        n_choice = sum(1 for r in results if r.get('status') == 'needs_choice')
+        n_rename = len(results) - n_choice
+        if n_choice == 0:
+            title_text = f"Review ROM Names ({n_rename} files need renaming)"
+        elif n_rename == 0:
+            title_text = f"Review ROM Names ({n_choice} files with possible names)"
+        else:
+            title_text = f"Review ROM Names ({n_rename} need renaming, {n_choice} with possible names)"
+        tk.Label(title_frame, text=title_text,
                  font=("Arial", 14, "bold"), bg=c['accent_blue'], fg="white").pack(expand=True)
 
         content = tk.Frame(dialog, bg=c['bg_dark'], padx=20, pady=20)
@@ -421,12 +429,52 @@ class RomMateGUI:
         canvas.pack(side="left", fill="both", expand=True)
         scrollbar.pack(side="right", fill="y")
 
-        rename_vars = []
+        # Mouse-wheel scrolling. Bound on the dialog window itself, so it works
+        # over every widget inside it and disappears when the dialog closes.
+        def on_mousewheel(event):
+            scroll_up = getattr(event, 'num', None) == 4 or getattr(event, 'delta', 0) > 0
+            canvas.yview_scroll(-3 if scroll_up else 3, "units")
+        dialog.bind("<MouseWheel>", on_mousewheel)   # Windows / macOS
+        dialog.bind("<Button-4>",   on_mousewheel)   # Linux: wheel up
+        dialog.bind("<Button-5>",   on_mousewheel)   # Linux: wheel down
+
+        rename_vars = []   # rows with one confident suggestion (checkbox)
+        choice_vars = []   # rows where the user picks from several names (radio buttons)
         for idx, result in enumerate(results):
             item = tk.Frame(scrollable_frame, bg=c['bg_frame'], pady=10, padx=10)
             item.pack(fill="x", padx=5, pady=5)
             if idx > 0:
                 tk.Frame(item, bg=c['text_gray'], height=1).pack(fill="x", pady=(0, 10))
+
+            if result.get('status') == 'needs_choice':
+                # Current name always on top for context, then the possible
+                # names, then "keep" (selected by default: nothing changes
+                # unless the user picks a name).
+                pick = tk.StringVar(value='keep')
+                choice_vars.append((pick, result))
+                tk.Label(item, text=f"Current:  {result['current_name']}",
+                         font=("Arial", 10, "bold"), fg=c['text_light'], bg=c['bg_frame'],
+                         anchor="w", justify="left", wraplength=780).pack(fill="x", padx=5, pady=(0, 2))
+                hint = (_("Translation - choose the original name, or keep yours:")
+                        if result.get('is_translation')
+                        else _("No exact match - choose a similar name, or keep yours:"))
+                tk.Label(item, text=f"{hint}   (System: {result['system'].upper()})",
+                         font=("Arial", 8), fg=c['text_gray'], bg=c['bg_frame'],
+                         anchor="w").pack(fill="x", padx=5, pady=(0, 5))
+                for i, suggestion in enumerate(result['suggestions']):
+                    tk.Radiobutton(item, text=f"{suggestion['name']}   ({suggestion['score']}%)",
+                                   variable=pick, value=str(i), font=("Arial", 9),
+                                   bg=c['bg_frame'], fg=c['text_success'], selectcolor=c['bg_dark'],
+                                   activebackground=c['bg_frame'], bd=0, highlightthickness=0,
+                                   anchor="w", justify="left", wraplength=760
+                                   ).pack(fill="x", padx=20, pady=1)
+                tk.Radiobutton(item, text=_("Keep current name"), variable=pick, value='keep',
+                               font=("Arial", 9, "bold"), bg=c['bg_frame'], fg=c['text_light'],
+                               selectcolor=c['bg_dark'], activebackground=c['bg_frame'],
+                               bd=0, highlightthickness=0, anchor="w"
+                               ).pack(fill="x", padx=20, pady=(5, 0))
+                continue
+
             var = tk.BooleanVar(value=True)
             rename_vars.append((var, result))
             tk.Checkbutton(item, text=_("Rename this file"), variable=var,
@@ -452,9 +500,18 @@ class RomMateGUI:
                         result['path'], result['suggested_name'])
                     if success: renamed += 1
                     else:       failed  += 1
+            for pick, result in choice_vars:
+                if pick.get() == 'keep':
+                    continue
+                new_name = result['suggestions'][int(pick.get())]['name']
+                success, rename_msg, new_path = self.name_validator.rename_rom(result['path'], new_name)
+                if success: renamed += 1
+                else:       failed  += 1
             dialog.destroy()
             try:
-                if failed == 0:
+                if failed == 0 and renamed == 0:
+                    messagebox.showinfo(_("Rename Complete"), "No files were renamed.")
+                elif failed == 0:
                     messagebox.showinfo(_("Rename Complete"), f"Successfully renamed {renamed} file(s)!")
                 else:
                     messagebox.showwarning(_("Partial Success"),
@@ -463,8 +520,19 @@ class RomMateGUI:
                 # Always return to the main screen, whatever happens above
                 self.reset_and_return()
 
-        for text, cmd in [("Select All",  lambda: [v.set(True)  for v, _ in rename_vars]),
-                          ("Select None", lambda: [v.set(False) for v, _ in rename_vars])]:
+        def select_all():
+            # Only rows with one confident suggestion; rows with several
+            # possible names are never picked automatically.
+            for v, _row in rename_vars:
+                v.set(True)
+
+        def select_none():
+            for v, _row in rename_vars:
+                v.set(False)
+            for v, _row in choice_vars:
+                v.set('keep')
+
+        for text, cmd in [("Select All", select_all), ("Select None", select_none)]:
             tk.Button(btn_frame, text=text, command=cmd, font=("Arial", 10),
                       bg=c['bg_frame'], fg=c['text_light'], cursor="hand2",
                       relief="flat", padx=15, pady=8).pack(side="left", padx=(0, 10))
