@@ -326,6 +326,26 @@ class CartridgeChecker:
         
         return False
     
+    # Roman numerals count as numbers when comparing titles ("III" == "3").
+    # A bare "X" is left alone (e.g. "Mega Man X").
+    _ROMAN_NUMBERS = {
+        'i': '1', 'ii': '2', 'iii': '3', 'iv': '4', 'v': '5', 'vi': '6',
+        'vii': '7', 'viii': '8', 'ix': '9', 'xi': '11', 'xii': '12', 'xiii': '13',
+    }
+
+    @classmethod
+    def _title_numbers(cls, title):
+        """Numbers in a title ('2', 'III' -> '3'), used to tell sequels apart."""
+        import re
+        title = re.sub(r'\b(?:disc|disk|cd)\s*\d+(?:\s*of\s*\d+)?', ' ', title)   # disc numbers are not sequels
+        numbers = set()
+        for word in re.findall(r'\d+|[a-z]+', title):
+            if word.isdigit():
+                numbers.add(str(int(word)))
+            elif word in cls._ROMAN_NUMBERS:
+                numbers.add(cls._ROMAN_NUMBERS[word])
+        return numbers
+
     def fuzzy_name_match(self, filename, database_name, threshold=0.8):
         """Check if filename fuzzy matches database name
         
@@ -346,6 +366,11 @@ class CartridgeChecker:
         
         # Remove extensions
         file_clean = file_clean.rsplit('.', 1)[0]
+
+        # Sequel numbers come from the title only: (tags) and [tags] such as
+        # "(Rev 2)" or "(v1.1)" are not part of it.
+        file_numbers = self._title_numbers(re.sub(r'\[.*?\]|\(.*?\)', ' ', file_clean))
+        db_numbers = self._title_numbers(re.sub(r'\[.*?\]|\(.*?\)', ' ', db_clean))
         
         # EXTRACT region and disc BEFORE stripping
         file_region = ''
@@ -389,6 +414,15 @@ class CartridgeChecker:
         
         # Calculate similarity
         similarity = difflib.SequenceMatcher(None, file_clean, db_clean).ratio()
+
+        # Plain text similarity barely notices a sequel number, so "Donkey Kong
+        # Country 2" scored ~95% against "Donkey Kong Country" (and "... 3").
+        # Different numbers mean a different game, so lower the score.
+        if file_numbers and db_numbers:
+            if not (file_numbers & db_numbers):
+                similarity *= 0.6      # e.g. "... 2" vs "... 3"
+        elif file_numbers or db_numbers:
+            similarity *= 0.8          # one title has a number, the other doesn't
         
         return similarity
     

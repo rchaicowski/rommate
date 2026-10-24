@@ -34,6 +34,27 @@ def _title_tokens(name):
     return [_ROMAN_NUMERALS.get(w, w) for w in text.split() if w not in _IGNORED_WORDS]
 
 
+_DB_DISC_RE = re.compile(r'\(disc (\d+)\)', re.IGNORECASE)
+_FILE_DISC_RE = re.compile(r'\b(?:disc|disk|cd)[\s._-]*(\d+)\b', re.IGNORECASE)
+
+
+def _db_disc_number(name):
+    """Disc number of a database name like 'Game (USA) (Disc 2)', or None."""
+    match = _DB_DISC_RE.search(name)
+    return int(match.group(1)) if match else None
+
+
+def _split_file_disc(stem):
+    """Pull a disc number out of a filename ('Game Disc 2', 'Game CD2').
+
+    Returns (stem without the disc part, disc number or None).
+    """
+    match = _FILE_DISC_RE.search(stem)
+    if not match:
+        return stem, None
+    return (stem[:match.start()] + ' ' + stem[match.end():]), int(match.group(1))
+
+
 def _region_rank(name):
     """Sort order for regions in the suggestion list: USA, Europe, Japan, World, other."""
     lowered = name.lower()
@@ -55,6 +76,7 @@ class NameValidator:
         """Initialize name validator"""
         self.cartridge_checker = CartridgeChecker()
         self._title_index = {}     # system -> {normalized title: {...}}
+        self._known_names = {}     # system -> {lowercase database names}
 
     def _get_title_index(self, system):
         """Build (once per system) an index of database names grouped by title.
@@ -67,7 +89,9 @@ class NameValidator:
 
         database = self.cartridge_checker.load_database(system)
         index = {}
-        for name in {entry['name'] for entry in database.values()}:
+        db_names = {entry['name'] for entry in database.values()}
+        self._known_names[system] = {n.lower() for n in db_names}
+        for name in db_names:
             tokens = _title_tokens(name)
             if not tokens:
                 continue
@@ -80,6 +104,11 @@ class NameValidator:
 
         self._title_index[system] = index
         return index
+
+    def _is_database_name(self, system, stem):
+        """True if a filename (without extension) is exactly a database name."""
+        self._get_title_index(system)
+        return stem.lower() in self._known_names.get(system, ())
 
     def find_similar_names(self, filename, system, limit=None, cutoff=None):
         """Find database names that look like a ROM filename.
@@ -101,7 +130,8 @@ class NameValidator:
         cutoff = cutoff if cutoff is not None else self.SUGGESTION_CUTOFF
 
         index = self._get_title_index(system)
-        query = _title_tokens(os.path.splitext(filename)[0])
+        stem, query_disc = _split_file_disc(os.path.splitext(filename)[0])
+        query = _title_tokens(stem)
         if not index or not query:
             return []
 
@@ -132,8 +162,15 @@ class NameValidator:
 
         scored.sort(key=lambda item: -item[0])
 
+        # Multi-disc games: show the disc the file asks for (Disc 1 if it
+        # doesn't say), so the list is regions of that disc, not Disc 1/2/3.
+        wanted_disc = query_disc or 1
+
         suggestions = []
         for score, names in scored:
+            if any(_db_disc_number(n) is not None for n in names):
+                same_disc = [n for n in names if _db_disc_number(n) in (None, wanted_disc)]
+                names = same_disc or names
             # Plainest entries first (fewer tags), then USA, Europe, Japan...
             names = sorted(names, key=lambda n: (len(re.findall(r'\(.*?\)', n)),
                                                  _region_rank(n), n))
@@ -315,6 +352,13 @@ class NameValidator:
             # of a dead end, e.g. a fan translation can be renamed to the
             # original (Japanese) name.
             if system and (status in ('unknown', 'name_match') or is_translation):
+                # Already named exactly like a database entry (common for CUE
+                # files, which can't be checksum-verified): nothing to fix.
+                if self._is_database_name(system, os.path.splitext(current_name)[0]):
+                    if log_callback:
+                        log_callback(f"   [✓] Name is correct")
+                    return None
+
                 suggestions = self.find_similar_names(current_name, system)
                 header = ("   [!] Translation - possible original names:" if is_translation
                           else "   [?] No exact match - possible names:")
