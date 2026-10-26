@@ -162,6 +162,11 @@ class ProcessingPanel:
         already done but the operation isn't fully wrapped up yet."""
         self.stop_spinner()
         self.cancel_frame.pack_forget()
+        # Remove the frozen spinner symbol from the title so it doesn't look
+        # like the app is still working.
+        title = self.status_title.cget("text")
+        if any(ch in title for ch in self.spinner_chars):
+            self.status_title.config(text=" ".join(title.split()[:-1]))
 
     # ------------------------------------------------------------------ #
     #  Background helper                                                   #

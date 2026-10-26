@@ -389,19 +389,27 @@ def check_rom_health(folder, rom_health, chd_converter, root, callbacks, after_f
 
 def validate_rom_names(folder, name_validator, root, callbacks, after_fn):
     """Validate and fix ROM names."""
-    log    = callbacks['log']
-    cancel = callbacks['cancel']
-    done   = callbacks['complete']
-    ret    = callbacks['return']
+    log      = callbacks['log']
+    progress = callbacks['progress']
+    cancel   = callbacks['cancel']
+    done     = callbacks['complete']
+    ret      = callbacks['return']
 
     def run():
         try:
+            last = {'cur': 0, 'tot': 0}
+
+            def on_progress(cur, tot, filename):
+                last['cur'], last['tot'] = cur, tot
+                log(f"Processing file {cur} of {tot}: {filename}")
+                progress("Validating ROM Names", f"Checking file {cur} of {tot}", cur, tot, filename)
+
             log(f"ROM Name Validator\nFolder: {folder}\n{'=' * 60}")
+            progress("ROM Name Validator", "Scanning for ROM files...")
             results = name_validator.validate_folder(
                 folder,
                 log_callback=log,
-                progress_callback=lambda cur, tot, fn:
-                    log(f"Processing file {cur} of {tot}: {fn}"),
+                progress_callback=on_progress,
                 cancel_check=cancel
             )
 
@@ -421,6 +429,8 @@ def validate_rom_names(folder, name_validator, root, callbacks, after_fn):
                     log(f"Found {needs_rename} ROM(s) that need renaming")
                 if needs_choice:
                     log(f"Found {needs_choice} ROM(s) with possible names to choose from")
+                progress("Review ROM Names", "Choose which names to change in the window",
+                         last['tot'], last['tot'])
                 callbacks['pause']()
                 after_fn(100, lambda: callbacks['show_rename_dialog'](results))
 
