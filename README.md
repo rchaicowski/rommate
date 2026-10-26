@@ -19,6 +19,7 @@
 - **ROM Hack Detection** - Identify translations and modifications
 - **Header Detection** - Find external copier headers (SNES, NES)
 - **Fuzzy Matching** - Smart filename and checksum comparison
+- **Name Validation** - Fix ROM filenames using the No-Intro/Redump databases. For ROMs that don't match (including fan translations), RomMate lists similar names from every region so you can pick one, for example to match a name that has cover art, or keep the current name
 
 ### Supported Systems (26+)
 
@@ -163,11 +164,14 @@ See [LICENSE](LICENSE) file for full text.
 
 ## Known Issues & Roadmap
 
-### Known Issues
-- **Validate & Fix ROM Names**: After renaming a ROM, the processing screen can keep running as if still working, and Cancel may show CHD-conversion-specific text instead of the correct message for this operation.
+### Known Issues & Limitations
+- **Renumbered games**: Some games have different numbers in different regions (for example, *Final Fantasy VI* in Japan is *Final Fantasy III* in the USA). Name matching treats a different number as a different game, so it suggests the name with the matching number (here, the Japanese one) and not the other region's name.
+- **Disc images**: CUE and GDI files can't be checksum-verified, so name suggestions for them are based on the file name only, and have been tested less than cartridge ROMs.
+
+No other known bugs right now. Found one? See below.
 
 ### Planned
-- **Similar-name suggestions**: When a ROM can't be matched against the No-Intro/Redump databases, show a short list of similarly-named entries (including different regions) instead of just "Unknown," so you can check if one matches instead of being stuck.
+- **Size summary**: When a CHD conversion finishes, show the original size, the size after conversion and the space saved in the processing panel.
 - **GameCube (GCZ) / Wii (RVZ, WBFS) conversion**: Under consideration — these use different tools than chdman (Dolphin's `dolphin-tool`), so this needs more thought before committing.
 
 ---
