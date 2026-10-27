@@ -285,7 +285,7 @@ class ProcessingPanel:
     #  Completion                                                          #
     # ------------------------------------------------------------------ #
 
-    def show_completion(self, success=True, converted=0, skipped=0, failed=0):
+    def show_completion(self, success=True, converted=0, skipped=0, failed=0, summary=None):
         self.stop_spinner()
         self.cancel_frame.pack_forget()
         self.sound_player.play("success" if success else "fail", self.sound_player.volume)
@@ -309,7 +309,8 @@ class ProcessingPanel:
         else:
             if success:
                 self.status_title.config(text=_("[✓] Completed Successfully!"), fg=c['accent_green'])
-                self.status_subtitle.config(text=_("All operations finished"))
+                # After a conversion, show the size summary ("Original -> CHD, saved")
+                self.status_subtitle.config(text=summary or _("All operations finished"))
                 self._set_bg_recursive(self.frame, c['state_success'])
             else:
                 self.status_title.config(text=_("[!] Completed with Errors"), fg=c['accent_red'])

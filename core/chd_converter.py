@@ -6,6 +6,7 @@
 
 import os
 import re
+import shlex
 import subprocess
 import platform
 import shutil
@@ -20,6 +21,7 @@ class CHDConverter:
     def __init__(self):
         """Initialize CHD converter"""
         self.chdman_path = None
+        self.size_totals = {'original': 0, 'chd': 0, 'files': 0}   # for the size summary
 
     @staticmethod
     def _subprocess_kwargs():
@@ -284,6 +286,79 @@ class CHDConverter:
         if log_callback:
             log_callback("   Deleted original files")
 
+    def _get_track_files_from_gdi(self, gdi_path):
+        """Parse a GDI file and return the track files it lists (that exist)."""
+        track_files = []
+        gdi_dir = os.path.dirname(gdi_path)
+        try:
+            with open(gdi_path, 'r', encoding='utf-8', errors='ignore') as f:
+                for line in f:
+                    try:
+                        parts = shlex.split(line)
+                    except ValueError:
+                        parts = line.split()
+                    # Track lines: <number> <lba> <type> <sector size> <file> <offset>
+                    if len(parts) >= 5 and parts[0].isdigit():
+                        track_path = os.path.join(gdi_dir, parts[4])
+                        if os.path.exists(track_path):
+                            track_files.append(track_path)
+        except Exception:
+            pass
+        return track_files
+
+    def _source_size(self, source_path, source_ext):
+        """Total size of a disc image: the file plus the track files it points to."""
+        files = [source_path]
+        if source_ext == '.cue':
+            files += self._get_bin_files_from_cue(source_path)
+        elif source_ext == '.gdi':
+            files += self._get_track_files_from_gdi(source_path)
+        total, seen = 0, set()
+        for path in files:
+            key = os.path.normcase(os.path.realpath(path))
+            if key in seen:
+                continue
+            seen.add(key)
+            try:
+                total += os.path.getsize(path)
+            except OSError:
+                pass
+        return total
+
+    def _record_sizes(self, original_size, chd_path):
+        """Add one finished conversion to the running size totals."""
+        try:
+            chd_size = os.path.getsize(chd_path)
+        except OSError:
+            return
+        self.size_totals['original'] += original_size
+        self.size_totals['chd'] += chd_size
+        self.size_totals['files'] += 1
+
+    @staticmethod
+    def format_size(num_bytes):
+        """Readable size, 1024-based like Windows: 1536 -> '2 KB', 3.9e9 -> '3.6 GB'."""
+        size = float(num_bytes)
+        for unit in ('B', 'KB', 'MB', 'GB', 'TB'):
+            if size < 1024 or unit == 'TB':
+                break
+            size /= 1024
+        return f"{size:.0f} {unit}" if unit in ('B', 'KB') else f"{size:.1f} {unit}"
+
+    def size_summary(self):
+        """One-line summary of the last convert_folder run, or None if nothing was converted."""
+        original = self.size_totals['original']
+        chd = self.size_totals['chd']
+        if self.size_totals['files'] == 0 or original <= 0:
+            return None
+        saved = original - chd
+        if saved > 0:
+            return _("Original: {before}  →  CHD: {after}  ·  Saved {saved} ({percent}%)").format(
+                before=self.format_size(original), after=self.format_size(chd),
+                saved=self.format_size(saved), percent=round(saved * 100 / original))
+        return _("Original: {before}  →  CHD: {after}").format(
+            before=self.format_size(original), after=self.format_size(chd))
+
     def convert_file(self, source_file, delete_after=False, 
                 log_callback=None, animation_callback=None):
         """Convert a single file to CHD
@@ -330,6 +405,9 @@ class CHDConverter:
             else:
                 cmd = [self.chdman_path, 'createcd', '-i', source_path, '-o', chd_path]
             
+            # Measure the originals now: they may be deleted after a successful conversion
+            original_size = self._source_size(source_path, source_ext)
+
             # For large files (> 100 MB), don't capture output to avoid buffering issues
             if file_size > 100 * 1024 * 1024:
                 if log_callback and is_dvd:
@@ -342,6 +420,7 @@ class CHDConverter:
                 )
                 
                 if returncode == 0:
+                    self._record_sizes(original_size, chd_path)
                     if delete_after:
                         self._safe_delete_originals(
                             source_path, source_ext, chd_path, log_callback)
@@ -357,6 +436,7 @@ class CHDConverter:
                 )
                 
                 if returncode == 0:
+                    self._record_sizes(original_size, chd_path)
                     if delete_after:
                         self._safe_delete_originals(
                             source_path, source_ext, chd_path, log_callback)
@@ -507,6 +587,8 @@ class CHDConverter:
         Returns:
             tuple: (converted, skipped, failed) - counts of each outcome
         """
+        self.size_totals = {'original': 0, 'chd': 0, 'files': 0}
+
         # Make sure chdman_path is set
         if not self.chdman_path:
             self.chdman_path = self.find_chdman()

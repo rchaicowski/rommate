@@ -106,18 +106,22 @@ def convert_to_chd(folder, delete_after, converter, callbacks):
             done(success=False)
             return
 
+        summary = converter.size_summary()
         log("\n" + "=" * 60)
         log(f"Converted: {converted}  |  Skipped: {skipped}  |  Failed: {failed}")
+        if summary:
+            log(summary)
         log("=" * 60)
 
         if cancel():
             ret()
             return
 
-        done(success=failed == 0, converted=converted, skipped=skipped, failed=failed)
+        done(success=failed == 0, converted=converted, skipped=skipped, failed=failed, summary=summary)
         messagebox.showinfo(
             _("Conversion Complete"),
             f"CHD conversion finished!\n\nConverted: {converted}\nSkipped: {skipped}\nFailed: {failed}"
+            + (f"\n\n{summary}" if summary else "")
         )
 
     except Exception as e:
@@ -272,6 +276,10 @@ def convert_and_create_m3u(folder, delete_after, converter, callbacks):
             else "No files found to convert"
         )
 
+        summary = converter.size_summary()
+        if summary:
+            log(summary)
+
         log("\n=== STEP 2: M3U Creation ===\n")
         progress("Step 2: Creating M3U", "Scanning for multi-disc games...")
 
@@ -301,7 +309,7 @@ def convert_and_create_m3u(folder, delete_after, converter, callbacks):
             ret()
             return
 
-        done(success=True, converted=created, skipped=0, failed=0)
+        done(success=True, converted=created, skipped=0, failed=0, summary=summary)
 
     except Exception as e:
         log(f"\n[x] Error: {str(e)}")
