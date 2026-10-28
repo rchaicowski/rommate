@@ -40,6 +40,7 @@ class CHDConverter:
             kwargs['creationflags'] = subprocess.CREATE_NO_WINDOW
         return kwargs
 
+    _FINAL_RATIO_RE = re.compile(r'final ratio\s*=\s*([\d.]+)%', re.IGNORECASE)
     _PERCENT_RE = re.compile(r'(\d+\.?\d*)%\s*complete[.\s]*(\(ratio=[\d.]+%\))?', re.IGNORECASE)
 
     def _run_chdman_progress(self, cmd, animation_callback=None, base_label="Processing"):
@@ -76,22 +77,37 @@ class CHDConverter:
         )
 
         last_line = ""
+        seen_percent = False
+        final_ratio = None
         try:
             for raw_line in process.stdout:
                 line = raw_line.strip()
                 if not line:
                     continue
                 last_line = line
+                ratio_match = self._FINAL_RATIO_RE.search(line)
+                if ratio_match:
+                    final_ratio = ratio_match.group(1)
                 if animation_callback:
                     match = self._PERCENT_RE.search(line)
                     if match:
+                        seen_percent = True
                         percent = match.group(1)
                         ratio_part = f" {match.group(2)}" if match.group(2) else ""
                         animation_callback(f"   {base_label}: {percent}% complete{ratio_part}")
-                    else:
+                    elif not seen_percent:
+                        # Generic text only until the first percentage shows up;
+                        # chdman's closing lines ("Compression complete...")
+                        # must not overwrite the last percentage.
                         animation_callback(f"   {base_label}...")
         finally:
             process.wait()
+
+        # chdman doesn't always print a final 100% line, so close the progress
+        # line ourselves when it finished successfully.
+        if animation_callback and seen_percent and process.returncode == 0:
+            ratio_part = f" (ratio={final_ratio}%)" if final_ratio else ""
+            animation_callback(f"   {base_label}: 100% complete{ratio_part}")
 
         return process.returncode, last_line
     
