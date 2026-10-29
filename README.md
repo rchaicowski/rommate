@@ -8,6 +8,7 @@
 
 ### Disc-Based Systems
 - **CHD Conversion** - Convert CUE, GDI, ISO to compressed CHD format (40-60% space savings)
+- **Size Summary** - When a conversion finishes, see the original size, the CHD size and the space saved
 - **CHD Extraction** - Extract CHD files back to their original format (CUE/BIN, ISO)
 - **M3U Playlist Creation** - Automatically organize multi-disc games
 - **CHD Verification** - Verify CHD file integrity with chdman
@@ -171,7 +172,6 @@ See [LICENSE](LICENSE) file for full text.
 No other known bugs right now. Found one? See below.
 
 ### Planned
-- **Size summary**: When a CHD conversion finishes, show the original size, the size after conversion and the space saved in the processing panel.
 - **GameCube (GCZ) / Wii (RVZ, WBFS) conversion**: Under consideration — these use different tools than chdman (Dolphin's `dolphin-tool`), so this needs more thought before committing.
 
 ---
