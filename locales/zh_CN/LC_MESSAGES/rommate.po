@@ -502,3 +502,78 @@ msgid ""
 "   [x] Skipped: .cdi (DiscJuggler) format is not supported by chdman — "
 "convert to GDI first"
 msgstr "   [x] 已跳过：chdman 不支持 .cdi（DiscJuggler）格式 — 请先转换为 GDI"
+
+msgid "Extract CHD to original format"
+msgstr "将CHD解压为原始格式"
+
+msgid "Extracts CHD files back to their original format"
+msgstr "将CHD文件还原为原始格式"
+
+msgid "Output: CUE/BIN for PS1, GDI for Dreamcast, ISO for DVD"
+msgstr "输出：PS1为CUE/BIN，Dreamcast为GDI，DVD为ISO"
+
+msgid "• Useful if a game has compatibility issues with CHD"
+msgstr "• 当游戏与CHD存在兼容性问题时很有用"
+
+msgid "• Original files will be recreated in the same folder"
+msgstr "• 原始文件将在同一文件夹中重新创建"
+
+msgid "▶ Extract CHD to Original"
+msgstr "▶ 将CHD解压为原始格式"
+
+msgid "Extraction Complete"
+msgstr "解压完成"
+
+msgid "No CHD files found in the selected folder."
+msgstr "所选文件夹中未找到CHD文件。"
+
+msgid "Translation - choose the original name, or keep yours:"
+msgstr "翻译版：请选择原始名称，或保留当前名称："
+
+msgid "No exact match - choose a similar name, or keep yours:"
+msgstr "没有完全匹配：请选择相似的名称，或保留当前名称："
+
+msgid "Keep current name"
+msgstr "保留当前名称"
+
+msgid "Original: {before}  →  CHD: {after}  ·  Saved {saved} ({percent}%)"
+msgstr "原始大小：{before}  →  CHD：{after}  ·  节省 {saved}（{percent}%）"
+
+msgid "Original: {before}  →  CHD: {after}"
+msgstr "原始大小：{before}  →  CHD：{after}"
+
+msgid "Any incomplete extracted files will be deleted."
+msgstr "未完成的解压文件将被删除。"
+
+msgid "No changes will be made to your files."
+msgstr "不会对您的文件做任何更改。"
+
+msgid "No files will be renamed."
+msgstr "不会重命名任何文件。"
+
+msgid "The health check will stop; no files will be changed."
+msgstr "完整性检查将停止；不会更改任何文件。"
+
+msgid "No changes will be made."
+msgstr "不会进行任何更改。"
+
+msgid "Success"
+msgstr "成功"
+
+msgid "Skip"
+msgstr "跳过"
+
+msgid "Conversion"
+msgstr "转换"
+
+msgid "Converts: CUE, GDI, ISO → CHD format"
+msgstr "转换：CUE、GDI、ISO → CHD格式"
+
+msgid "  Converts: CUE, GDI, ISO → CHD"
+msgstr "  转换：CUE、GDI、ISO → CHD"
+
+msgid "Are you sure you want to cancel?"
+msgstr "确定要取消吗？"
+
+msgid "Any incomplete CHD files will be deleted."
+msgstr "未完成的CHD文件将被删除。"

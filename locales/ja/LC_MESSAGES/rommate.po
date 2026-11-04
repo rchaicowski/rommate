@@ -502,3 +502,78 @@ msgid ""
 "   [x] Skipped: .cdi (DiscJuggler) format is not supported by chdman — "
 "convert to GDI first"
 msgstr "   [x] スキップ：.cdi（DiscJuggler）形式はchdmanで非対応です — 先にGDIに変換してください"
+
+msgid "Extract CHD to original format"
+msgstr "CHDを元の形式に展開"
+
+msgid "Extracts CHD files back to their original format"
+msgstr "CHDファイルを元の形式に戻して展開します"
+
+msgid "Output: CUE/BIN for PS1, GDI for Dreamcast, ISO for DVD"
+msgstr "出力：PS1はCUE/BIN、DreamcastはGDI、DVDはISO"
+
+msgid "• Useful if a game has compatibility issues with CHD"
+msgstr "• ゲームがCHDで互換性の問題を起こす場合に便利です"
+
+msgid "• Original files will be recreated in the same folder"
+msgstr "• 元のファイルは同じフォルダに再作成されます"
+
+msgid "▶ Extract CHD to Original"
+msgstr "▶ CHDを元の形式に展開"
+
+msgid "Extraction Complete"
+msgstr "展開完了"
+
+msgid "No CHD files found in the selected folder."
+msgstr "選択したフォルダにCHDファイルが見つかりません。"
+
+msgid "Translation - choose the original name, or keep yours:"
+msgstr "翻訳版：元の名前を選ぶか、現在の名前のままにしてください："
+
+msgid "No exact match - choose a similar name, or keep yours:"
+msgstr "完全一致なし：似た名前を選ぶか、現在の名前のままにしてください："
+
+msgid "Keep current name"
+msgstr "現在の名前を維持"
+
+msgid "Original: {before}  →  CHD: {after}  ·  Saved {saved} ({percent}%)"
+msgstr "元のサイズ：{before}  →  CHD：{after}  ·  {saved}節約（{percent}%）"
+
+msgid "Original: {before}  →  CHD: {after}"
+msgstr "元のサイズ：{before}  →  CHD：{after}"
+
+msgid "Any incomplete extracted files will be deleted."
+msgstr "未完成の展開ファイルは削除されます。"
+
+msgid "No changes will be made to your files."
+msgstr "ファイルは変更されません。"
+
+msgid "No files will be renamed."
+msgstr "ファイル名は変更されません。"
+
+msgid "The health check will stop; no files will be changed."
+msgstr "整合性チェックを停止します。ファイルは変更されません。"
+
+msgid "No changes will be made."
+msgstr "変更は行われません。"
+
+msgid "Success"
+msgstr "成功"
+
+msgid "Skip"
+msgstr "スキップ"
+
+msgid "Conversion"
+msgstr "変換"
+
+msgid "Converts: CUE, GDI, ISO → CHD format"
+msgstr "変換対象：CUE、GDI、ISO → CHD形式"
+
+msgid "  Converts: CUE, GDI, ISO → CHD"
+msgstr "  変換対象：CUE、GDI、ISO → CHD"
+
+msgid "Are you sure you want to cancel?"
+msgstr "キャンセルしますか？"
+
+msgid "Any incomplete CHD files will be deleted."
+msgstr "未完成のCHDファイルは削除されます。"

@@ -338,6 +338,11 @@ msgid ""
 "Skipped: {skipped}\n"
 "Failed: {failed}"
 msgstr ""
+"Conversion CHD terminée !\n"
+"\n"
+"Convertis : {converted}\n"
+"Ignorés : {skipped}\n"
+"Échecs : {failed}"
 
 msgid "No Games Found"
 msgstr "Aucun jeu trouvé"
@@ -603,3 +608,81 @@ msgid ""
 msgstr ""
 "   [x] Ignoré : le format .cdi (DiscJuggler) n'est pas pris en charge par "
 "chdman — convertissez d'abord en GDI"
+
+msgid "Extract CHD to original format"
+msgstr "Extraire le CHD au format d'origine"
+
+msgid "Extracts CHD files back to their original format"
+msgstr "Extrait les fichiers CHD vers leur format d'origine"
+
+msgid "Output: CUE/BIN for PS1, GDI for Dreamcast, ISO for DVD"
+msgstr "Sortie : CUE/BIN pour PS1, GDI pour Dreamcast, ISO pour DVD"
+
+msgid "• Useful if a game has compatibility issues with CHD"
+msgstr "• Utile si un jeu a des problèmes de compatibilité avec CHD"
+
+msgid "• Original files will be recreated in the same folder"
+msgstr "• Les fichiers d'origine seront recréés dans le même dossier"
+
+msgid "▶ Extract CHD to Original"
+msgstr "▶ Extraire le CHD vers l'original"
+
+msgid "Extraction Complete"
+msgstr "Extraction terminée"
+
+msgid "No CHD files found in the selected folder."
+msgstr "Aucun fichier CHD trouvé dans le dossier sélectionné."
+
+msgid "Translation - choose the original name, or keep yours:"
+msgstr "Traduction : choisissez le nom d'origine ou conservez le vôtre :"
+
+msgid "No exact match - choose a similar name, or keep yours:"
+msgstr ""
+"Aucune correspondance exacte : choisissez un nom similaire ou conservez le "
+"vôtre :"
+
+msgid "Keep current name"
+msgstr "Conserver le nom actuel"
+
+msgid "Original: {before}  →  CHD: {after}  ·  Saved {saved} ({percent}%)"
+msgstr ""
+"Original : {before}  →  CHD : {after}  ·  {saved} économisés ({percent}%)"
+
+msgid "Original: {before}  →  CHD: {after}"
+msgstr "Original : {before}  →  CHD : {after}"
+
+msgid "Any incomplete extracted files will be deleted."
+msgstr "Les fichiers extraits incomplets seront supprimés."
+
+msgid "No changes will be made to your files."
+msgstr "Aucune modification ne sera apportée à vos fichiers."
+
+msgid "No files will be renamed."
+msgstr "Aucun fichier ne sera renommé."
+
+msgid "The health check will stop; no files will be changed."
+msgstr "La vérification s'arrêtera ; aucun fichier ne sera modifié."
+
+msgid "No changes will be made."
+msgstr "Aucune modification ne sera effectuée."
+
+msgid "Language Changed"
+msgstr "Langue modifiée"
+
+msgid "Restart RomMate to apply language changes."
+msgstr "Redémarrez RomMate pour appliquer le changement de langue."
+
+msgid "Please restart RomMate to apply the new language."
+msgstr "Veuillez redémarrer RomMate pour appliquer la nouvelle langue."
+
+msgid "Converts: CUE, GDI, ISO → CHD format"
+msgstr "Convertit : CUE, GDI, ISO → format CHD"
+
+msgid "  Converts: CUE, GDI, ISO → CHD"
+msgstr "  Convertit : CUE, GDI, ISO → CHD"
+
+msgid "Are you sure you want to cancel?"
+msgstr "Êtes-vous sûr de vouloir annuler ?"
+
+msgid "Any incomplete CHD files will be deleted."
+msgstr "Les fichiers CHD incomplets seront supprimés."

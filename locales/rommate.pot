@@ -128,7 +128,9 @@ msgid "chdman Not Found"
 msgstr ""
 
 #: main_window_i18n.py
-msgid "chdman is required for CHD verification.\n\n"
+msgid ""
+"chdman is required for CHD verification.\n"
+"\n"
 msgstr ""
 
 #: main_window_i18n.py
@@ -240,7 +242,10 @@ msgid "Cancel Processing"
 msgstr ""
 
 #: processing_panel_i18n.py
-msgid "Are you sure you want to cancel?\n\nAny incomplete CHD files will be deleted."
+msgid ""
+"Are you sure you want to cancel?\n"
+"\n"
+"Any incomplete CHD files will be deleted."
 msgstr ""
 
 #: processing_panel_i18n.py
@@ -376,15 +381,21 @@ msgid "[!] Multiple Disc Formats Found"
 msgstr ""
 
 #: dialogs_i18n.py
-msgid "Both original disc files and CHD files were found.\nWhich format do you want to use for M3U playlists?"
+msgid ""
+"Both original disc files and CHD files were found.\n"
+"Which format do you want to use for M3U playlists?"
 msgstr ""
 
 #: dialogs_i18n.py
-msgid "Use CHD Files\n(compressed)"
+msgid ""
+"Use CHD Files\n"
+"(compressed)"
 msgstr ""
 
 #: dialogs_i18n.py
-msgid "Use Original Files\n(CUE/BIN/etc)"
+msgid ""
+"Use Original Files\n"
+"(CUE/BIN/etc)"
 msgstr ""
 
 #: dialogs_i18n.py
@@ -396,7 +407,10 @@ msgid "Close"
 msgstr ""
 
 #: operations_i18n.py
-msgid "chdman is required for CHD conversion.\n\nIt should be bundled in the tools/ folder."
+msgid ""
+"chdman is required for CHD conversion.\n"
+"\n"
+"It should be bundled in the tools/ folder."
 msgstr ""
 
 #: operations_i18n.py
@@ -412,7 +426,12 @@ msgid "Conversion Complete"
 msgstr ""
 
 #: operations_i18n.py
-msgid "CHD conversion finished!\n\nConverted: {converted}\nSkipped: {skipped}\nFailed: {failed}"
+msgid ""
+"CHD conversion finished!\n"
+"\n"
+"Converted: {converted}\n"
+"Skipped: {skipped}\n"
+"Failed: {failed}"
 msgstr ""
 
 #: operations_i18n.py
@@ -427,3 +446,234 @@ msgstr ""
 msgid "M3U Creation Complete"
 msgstr ""
 
+msgid ""
+"\n"
+" CONVERT TO CHD\n"
+"━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
+"\n"
+"Compresses your disc images to save space.\n"
+"\n"
+"What it does:\n"
+"  • Converts CUE/BIN, GDI, CDI and ISO files to CHD format\n"
+"  • Reduces file size by 40-60%\n"
+"  • Preserves all game data perfectly\n"
+"\n"
+"Best for:\n"
+"  • Saving storage space\n"
+"  • RetroArch and most modern emulators\n"
+"\n"
+"Example:\n"
+"  Game.cue + Game.bin (700 MB)  →  Game.chd (~350 MB)\n"
+"\n"
+"[!] Always keep backups before converting!\n"
+"\n"
+"[~] Most games run perfectly in CHD format, but a small\n"
+"    number of titles may have compatibility issues.\n"
+"    If you experience problems, try the original format.\n"
+"\n"
+"\n"
+" CREATE M3U PLAYLISTS\n"
+"━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
+"\n"
+"Use this for multi-disc games (Disc 1, Disc 2, etc.)\n"
+"\n"
+"What it does:\n"
+"  • Creates .m3u playlist files grouping all discs per game\n"
+"  • Lets you switch discs inside your emulator during gameplay\n"
+"  • Works with CUE, GDI, CDI, ISO and CHD files\n"
+"\n"
+"Best for:\n"
+"  • PS1, PS2, Dreamcast, Saturn and Sega CD multi-disc games\n"
+"\n"
+"Example:\n"
+"  Final Fantasy VII (Disc 1).chd\n"
+"  Final Fantasy VII (Disc 2).chd\n"
+"  Final Fantasy VII (Disc 3).chd\n"
+"  \n"
+"  →  Final Fantasy VII.m3u\n"
+"    \n"
+msgstr ""
+
+msgid "Converts: CUE, GDI, CDI, ISO → CHD format"
+msgstr ""
+
+msgid "Supported: PS1, PS2, Dreamcast, Saturn, PSP"
+msgstr ""
+
+msgid "Not supported: GameCube (use GCZ), Wii (use RVZ/WBFS), Dreamcast CDI"
+msgstr ""
+
+msgid "• CHD files are compressed and save 40-60% space"
+msgstr ""
+
+msgid "• Supported by RetroArch and most modern emulators"
+msgstr ""
+
+msgid ""
+"ℹ️ Note: All disc files must be in the same folder.\n"
+"    Works with PSX, PS2, Dreamcast, Saturn, Sega CD, and more!\n"
+"    If both CUE and CHD files exist, you'll be asked which to use."
+msgstr ""
+
+msgid "Step 1: Convert all disc images to CHD"
+msgstr ""
+
+msgid "  Converts: CUE, GDI, CDI, ISO → CHD"
+msgstr ""
+
+msgid "Step 2: Create M3U playlists for multi-disc games"
+msgstr ""
+
+msgid "  Groups CHD files into playlists"
+msgstr ""
+
+msgid "• CHD Files: Full integrity verification ✓"
+msgstr ""
+
+msgid "• Cartridge ROMs: Checksum verification ✓"
+msgstr ""
+
+msgid ""
+"• ISO/CDI/GDI: Identification by name & size (Cannot verify disc image "
+"checksums)"
+msgstr ""
+
+msgid "• Compare against No-Intro & Redump databases"
+msgstr ""
+
+msgid "• Compares against No-Intro/Redump databases"
+msgstr ""
+
+msgid "• Suggests correct naming conventions"
+msgstr ""
+
+msgid "• Detects region and version information"
+msgstr ""
+
+msgid ""
+"\n"
+" CONVERT TO CHD\n"
+"━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
+"\n"
+"Compresses your disc images to save space.\n"
+"\n"
+"What it does:\n"
+"  • Converts CUE/BIN, GDI, CDI and ISO files to CHD format\n"
+"  • Reduces file size by 40-60%\n"
+"  • Preserves all game data perfectly\n"
+"\n"
+"Best for:\n"
+"  • Saving storage space\n"
+"  • RetroArch and most modern emulators\n"
+"\n"
+"Example:\n"
+"  Game.cue + Game.bin (700 MB)  →  Game.chd (~350 MB)\n"
+"\n"
+"[!] Always keep backups before converting!\n"
+"\n"
+"[~] Most games run perfectly in CHD format, but a small\n"
+"    number of titles may have compatibility issues.\n"
+"    If you experience problems, try the original format.\n"
+"\n"
+"\n"
+" CREATE M3U PLAYLISTS\n"
+"━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
+"\n"
+"Use this for multi-disc games (Disc 1, Disc 2, etc.)\n"
+"\n"
+"What it does:\n"
+"  • Creates .m3u playlist files grouping all discs per game\n"
+"  • Lets you switch discs inside your emulator during gameplay\n"
+"  • Works with CUE, GDI, CDI, ISO and CHD files\n"
+"\n"
+"Best for:\n"
+"  • PS1, PS2, Dreamcast, Saturn and Sega CD multi-disc games\n"
+"\n"
+"Example:\n"
+"  Final Fantasy VII (Disc 1).chd\n"
+"  Final Fantasy VII (Disc 2).chd\n"
+"  Final Fantasy VII (Disc 3).chd\n"
+"  \n"
+"  →  Final Fantasy VII.m3u\n"
+"    "
+msgstr ""
+
+msgid ""
+"   [x] Skipped: .cdi (DiscJuggler) format is not supported by chdman — "
+"convert to GDI first"
+msgstr ""
+
+msgid "Extract CHD to original format"
+msgstr ""
+
+msgid "Extracts CHD files back to their original format"
+msgstr ""
+
+msgid "Output: CUE/BIN for PS1, GDI for Dreamcast, ISO for DVD"
+msgstr ""
+
+msgid "• Useful if a game has compatibility issues with CHD"
+msgstr ""
+
+msgid "• Original files will be recreated in the same folder"
+msgstr ""
+
+msgid "▶ Extract CHD to Original"
+msgstr ""
+
+msgid "Extraction Complete"
+msgstr ""
+
+msgid "No CHD files found in the selected folder."
+msgstr ""
+
+msgid "Translation - choose the original name, or keep yours:"
+msgstr ""
+
+msgid "No exact match - choose a similar name, or keep yours:"
+msgstr ""
+
+msgid "Keep current name"
+msgstr ""
+
+msgid "Original: {before}  →  CHD: {after}  ·  Saved {saved} ({percent}%)"
+msgstr ""
+
+msgid "Original: {before}  →  CHD: {after}"
+msgstr ""
+
+msgid "Any incomplete extracted files will be deleted."
+msgstr ""
+
+msgid "No changes will be made to your files."
+msgstr ""
+
+msgid "No files will be renamed."
+msgstr ""
+
+msgid "The health check will stop; no files will be changed."
+msgstr ""
+
+msgid "No changes will be made."
+msgstr ""
+
+msgid "Language Changed"
+msgstr ""
+
+msgid "Restart RomMate to apply language changes."
+msgstr ""
+
+msgid "Please restart RomMate to apply the new language."
+msgstr ""
+
+msgid "Converts: CUE, GDI, ISO → CHD format"
+msgstr ""
+
+msgid "  Converts: CUE, GDI, ISO → CHD"
+msgstr ""
+
+msgid "Are you sure you want to cancel?"
+msgstr ""
+
+msgid "Any incomplete CHD files will be deleted."
+msgstr ""
