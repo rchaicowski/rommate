@@ -389,7 +389,7 @@ class RomMateGUI:
     def show_rename_dialog(self, results):
         c = self.colors
         dialog = tk.Toplevel(self.root)
-        dialog.title("ROM Name Validator - Review Changes")
+        dialog.title(_("ROM Name Validator - Review Changes"))
         dialog.configure(bg=c['bg_dark'])
         dialog.transient(self.root)
         dialog.grab_set()
@@ -406,11 +406,12 @@ class RomMateGUI:
         n_choice = sum(1 for r in results if r.get('status') == 'needs_choice')
         n_rename = len(results) - n_choice
         if n_choice == 0:
-            title_text = f"Review ROM Names ({n_rename} files need renaming)"
+            title_text = _("Review ROM Names ({count} files need renaming)").format(count=n_rename)
         elif n_rename == 0:
-            title_text = f"Review ROM Names ({n_choice} files with possible names)"
+            title_text = _("Review ROM Names ({count} files with possible names)").format(count=n_choice)
         else:
-            title_text = f"Review ROM Names ({n_rename} need renaming, {n_choice} with possible names)"
+            title_text = _("Review ROM Names ({renaming} need renaming, {choices} with possible names)").format(
+                renaming=n_rename, choices=n_choice)
         tk.Label(title_frame, text=title_text,
                  font=("Arial", 14, "bold"), bg=c['accent_blue'], fg="white").pack(expand=True)
 
@@ -452,13 +453,13 @@ class RomMateGUI:
                 # unless the user picks a name).
                 pick = tk.StringVar(value='keep')
                 choice_vars.append((pick, result))
-                tk.Label(item, text=f"Current:  {result['current_name']}",
+                tk.Label(item, text=_("Current:  {name}").format(name=result['current_name']),
                          font=("Arial", 10, "bold"), fg=c['text_light'], bg=c['bg_frame'],
                          anchor="w", justify="left", wraplength=780).pack(fill="x", padx=5, pady=(0, 2))
                 hint = (_("Translation - choose the original name, or keep yours:")
                         if result.get('is_translation')
                         else _("No exact match - choose a similar name, or keep yours:"))
-                tk.Label(item, text=f"{hint}   (System: {result['system'].upper()})",
+                tk.Label(item, text=f"{hint}   " + _("(System: {system})").format(system=result['system'].upper()),
                          font=("Arial", 8), fg=c['text_gray'], bg=c['bg_frame'],
                          anchor="w").pack(fill="x", padx=5, pady=(0, 5))
                 for i, suggestion in enumerate(result['suggestions']):
@@ -480,11 +481,12 @@ class RomMateGUI:
             tk.Checkbutton(item, text=_("Rename this file"), variable=var,
                            font=("Arial", 10, "bold"), bg=c['bg_frame'], fg=c['text_light'],
                            selectcolor=c['bg_dark'], activebackground=c['bg_frame']).pack(anchor="w")
-            tk.Label(item, text=f"Current:  {result['current_name']}",
+            tk.Label(item, text=_("Current:  {name}").format(name=result['current_name']),
                      font=("Arial", 9), fg=c['text_error'], bg=c['bg_frame'], anchor="w").pack(fill="x", padx=20, pady=(5, 2))
-            tk.Label(item, text=f"Suggested: {result['suggested_name']}",
+            tk.Label(item, text=_("Suggested: {name}").format(name=result['suggested_name']),
                      font=("Arial", 9), fg=c['text_success'], bg=c['bg_frame'], anchor="w").pack(fill="x", padx=20, pady=(2, 2))
-            tk.Label(item, text=f"Confidence: {result['confidence']} | System: {result['system'].upper()}",
+            tk.Label(item, text=_("Confidence: {confidence} | System: {system}").format(
+                              confidence=result['confidence'], system=result['system'].upper()),
                      font=("Arial", 8), fg=c['text_gray'], bg=c['bg_frame'], anchor="w").pack(fill="x", padx=20, pady=(2, 5))
 
         btn_frame = tk.Frame(content, bg=c['bg_dark'])
@@ -510,12 +512,13 @@ class RomMateGUI:
             dialog.destroy()
             try:
                 if failed == 0 and renamed == 0:
-                    messagebox.showinfo(_("Rename Complete"), "No files were renamed.")
+                    messagebox.showinfo(_("Rename Complete"), _("No files were renamed."))
                 elif failed == 0:
-                    messagebox.showinfo(_("Rename Complete"), f"Successfully renamed {renamed} file(s)!")
+                    messagebox.showinfo(_("Rename Complete"), _("Successfully renamed {count} file(s)!").format(count=renamed))
                 else:
                     messagebox.showwarning(_("Partial Success"),
-                        f"Renamed: {renamed}  |  Failed: {failed}\n\nSome files could not be renamed.")
+                        _("Renamed: {renamed}  |  Failed: {failed}\n\nSome files could not be renamed.").format(
+                            renamed=renamed, failed=failed))
             finally:
                 # Always return to the main screen, whatever happens above
                 self.reset_and_return()
@@ -532,7 +535,7 @@ class RomMateGUI:
             for v, _row in choice_vars:
                 v.set('keep')
 
-        for text, cmd in [("Select All", select_all), ("Select None", select_none)]:
+        for text, cmd in [(_("Select All"), select_all), (_("Select None"), select_none)]:
             tk.Button(btn_frame, text=text, command=cmd, font=("Arial", 10),
                       bg=c['bg_frame'], fg=c['text_light'], cursor="hand2",
                       relief="flat", padx=15, pady=8).pack(side="left", padx=(0, 10))

@@ -220,7 +220,7 @@ class ProcessingPanel:
         self.status_title.config(text=title)
         self.status_subtitle.config(text=subtitle)
         if progress is not None and total is not None and total > 0:
-            self.file_counter_label.config(text=f"{progress} / {total} files")
+            self.file_counter_label.config(text=_("{progress} / {total} files").format(progress=progress, total=total))
         if current_file:
             self.current_file_label.config(text=f">> {current_file}")
         if was_spinning:

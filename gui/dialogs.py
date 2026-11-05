@@ -142,7 +142,7 @@ def show_info_dialog(parent):
 Compresses your disc images to save space.
 
 What it does:
-  • Converts CUE/BIN, GDI, CDI and ISO files to CHD format
+  • Converts CUE/BIN, GDI and ISO files to CHD format
   • Reduces file size by 40-60%
   • Preserves all game data perfectly
 
