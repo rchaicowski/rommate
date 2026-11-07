@@ -69,7 +69,7 @@ def _check_chdman(converter, callbacks):
 # ------------------------------------------------------------------ #
 
 def convert_to_chd(folder, delete_after, converter, callbacks):
-    """Convert CUE/GDI/CDI/ISO files to CHD format."""
+    """Convert CUE/GDI/ISO files to CHD format."""
     log      = callbacks['log']
     progress = callbacks['progress']
     animate  = callbacks['animate']
@@ -78,19 +78,20 @@ def convert_to_chd(folder, delete_after, converter, callbacks):
     ret      = callbacks['return']
 
     try:
-        progress("CHD Conversion", "Checking for chdman tool...", 0, 1)
+        progress(_("CHD Conversion"), _("Checking for chdman tool..."), 0, 1)
 
         if not _check_chdman(converter, callbacks):
             return
 
-        progress("CHD Conversion", "Scanning for disc images...")
+        progress(_("CHD Conversion"), _("Scanning for disc images..."))
 
         converted, skipped, failed = converter.convert_folder(
             folder,
             delete_after=delete_after,
             log_callback=log,
             progress_callback=lambda cur, tot, fn: progress(
-                "Converting to CHD", f"Processing file {cur} of {tot}", cur, tot, fn),
+                _("Converting to CHD"), _("Processing file {current} of {total}").format(current=cur, total=tot),
+                cur, tot, fn),
             animation_callback=animate,
             cancel_check=cancel
         )
@@ -101,7 +102,7 @@ def convert_to_chd(folder, delete_after, converter, callbacks):
 
         if converted == 0 and skipped == 0 and failed == 0:
             log("\n[x] No convertible files found")
-            log("Supported formats: CUE, GDI, CDI, ISO")
+            log("Supported formats: CUE, GDI, ISO")
             messagebox.showinfo(_("No Files"), _("No convertible disc images found."))
             done(success=False)
             return
@@ -120,13 +121,14 @@ def convert_to_chd(folder, delete_after, converter, callbacks):
         done(success=failed == 0, converted=converted, skipped=skipped, failed=failed, summary=summary)
         messagebox.showinfo(
             _("Conversion Complete"),
-            f"CHD conversion finished!\n\nConverted: {converted}\nSkipped: {skipped}\nFailed: {failed}"
+            _("CHD conversion finished!\n\nConverted: {converted}\nSkipped: {skipped}\nFailed: {failed}").format(
+                converted=converted, skipped=skipped, failed=failed)
             + (f"\n\n{summary}" if summary else "")
         )
 
     except Exception as e:
         log(f"\n[x] Error: {str(e)}")
-        messagebox.showerror(_("Error"), f"An error occurred:\n{str(e)}")
+        messagebox.showerror(_("Error"), _("An error occurred:\n{error}").format(error=str(e)))
         done(success=False)
 
 
@@ -144,18 +146,19 @@ def extract_chd(folder, converter, callbacks):
     ret      = callbacks['return']
 
     try:
-        progress("CHD Extraction", "Checking for chdman tool...", 0, 1)
+        progress(_("CHD Extraction"), _("Checking for chdman tool..."), 0, 1)
 
         if not _check_chdman(converter, callbacks):
             return
 
-        progress("CHD Extraction", "Scanning for CHD files...")
+        progress(_("CHD Extraction"), _("Scanning for CHD files..."))
 
         extracted, skipped, failed = converter.extract_folder(
             folder,
             log_callback=log,
             progress_callback=lambda cur, tot, fn: progress(
-                "Extracting CHD", f"Processing file {cur} of {tot}", cur, tot, fn),
+                _("Extracting CHD"), _("Processing file {current} of {total}").format(current=cur, total=tot),
+                cur, tot, fn),
             animation_callback=animate,
             cancel_check=cancel
         )
@@ -181,12 +184,13 @@ def extract_chd(folder, converter, callbacks):
         done(success=failed == 0, converted=extracted, skipped=skipped, failed=failed)
         messagebox.showinfo(
             _("Extraction Complete"),
-            f"CHD extraction finished!\n\nExtracted: {extracted}\nSkipped: {skipped}\nFailed: {failed}"
+            _("CHD extraction finished!\n\nExtracted: {extracted}\nSkipped: {skipped}\nFailed: {failed}").format(
+                extracted=extracted, skipped=skipped, failed=failed)
         )
 
     except Exception as e:
         log(f"\n[x] Error: {str(e)}")
-        messagebox.showerror(_("Error"), f"An error occurred:\n{str(e)}")
+        messagebox.showerror(_("Error"), _("An error occurred:\n{error}").format(error=str(e)))
         done(success=False)
 
 
@@ -202,13 +206,14 @@ def create_m3u_files(folder, m3u_creator, root, callbacks):
     ret      = callbacks['return']
 
     try:
-        progress("M3U Creator", "Detecting available disc formats...")
+        progress(_("M3U Creator"), _("Detecting available disc formats..."))
 
         created, skipped, cancelled = m3u_creator.auto_detect_and_create(
             folder,
             log_callback=log,
             progress_callback=lambda cur, tot, fn: progress(
-                "Creating M3U Playlists", f"Processing game {cur} of {tot}", cur, tot, fn),
+                _("Creating M3U Playlists"), _("Processing game {current} of {total}").format(current=cur, total=tot),
+                cur, tot, fn),
             format_choice_callback=lambda: show_format_choice_dialog(root)
         )
 
@@ -230,12 +235,13 @@ def create_m3u_files(folder, m3u_creator, root, callbacks):
             done(success=True, converted=created, skipped=skipped)
             messagebox.showinfo(
                 _("M3U Creation Complete"),
-                f"M3U playlist creation finished!\n\nCreated: {created}\nSkipped: {skipped}"
+                _("M3U playlist creation finished!\n\nCreated: {created}\nSkipped: {skipped}").format(
+                    created=created, skipped=skipped)
             )
 
     except Exception as e:
         log(f"\n[x] Error: {str(e)}")
-        messagebox.showerror(_("Error"), f"An error occurred:\n{str(e)}")
+        messagebox.showerror(_("Error"), _("An error occurred:\n{error}").format(error=str(e)))
         done(success=False)
 
 
@@ -253,7 +259,7 @@ def convert_and_create_m3u(folder, delete_after, converter, callbacks):
     ret      = callbacks['return']
 
     try:
-        progress("CHD + M3U", "Step 1: Checking for chdman...")
+        progress(_("CHD + M3U"), _("Step 1: Checking for chdman..."))
 
         if not _check_chdman(converter, callbacks):
             return
@@ -265,7 +271,8 @@ def convert_and_create_m3u(folder, delete_after, converter, callbacks):
             delete_after=delete_after,
             log_callback=log,
             progress_callback=lambda cur, tot, fn: progress(
-                "Step 1: Converting to CHD", f"Processing file {cur} of {tot}", cur, tot, fn),
+                _("Step 1: Converting to CHD"), _("Processing file {current} of {total}").format(current=cur, total=tot),
+                cur, tot, fn),
             animation_callback=animate,
             cancel_check=cancel
         )
@@ -281,7 +288,7 @@ def convert_and_create_m3u(folder, delete_after, converter, callbacks):
             log(summary)
 
         log("\n=== STEP 2: M3U Creation ===\n")
-        progress("Step 2: Creating M3U", "Scanning for multi-disc games...")
+        progress(_("Step 2: Creating M3U"), _("Scanning for multi-disc games..."))
 
         multidisc_games = find_multidisc_games(
             folder, extensions=["*.chd"], log_callback=log
@@ -293,8 +300,8 @@ def convert_and_create_m3u(folder, delete_after, converter, callbacks):
             log(f"Found {total_games} multi-disc game(s)\n")
             for idx, (game_name, disc_files) in enumerate(multidisc_games.items(), 1):
                 progress(
-                    "Step 2: Creating M3U",
-                    f"Processing game {idx} of {total_games}",
+                    _("Step 2: Creating M3U"),
+                    _("Processing game {current} of {total}").format(current=idx, total=total_games),
                     idx, total_games, f"{game_name}.m3u"
                 )
                 if create_m3u_file(game_name, disc_files, folder, log):
@@ -313,7 +320,7 @@ def convert_and_create_m3u(folder, delete_after, converter, callbacks):
 
     except Exception as e:
         log(f"\n[x] Error: {str(e)}")
-        messagebox.showerror(_("Error"), f"An error occurred:\n{str(e)}")
+        messagebox.showerror(_("Error"), _("An error occurred:\n{error}").format(error=str(e)))
         done(success=False)
 
 
@@ -335,7 +342,8 @@ def check_rom_health(folder, rom_health, chd_converter, root, callbacks, after_f
                 folder,
                 log_callback=log,
                 progress_callback=lambda cur, tot, fn: progress(
-                    "Checking ROM Health", f"Verifying file {cur} of {tot}", cur, tot, fn),
+                    _("Checking ROM Health"), _("Verifying file {current} of {total}").format(current=cur, total=tot),
+                    cur, tot, fn),
                 cancel_check=cancel
             )
 
