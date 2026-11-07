@@ -662,3 +662,91 @@ msgstr ""
 "  \n"
 "  →  Final Fantasy VII.m3u\n"
 "    "
+
+msgid "CHD Conversion"
+msgstr "Conversion CHD"
+
+msgid "Checking for chdman tool..."
+msgstr "Vérification de la présence de chdman..."
+
+msgid "Scanning for disc images..."
+msgstr "Recherche des images disque..."
+
+msgid "Converting to CHD"
+msgstr "Conversion en CHD"
+
+msgid "Processing file {current} of {total}"
+msgstr "Traitement du fichier {current} sur {total}"
+
+msgid "CHD Extraction"
+msgstr "Extraction CHD"
+
+msgid "Scanning for CHD files..."
+msgstr "Recherche des fichiers CHD..."
+
+msgid "Extracting CHD"
+msgstr "Extraction du CHD"
+
+msgid ""
+"CHD extraction finished!\n"
+"\n"
+"Extracted: {extracted}\n"
+"Skipped: {skipped}\n"
+"Failed: {failed}"
+msgstr ""
+"Extraction CHD terminée !\n"
+"\n"
+"Extraits : {extracted}\n"
+"Ignorés : {skipped}\n"
+"Échecs : {failed}"
+
+msgid "M3U Creator"
+msgstr "Créateur M3U"
+
+msgid "Detecting available disc formats..."
+msgstr "Détection des formats de disque disponibles..."
+
+msgid "Creating M3U Playlists"
+msgstr "Création des Playlists M3U"
+
+msgid "Processing game {current} of {total}"
+msgstr "Traitement du jeu {current} sur {total}"
+
+msgid ""
+"M3U playlist creation finished!\n"
+"\n"
+"Created: {created}\n"
+"Skipped: {skipped}"
+msgstr ""
+"Création des playlists M3U terminée !\n"
+"\n"
+"Créées : {created}\n"
+"Ignorées : {skipped}"
+
+msgid "CHD + M3U"
+msgstr "CHD + M3U"
+
+msgid "Step 1: Checking for chdman..."
+msgstr "Étape 1 : Vérification de la présence de chdman..."
+
+msgid "Step 1: Converting to CHD"
+msgstr "Étape 1 : Conversion en CHD"
+
+msgid "Step 2: Creating M3U"
+msgstr "Étape 2 : Création M3U"
+
+msgid "Scanning for multi-disc games..."
+msgstr "Recherche des jeux multi-disques..."
+
+msgid "Checking ROM Health"
+msgstr "Vérification de l'état des ROMs"
+
+msgid "Verifying file {current} of {total}"
+msgstr "Vérification du fichier {current} sur {total}"
+
+msgid ""
+"An error occurred:\n"
+"{error}"
+msgstr ""
+"Une erreur s'est produite :\n"
+"{error}"

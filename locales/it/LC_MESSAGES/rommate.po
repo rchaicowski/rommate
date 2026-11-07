@@ -657,3 +657,91 @@ msgstr ""
 "  \n"
 "  →  Final Fantasy VII.m3u\n"
 "    "
+
+msgid "CHD Conversion"
+msgstr "Conversione CHD"
+
+msgid "Checking for chdman tool..."
+msgstr "Verifica della presenza di chdman..."
+
+msgid "Scanning for disc images..."
+msgstr "Ricerca delle immagini disco..."
+
+msgid "Converting to CHD"
+msgstr "Conversione in CHD"
+
+msgid "Processing file {current} of {total}"
+msgstr "Elaborazione del file {current} di {total}"
+
+msgid "CHD Extraction"
+msgstr "Estrazione CHD"
+
+msgid "Scanning for CHD files..."
+msgstr "Ricerca dei file CHD..."
+
+msgid "Extracting CHD"
+msgstr "Estrazione del CHD"
+
+msgid ""
+"CHD extraction finished!\n"
+"\n"
+"Extracted: {extracted}\n"
+"Skipped: {skipped}\n"
+"Failed: {failed}"
+msgstr ""
+"Estrazione CHD completata!\n"
+"\n"
+"Estratti: {extracted}\n"
+"Saltati: {skipped}\n"
+"Falliti: {failed}"
+
+msgid "M3U Creator"
+msgstr "Creatore M3U"
+
+msgid "Detecting available disc formats..."
+msgstr "Rilevamento dei formati disco disponibili..."
+
+msgid "Creating M3U Playlists"
+msgstr "Creazione Playlist M3U"
+
+msgid "Processing game {current} of {total}"
+msgstr "Elaborazione del gioco {current} di {total}"
+
+msgid ""
+"M3U playlist creation finished!\n"
+"\n"
+"Created: {created}\n"
+"Skipped: {skipped}"
+msgstr ""
+"Creazione delle playlist M3U completata!\n"
+"\n"
+"Create: {created}\n"
+"Saltate: {skipped}"
+
+msgid "CHD + M3U"
+msgstr "CHD + M3U"
+
+msgid "Step 1: Checking for chdman..."
+msgstr "Passo 1: Verifica della presenza di chdman..."
+
+msgid "Step 1: Converting to CHD"
+msgstr "Passo 1: Conversione in CHD"
+
+msgid "Step 2: Creating M3U"
+msgstr "Passo 2: Creazione M3U"
+
+msgid "Scanning for multi-disc games..."
+msgstr "Ricerca dei giochi multi-disco..."
+
+msgid "Checking ROM Health"
+msgstr "Controllo Integrità ROM"
+
+msgid "Verifying file {current} of {total}"
+msgstr "Verifica del file {current} di {total}"
+
+msgid ""
+"An error occurred:\n"
+"{error}"
+msgstr ""
+"Si è verificato un errore:\n"
+"{error}"

@@ -644,3 +644,91 @@ msgstr ""
 "  \n"
 "  →  Final Fantasy VII.m3u\n"
 "    "
+
+msgid "CHD Conversion"
+msgstr "CHD转换"
+
+msgid "Checking for chdman tool..."
+msgstr "正在检查chdman是否可用..."
+
+msgid "Scanning for disc images..."
+msgstr "正在扫描光盘镜像..."
+
+msgid "Converting to CHD"
+msgstr "正在转换为CHD"
+
+msgid "Processing file {current} of {total}"
+msgstr "正在处理文件 {current} / {total}"
+
+msgid "CHD Extraction"
+msgstr "CHD解压"
+
+msgid "Scanning for CHD files..."
+msgstr "正在扫描CHD文件..."
+
+msgid "Extracting CHD"
+msgstr "正在解压CHD"
+
+msgid ""
+"CHD extraction finished!\n"
+"\n"
+"Extracted: {extracted}\n"
+"Skipped: {skipped}\n"
+"Failed: {failed}"
+msgstr ""
+"CHD解压完成！\n"
+"\n"
+"已解压：{extracted}\n"
+"已跳过：{skipped}\n"
+"失败：{failed}"
+
+msgid "M3U Creator"
+msgstr "M3U创建器"
+
+msgid "Detecting available disc formats..."
+msgstr "正在检测可用的光盘格式..."
+
+msgid "Creating M3U Playlists"
+msgstr "正在创建M3U播放列表"
+
+msgid "Processing game {current} of {total}"
+msgstr "正在处理游戏 {current} / {total}"
+
+msgid ""
+"M3U playlist creation finished!\n"
+"\n"
+"Created: {created}\n"
+"Skipped: {skipped}"
+msgstr ""
+"M3U播放列表创建完成！\n"
+"\n"
+"已创建：{created}\n"
+"已跳过：{skipped}"
+
+msgid "CHD + M3U"
+msgstr "CHD + M3U"
+
+msgid "Step 1: Checking for chdman..."
+msgstr "第一步：正在检查chdman是否可用..."
+
+msgid "Step 1: Converting to CHD"
+msgstr "第一步：正在转换为CHD"
+
+msgid "Step 2: Creating M3U"
+msgstr "第二步：正在创建M3U"
+
+msgid "Scanning for multi-disc games..."
+msgstr "正在扫描多碟游戏..."
+
+msgid "Checking ROM Health"
+msgstr "正在检查ROM完整性"
+
+msgid "Verifying file {current} of {total}"
+msgstr "正在验证文件 {current} / {total}"
+
+msgid ""
+"An error occurred:\n"
+"{error}"
+msgstr ""
+"发生错误：\n"
+"{error}"

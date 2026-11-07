@@ -789,3 +789,80 @@ msgid ""
 "  →  Final Fantasy VII.m3u\n"
 "    "
 msgstr ""
+
+msgid "CHD Conversion"
+msgstr ""
+
+msgid "Checking for chdman tool..."
+msgstr ""
+
+msgid "Scanning for disc images..."
+msgstr ""
+
+msgid "Converting to CHD"
+msgstr ""
+
+msgid "Processing file {current} of {total}"
+msgstr ""
+
+msgid "CHD Extraction"
+msgstr ""
+
+msgid "Scanning for CHD files..."
+msgstr ""
+
+msgid "Extracting CHD"
+msgstr ""
+
+msgid ""
+"CHD extraction finished!\n"
+"\n"
+"Extracted: {extracted}\n"
+"Skipped: {skipped}\n"
+"Failed: {failed}"
+msgstr ""
+
+msgid "M3U Creator"
+msgstr ""
+
+msgid "Detecting available disc formats..."
+msgstr ""
+
+msgid "Creating M3U Playlists"
+msgstr ""
+
+msgid "Processing game {current} of {total}"
+msgstr ""
+
+msgid ""
+"M3U playlist creation finished!\n"
+"\n"
+"Created: {created}\n"
+"Skipped: {skipped}"
+msgstr ""
+
+msgid "CHD + M3U"
+msgstr ""
+
+msgid "Step 1: Checking for chdman..."
+msgstr ""
+
+msgid "Step 1: Converting to CHD"
+msgstr ""
+
+msgid "Step 2: Creating M3U"
+msgstr ""
+
+msgid "Scanning for multi-disc games..."
+msgstr ""
+
+msgid "Checking ROM Health"
+msgstr ""
+
+msgid "Verifying file {current} of {total}"
+msgstr ""
+
+msgid ""
+"An error occurred:\n"
+"{error}"
+msgstr ""
